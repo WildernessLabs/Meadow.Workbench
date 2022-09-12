@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:converters="clr-namespace:Meadow.Workbench.Converters"
+             xmlns:viewmodels="clr-namespace:Meadow.Workbench.ViewModels"
+             x:Class="Meadow.Workbench.Views.UpdateServerPage"
+             Title="Local Update Server">
+
+    <ContentPage.BindingContext>
+        <viewmodels:UpdateServerModel/>
+    </ContentPage.BindingContext>
+
+    <ContentPage.Resources>
+        <converters:ObjectToBoolConverter x:Key="objectToBool" />
+    </ContentPage.Resources>
+    
+    <VerticalStackLayout
+        Margin="10,10">
+        
+        <AbsoluteLayout>
+            <Border 
+                WidthRequest="500"
+                Margin="0,10"
+                Stroke="Blue"
+                StrokeThickness="2"            
+                Padding="5">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="10,10,10,10" />
+                </Border.StrokeShape>
+
+                <VerticalStackLayout>
+                    <HorizontalStackLayout
+                        Margin="5,5">
+                        <Button
+                            Text="Start Server"
+                            Command="{Binding StartServerCommand}" />
+                    
+                        <Button
+                            Text="Stop Server"
+                            Command="{Binding StopServerCommand}" />
+
+                        <Button
+                            Text="Publish"
+                            Command="{Binding PublishUpdateCommand}" />
+                    </HorizontalStackLayout>
+
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <Label
+                            Grid.Row="0"
+                            Grid.Column="0"
+                            FontAttributes="Bold"
+                            HorizontalTextAlignment="End"
+                            Padding="10,0"
+                            Text="Port:" />
+                        <Label
+                            Grid.Row="0"
+                            Grid.Column="1"
+                            Text="5000" />
+                        
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+            <Label
+                Margin="15,0"
+                Padding="5,0"
+                Background="White"
+                Text="Server" />
+        </AbsoluteLayout>
+
+        <AbsoluteLayout>
+            <Border 
+                WidthRequest="500"
+                Margin="0,10"
+                Stroke="Blue"
+                StrokeThickness="2"            
+                Padding="5">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="10,10,10,10" />
+                </Border.StrokeShape>
+
+                <VerticalStackLayout>
+                    <VerticalStackLayout
+                        Margin="5,5">
+                        <HorizontalStackLayout>
+                            <Label
+                                VerticalOptions="Center"
+                                Text="Update Binary Folder:" />
+                            <Entry
+                                VerticalOptions="Center"
+                                HorizontalOptions="FillAndExpand"
+                                Text="{Binding UpdateBinaryFolder}" />
+                        </HorizontalStackLayout>
+                        <ListView
+                            MinimumHeightRequest="30"
+                            ItemsSource="{Binding AvailableUpdates}"
+                            SelectedItem="{Binding SelectedUpdate}"
+                            />
+                        <Button
+                            WidthRequest="100"
+                            Text="Publish"
+                            Command="{Binding PublishUpdateCommand}"
+                            IsEnabled="{Binding SelectedUpdate,
+                                                Converter={StaticResource objectToBool}}"
+                            />
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+            <Label
+                Margin="15,0"
+                Padding="5,0"
+                Background="White"
+                Text="Updates" />
+        </AbsoluteLayout>
+    </VerticalStackLayout>
+</ContentPage>
