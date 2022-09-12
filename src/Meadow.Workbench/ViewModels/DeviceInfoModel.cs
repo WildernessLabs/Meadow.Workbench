@@ -15,7 +15,7 @@ public class DeviceInfoModel : ViewModelBase
     private string? _selectedPort;
     private ObservableCollection<FirmwareInfo> _localFirmwareVersions = new();
     private FirmwareInfo? _selectedLocalFirmware;
-    private CLI.Core.Devices.IMeadowDevice _selectedDevice;
+    private CLI.Core.Devices.IMeadowDevice? _selectedDevice;
 
     public DeviceInfoModel()
     {
@@ -116,7 +116,7 @@ public class DeviceInfoModel : ViewModelBase
         {
             MainThread.BeginInvokeOnMainThread(async () =>
             {
-                if (_selectedPort != null)
+                if (SelectedPort != null)
                 {
                     SelectedDevice = await MeadowDeviceManager.GetMeadowForSerialPort(SelectedPort);
                 }
@@ -132,6 +132,8 @@ public class DeviceInfoModel : ViewModelBase
     {
         get => new Command(async () =>
         {
+            if (SelectedDevice == null || SelectedLocalFirmware == null) return;
+
             var m = new MeadowDeviceHelper(SelectedDevice, null);
             await m.FlashOsAsync(osVersion: SelectedLocalFirmware.Version);
         });
@@ -155,6 +157,8 @@ public class DeviceInfoModel : ViewModelBase
             // TODO: remember last selected location
             try
             {
+                if (SelectedDevice == null) return;
+
                 var result = await FilePicker.Default.PickAsync(PickOptions.Default);
                 if (result != null)
                 {
@@ -165,7 +169,7 @@ public class DeviceInfoModel : ViewModelBase
             }
             catch (Exception ex)
             {
-                // The user canceled or something went wrong
+                Debug.WriteLine(ex);
             }
         });
     }

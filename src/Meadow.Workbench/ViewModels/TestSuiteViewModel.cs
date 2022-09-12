@@ -22,8 +22,6 @@ public class TestSuiteViewModel : ViewModelBase
 
     public event StatusChangedHandler StatusChanged = delegate { };
 
-    internal RestTestDirector Director { get; set; }
-
     public TestSuiteViewModel()
     {
         AssembliesToSend.CollectionChanged += (s, e) =>

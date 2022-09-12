@@ -15,7 +15,7 @@ public class UpdateServerModel : ViewModelBase
     private UpdateServer _updateServer;
     private UpdatePublisher _publisher;
     private ObservableCollection<string> _availableUpdates = new();
-    private string _selectedUpdate;
+    private string? _selectedUpdate;
 
     public UpdateServerModel()
     {
@@ -93,7 +93,7 @@ public class UpdateServerModel : ViewModelBase
         }
     }
 
-    public string SelectedUpdate
+    public string? SelectedUpdate
     {
         get => _selectedUpdate;
         set => this.RaiseAndSetIfChanged(ref _selectedUpdate, value);
