@@ -90,14 +90,7 @@ public class UpdateServerModel : ViewModelBase
 
     public string UpdateBinaryFolder
     {
-        // TODO: remember this across app runs
         get => _publisher.SourceFolder;
-        set
-        {
-            // TODO: verify this is really a folder (folder picker, maybe?)
-            _publisher.SourceFolder = value;
-            this.RaisePropertyChanged();
-        }
     }
 
     public string? SelectedUpdate

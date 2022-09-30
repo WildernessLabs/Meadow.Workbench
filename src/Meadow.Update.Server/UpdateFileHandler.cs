@@ -1,5 +1,6 @@
 ﻿using Meadow.Foundation.Web.Maple;
 using Meadow.Foundation.Web.Maple.Routing;
+using System;
 using System.IO;
 
 namespace Meadow.Update
@@ -8,11 +9,17 @@ namespace Meadow.Update
     {
         public override bool IsReusable => true;
 
+        public string SourceFolder { get; }
+
+        public UpdateFileHandler()
+        {
+            SourceFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "WildernessLabs", "Updates");
+        }
+
         [HttpGet("/update/{filename}")]
         public IActionResult GetUpdateFile(string fileName)
         {
-            var path = Path.Combine(@"f:\temp\meadow", fileName);
-            var file = Path.Combine(path, "update.zip");
+            var file = Path.Combine(SourceFolder, fileName, "update.zip");
 
             if (!File.Exists(file))
             {

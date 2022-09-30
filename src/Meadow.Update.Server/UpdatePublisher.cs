@@ -15,13 +15,20 @@ namespace Meadow.Update
     {
         private IMqttClient _client;
 
-        public string SourceFolder { get; set; } = @"F:\temp\meadow\";
+        public string SourceFolder { get; }
 
         public UpdatePublisher()
         {
             var factory = new MqttFactory();
 
             _client = factory.CreateMqttClient();
+
+            SourceFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "WildernessLabs", "Updates");
+
+            if (!Directory.Exists(SourceFolder))
+            {
+                Directory.CreateDirectory(SourceFolder);
+            }
         }
 
         public string[] GetAvailableUpdates()
