@@ -1,17 +1,14 @@
 ﻿using DynamicData;
-using Meadow.Foundation.Web.Maple;
 using Meadow.Update;
 using ReactiveUI;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Net;
 using System.Windows.Input;
 
 namespace Meadow.Workbench.ViewModels;
 
 public class UpdateServerModel : ViewModelBase
 {
-    private MapleServer _maple;
     private UpdateServer _updateServer;
     private UpdatePublisher _publisher;
     private ObservableCollection<string> _availableUpdates = new();
@@ -21,7 +18,11 @@ public class UpdateServerModel : ViewModelBase
     {
         _updateServer = new UpdateServer();
         _publisher = new UpdatePublisher();
-        _maple = new MapleServer(IPAddress.Any, 5000);
+
+        _updateServer.StateChanged += (s, e) =>
+        {
+            this.RaisePropertyChanged(nameof(ServerIsRunning));
+        };
 
         RefreshAvailableUpdatesCommand.Execute(null);
     }
@@ -31,7 +32,7 @@ public class UpdateServerModel : ViewModelBase
         get => new Command(async () =>
         {
             await _updateServer.Start();
-            _maple.Start();
+            this.RaisePropertyChanged(nameof(ServerIsRunning));
         });
     }
 
@@ -40,6 +41,7 @@ public class UpdateServerModel : ViewModelBase
         get => new Command(async () =>
         {
             await _updateServer.Stop();
+            this.RaisePropertyChanged(nameof(ServerIsRunning));
         });
     }
 
@@ -73,6 +75,11 @@ public class UpdateServerModel : ViewModelBase
                 }
             });
         });
+    }
+
+    public bool ServerIsRunning
+    {
+        get => _updateServer.IsRunning;
     }
 
     public ObservableCollection<string> AvailableUpdates

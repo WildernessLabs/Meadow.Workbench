@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:converters="clr-namespace:Meadow.Workbench.Converters"
              xmlns:viewmodels="clr-namespace:Meadow.Workbench.ViewModels"
              x:Class="Meadow.Workbench.Views.UpdateServerPage"
@@ -12,6 +13,7 @@
 
     <ContentPage.Resources>
         <converters:ObjectToBoolConverter x:Key="objectToBool" />
+        <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter" />
     </ContentPage.Resources>
     
     <VerticalStackLayout
@@ -33,15 +35,15 @@
                         Margin="5,5">
                         <Button
                             Text="Start Server"
+                            IsVisible="{Binding ServerIsRunning,
+                                                Converter={StaticResource InvertedBoolConverter}}"
                             Command="{Binding StartServerCommand}" />
                     
                         <Button
                             Text="Stop Server"
+                            IsVisible="{Binding ServerIsRunning}"
                             Command="{Binding StopServerCommand}" />
 
-                        <Button
-                            Text="Publish"
-                            Command="{Binding PublishUpdateCommand}" />
                     </HorizontalStackLayout>
 
                     <Grid>
