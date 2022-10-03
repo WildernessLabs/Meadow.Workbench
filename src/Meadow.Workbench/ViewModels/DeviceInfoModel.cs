@@ -2,6 +2,7 @@
 using Meadow.CLI.Core;
 using Meadow.CLI.Core.DeviceManagement;
 using Meadow.CLI.Core.Devices;
+using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -16,9 +17,19 @@ public class DeviceInfoModel : ViewModelBase
     private ObservableCollection<FirmwareInfo> _localFirmwareVersions = new();
     private FirmwareInfo? _selectedLocalFirmware;
     private CLI.Core.Devices.IMeadowDevice? _selectedDevice;
+    private string _consoleText = string.Empty;
+    private ILogger _logger;
 
     public DeviceInfoModel()
     {
+        var l = new CaptureLogger();
+        l.OnLogInfo += (level, info) =>
+        {
+            ConsoleText += $"{info}\r\n";
+        };
+
+        _logger = l;
+
         Task.Run(PortWatcherProc);
 
         RefreshLocalFirmwareVersionsCommand.Execute(null);
@@ -55,6 +66,12 @@ public class DeviceInfoModel : ViewModelBase
                 Debug.WriteLine(e.Message);
             }
         }
+    }
+
+    public string ConsoleText
+    {
+        get => _consoleText;
+        set => this.RaiseAndSetIfChanged(ref _consoleText, value);
     }
 
     public string? SelectedPort
@@ -110,6 +127,14 @@ public class DeviceInfoModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _selectedDevice, value);
     }
 
+    public ICommand ClearConsoleCommand
+    {
+        get => new Command(() =>
+        {
+            ConsoleText = string.Empty;
+        });
+    }
+
     public ICommand SelectDeviceCommand
     {
         get => new Command(() =>
@@ -118,7 +143,7 @@ public class DeviceInfoModel : ViewModelBase
             {
                 if (SelectedPort != null)
                 {
-                    SelectedDevice = await MeadowDeviceManager.GetMeadowForSerialPort(SelectedPort);
+                    SelectedDevice = await MeadowDeviceManager.GetMeadowForSerialPort(SelectedPort, logger: _logger);
                 }
                 else
                 {
