@@ -4,10 +4,11 @@
              xmlns:converters="clr-namespace:Meadow.Workbench.Converters"
              xmlns:viewmodels="clr-namespace:Meadow.Workbench.ViewModels"
              x:Class="Meadow.Workbench.Views.DeviceInfoPage"
-             Title="Meadow Device Information">
+             Title="Meadow Device Information"
+             BackgroundColor="{AppThemeBinding Light=White, Dark=#0B3749}">
 
     <ContentPage.BindingContext>
-        <viewmodels:DeviceInfoModel/>
+        <viewmodels:DeviceInfoViewModel/>
     </ContentPage.BindingContext>
 
     <ContentPage.Resources>
@@ -15,287 +16,390 @@
     </ContentPage.Resources>
 
     <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="auto"/>
-        </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="550" />
-            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="7*" />
+            <ColumnDefinition Width="10*" />
         </Grid.ColumnDefinitions>
         
-        <VerticalStackLayout
-            Grid.Row="0"
+        <Grid 
             Grid.Column="0"
-            Margin="10,10">
-            <AbsoluteLayout>
+            RowSpacing="10"
+            Margin="10,10,7.5,10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            
+            <Grid
+                Grid.Row="0">
                 <Border 
-                    WidthRequest="500"
-                    Margin="0,10"
-                    Stroke="Blue"
-                    StrokeThickness="2"            
+                    HorizontalOptions="FillAndExpand"
+                    Margin="0,10,0,0"
+                    Stroke="#23ABE3"
+                    StrokeThickness="2"
                     Padding="5">
                     <Border.StrokeShape>
-                        <RoundRectangle CornerRadius="10,10,10,10" />
+                        <RoundRectangle CornerRadius="10" />
                     </Border.StrokeShape>
-            
-                    <HorizontalStackLayout
-                        Margin="5,5">
-                        <Label
-                            Text="Serial Port:" />
 
-                        <ListView 
+                    <Grid
+                        ColumnSpacing="10"
+                        Margin="10,5,10,5">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        
+                        <Label 
+                            Grid.Column="0"
+                            VerticalOptions="Center"
+                            Text="Select Serial Port:" />
+
+                        <Picker 
+                            Grid.Column="1"
                             ItemsSource="{Binding Ports}"
                             SelectedItem="{Binding SelectedPort}" />
-                    </HorizontalStackLayout>
+                    </Grid>
                 </Border>
                 <Label
+                    HorizontalOptions="Start"
+                    VerticalOptions="Start"
                     Margin="15,0"
                     Padding="5,0"
-                    Background="White"
+                    Background="{AppThemeBinding Light=White, Dark=#0B3749}"
                     Text="Connection" />
-            </AbsoluteLayout>
+            </Grid>
 
-            <AbsoluteLayout>
+            <Grid
+                Grid.Row="1">
                 <Border 
-                    WidthRequest="500"
-                    Margin="0,10"
-                    Stroke="Blue"
-                    StrokeThickness="2"            
+                    Margin="0,10,0,0"
+                    Stroke="#23ABE3"
+                    StrokeThickness="2"
                     Padding="5">
                     <Border.StrokeShape>
-                        <RoundRectangle CornerRadius="10,10,10,10" />
+                        <RoundRectangle CornerRadius="10" />
                     </Border.StrokeShape>
-                
-                    <HorizontalStackLayout>
-                        <Grid
-                            Margin="5,5,20,0">
+
+                    <Grid
+                        Margin="5">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <FlexLayout
+                            Direction="Column"
+                            AlignItems="Start"
+                            JustifyContent="SpaceBetween"
+                            Grid.Column="0"
+                            VerticalOptions="Center">
+
+                            <HorizontalStackLayout>
+                                <Label
+                                    Text="Name:"
+                                    FontAttributes="Bold"
+                                    WidthRequest="120" />
+                                <Label
+                                    Text="{Binding SelectedDevice.DeviceInfo.DeviceName}" />
+                            </HorizontalStackLayout>
+
+                            <HorizontalStackLayout>
+                                <Label
+                                    Text="Serial #:"
+                                    FontAttributes="Bold"
+                                    WidthRequest="120" />
+                                <Label
+                                    Text="{Binding SelectedDevice.DeviceInfo.SerialNumber}" />
+                            </HorizontalStackLayout>
+
+                            <HorizontalStackLayout>
+                                <Label
+                                    Text="Hardware:"
+                                    FontAttributes="Bold"
+                                    WidthRequest="120" />
+                                <Label
+                                    Text="{Binding SelectedDevice.DeviceInfo.HardwareVersion}" />
+                            </HorizontalStackLayout>
+
+                            <HorizontalStackLayout>
+                                <Label
+                                    Text="OS:" 
+                                    FontAttributes="Bold"
+                                    WidthRequest="120" />
+                                <Label
+                                    Text="{Binding SelectedDevice.DeviceInfo.MeadowOsVersion}" />
+                            </HorizontalStackLayout>
+
+                            <HorizontalStackLayout>
+                                <Label
+                                    Text="Mono:"
+                                    FontAttributes="Bold"
+                                    WidthRequest="120"/>
+                                <Label
+                                    Text="{Binding SelectedDevice.DeviceInfo.MonoVersion}" />
+                            </HorizontalStackLayout>
+
+                            <HorizontalStackLayout>
+                                <Label
+                                    Text="Coprocessor:"
+                                    FontAttributes="Bold"
+                                    WidthRequest="120"/>
+                                <Label
+                                    Text="{Binding SelectedDevice.DeviceInfo.CoProcessorOsVersion}" />
+                            </HorizontalStackLayout>
+                        </FlexLayout>
+
+                        <VerticalStackLayout
+                            Grid.Column="1" 
+                            Spacing="5"
+                            VerticalOptions="Center" >
+
+                            <Button
+                                Text="Get Device Info" 
+                                Command="{Binding SelectDeviceCommand}"
+                                IsEnabled="{Binding SelectedPort, Converter={StaticResource objectToBool}}"
+                                BackgroundColor="#23ABE3" 
+                                TextColor="White">
+                                <Button.Triggers>
+                                    <DataTrigger TargetType="Button" Binding="{Binding SelectedPort, Converter={StaticResource objectToBool}}" Value="true">
+                                        <Setter Property="Opacity" Value="1" />
+                                    </DataTrigger>
+                                    <DataTrigger TargetType="Button" Binding="{Binding SelectedPort, Converter={StaticResource objectToBool}}" Value="false">
+                                        <Setter Property="Opacity" Value="0.5" />
+                                    </DataTrigger>
+                                </Button.Triggers>
+                            </Button>
+                            <Button
+                                Text="Reset" BackgroundColor="#23ABE3" TextColor="White"
+                                Command="{Binding ResetDeviceCommand}"
+                                IsEnabled="{Binding SelectedDevice, Converter={StaticResource objectToBool}}">
+                                <Button.Triggers>
+                                    <DataTrigger TargetType="Button" Binding="{Binding SelectedPort, Converter={StaticResource objectToBool}}" Value="true">
+                                        <Setter Property="Opacity" Value="1" />
+                                    </DataTrigger>
+                                    <DataTrigger TargetType="Button" Binding="{Binding SelectedPort, Converter={StaticResource objectToBool}}" Value="false">
+                                        <Setter Property="Opacity" Value="0.5" />
+                                    </DataTrigger>
+                                </Button.Triggers>
+                            </Button>
+                            <Button
+                                Text="Deploy App" BackgroundColor="#23ABE3" TextColor="White"
+                                Command="{Binding DeployAppCommand}" 
+                                IsEnabled="{Binding SelectedDevice, Converter={StaticResource objectToBool}}">
+                                <Button.Triggers>
+                                    <DataTrigger TargetType="Button" Binding="{Binding SelectedPort, Converter={StaticResource objectToBool}}" Value="true">
+                                        <Setter Property="Opacity" Value="1" />
+                                    </DataTrigger>
+                                    <DataTrigger TargetType="Button" Binding="{Binding SelectedPort, Converter={StaticResource objectToBool}}" Value="false">
+                                        <Setter Property="Opacity" Value="0.5" />
+                                    </DataTrigger>
+                                </Button.Triggers>
+                            </Button>
+                        </VerticalStackLayout>
+                    </Grid>
+                </Border>
+                <Label
+                    HorizontalOptions="Start"
+                    VerticalOptions="Start"
+                    Margin="15,0"
+                    Padding="5,0"
+                    Background="{AppThemeBinding Light=White, Dark=#0B3749}"
+                    Text="Connected Device" />
+            </Grid>
+
+            <Grid
+                Grid.Row="2">
+                <Border 
+                    Margin="0,10,0,0"
+                    Stroke="#23ABE3"
+                    StrokeThickness="2"
+                    Padding="10">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="10" />
+                    </Border.StrokeShape>
+
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <Grid 
+                            Grid.Column="0"
+                            RowSpacing="10">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
 
                             <Label
                                 Grid.Row="0"
-                                Grid.Column="0"
-                                FontAttributes="Bold"
-                                HorizontalTextAlignment="End"
-                                Padding="10,0"
-                                Text="Name:" />
-                            <Label
-                                Grid.Row="0"
-                                Grid.Column="1"
-                                Text="{Binding SelectedDevice.DeviceInfo.DeviceName}" />
-                        
-                            <Label
+                                Text="Select a Meadow.OS versions:" />
+                            
+                            <ListView
                                 Grid.Row="1"
-                                Grid.Column="0"
-                                FontAttributes="Bold"
-                                HorizontalTextAlignment="End"
-                                Padding="10,0"
-                                Text="Serial #:" />
-                            <Label
-                                Grid.Row="1"
-                                Grid.Column="1"
-                                Text="{Binding SelectedDevice.DeviceInfo.SerialNumber}" />
+                                ItemsSource="{Binding LocalFirmwareVersions}"
+                                SelectedItem="{Binding SelectedLocalFirmware}">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <ViewCell>
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="10" />
+                                                    <ColumnDefinition Width="70" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
 
-                            <Label
+                                                <Label
+                                                    Grid.Column="0"
+                                                    Text="*"
+                                                    IsVisible="{Binding IsLatest}"/>
+                                                <Label
+                                                    Grid.Column="1"
+                                                    Text="{Binding Version}" />
+                                                <Label
+                                                    Grid.Column="2"
+                                                    Text="{Binding BuildDate, StringFormat='{0:MM/dd/yy HH:mm}'}"
+                                                    Margin="10,0,0,0"/>
+                                                
+                                            </Grid>
+                                        </ViewCell>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+
+                            <Label 
                                 Grid.Row="2"
-                                Grid.Column="0"
-                                FontAttributes="Bold"
-                                HorizontalTextAlignment="End"
-                                Padding="10,0"
-                                Text="Hardware:" />
-                            <Label
-                                Grid.Row="2"
-                                Grid.Column="1"
-                                Text="{Binding SelectedDevice.DeviceInfo.HardwareVersion}" />
+                                Text="* latest production version"
+                                FontSize="Caption"
+                                HorizontalOptions="Center" />
 
-                            <Label
+                            <Button
                                 Grid.Row="3"
-                                Grid.Column="0"
-                                FontAttributes="Bold"
-                                HorizontalTextAlignment="End"
-                                Padding="10,0"
-                                Text="OS:" />
-                            <Label
-                                Grid.Row="3"
-                                Grid.Column="1"
-                                Text="{Binding SelectedDevice.DeviceInfo.MeadowOsVersion}" />
-
-                            <Label
-                                Grid.Row="4"
-                                Grid.Column="0"
-                                FontAttributes="Bold"
-                                HorizontalTextAlignment="End"
-                                Padding="10,0"
-                                Text="Mono:" />
-                            <Label
-                                Grid.Row="4"
-                                Grid.Column="1"
-                                Text="{Binding SelectedDevice.DeviceInfo.MonoVersion}" />
-
-                            <Label
-                                Grid.Row="5"
-                                Grid.Column="0"
-                                FontAttributes="Bold"
-                                HorizontalTextAlignment="End"
-                                Padding="10,0"
-                                Text="Coprocessor:" />
-                            <Label
-                                Grid.Row="5"
-                                Grid.Column="1"
-                                Text="{Binding SelectedDevice.DeviceInfo.CoProcessorOsVersion}" />
+                                Background="#23ABE3"
+                                TextColor="White"
+                                Text="Refresh"
+                                Command="{Binding RefreshLocalFirmwareVersionsCommand}" />
                         </Grid>
 
-                        <VerticalStackLayout
-                            VerticalOptions="Center">
+                        <Line 
+                            Grid.Column="1" 
+                            StrokeThickness="2"
+                            BackgroundColor="#23ABE3" />
+
+                        <VerticalStackLayout 
+                            Grid.Column="2"
+                            Spacing="5">
+
+                            <Label
+                                Text="Choose an action:" />
 
                             <Button
-                                Text="Refresh"
-                                MaximumHeightRequest="40"
-                                Command="{Binding SelectDeviceCommand}"
-                                IsEnabled="{Binding SelectedPort,
-                                                    Converter={StaticResource objectToBool}}"
-                                />
+                                Command="{Binding SendSelectedFirmwareCommand}"
+                                Margin="0,5,0,0"
+                                Background="#23ABE3"
+                                TextColor="White">
+                                <Button.Triggers>
+                                    <DataTrigger TargetType="Button" Binding="{Binding SelectedLocalFirmware, Converter={StaticResource objectToBool}}" Value="true">
+                                        <Setter Property="Text" Value="{Binding SelectedLocalFirmware.Version, StringFormat='Write {0} to Device'}" />
+                                        <Setter Property="Opacity" Value="1" />
+                                    </DataTrigger>
+                                    <DataTrigger TargetType="Button" Binding="{Binding SelectedLocalFirmware, Converter={StaticResource objectToBool}}" Value="false">
+                                        <Setter Property="Text" Value="Choose a Meadow.OS version" />
+                                        <Setter Property="Opacity" Value="0.5" />
+                                    </DataTrigger>
+                                </Button.Triggers>
+                            </Button>
                             <Button
-                                Text="Reset"
-                                MaximumHeightRequest="40"
-                                Command="{Binding ResetDeviceCommand}"
-                                IsEnabled="{Binding SelectedDevice,
-                                                    Converter={StaticResource objectToBool}}"
-                                />
+                                Text="Update Mono Runtime"
+                                Background="#23ABE3"
+                                TextColor="White">
+                                <Button.Triggers>
+                                    <DataTrigger TargetType="Button" Binding="{Binding SelectedLocalFirmware, Converter={StaticResource objectToBool}}" Value="true">
+                                        <Setter Property="Opacity" Value="1" />
+                                    </DataTrigger>
+                                    <DataTrigger TargetType="Button" Binding="{Binding SelectedLocalFirmware, Converter={StaticResource objectToBool}}" Value="false">
+                                        <Setter Property="Opacity" Value="0.5" />
+                                    </DataTrigger>
+                                </Button.Triggers>
+                            </Button>
                             <Button
-                                Text="Deploy App"
-                                MaximumHeightRequest="40"
-                                Command="{Binding DeployAppCommand}" 
-                                IsEnabled="{Binding SelectedDevice,
-                                                    Converter={StaticResource objectToBool}}"
-                                />
-
+                                Text="Flash Co-Processor"
+                                Background="#23ABE3"
+                                TextColor="White">
+                                <Button.Triggers>
+                                    <DataTrigger TargetType="Button" Binding="{Binding SelectedLocalFirmware, Converter={StaticResource objectToBool}}" Value="true">
+                                        <Setter Property="Opacity" Value="1" />
+                                    </DataTrigger>
+                                    <DataTrigger TargetType="Button" Binding="{Binding SelectedLocalFirmware, Converter={StaticResource objectToBool}}" Value="false">
+                                        <Setter Property="Opacity" Value="0.5" />
+                                    </DataTrigger>
+                                </Button.Triggers>
+                            </Button>
                         </VerticalStackLayout>
-                    </HorizontalStackLayout>
+                    </Grid>
                 </Border>
-                <Label
+                <Label 
+                    HorizontalOptions="Start"
+                    VerticalOptions="Start"
                     Margin="15,0"
                     Padding="5,0"
-                    Background="White"
-                    Text="Connected Device" />
-            </AbsoluteLayout>
-
-            <AbsoluteLayout>
-                <Border 
-                    WidthRequest="500"
-                    Margin="0,10"
-                    Stroke="Blue"
-                    StrokeThickness="2"            
-                    Padding="5">
-                    <Border.StrokeShape>
-                        <RoundRectangle CornerRadius="10,10,10,10" />
-                    </Border.StrokeShape>
-
-                    <HorizontalStackLayout>
-                    
-                        <ListView
-                            Margin="5,5,20,0"
-                            ItemsSource="{Binding LocalFirmwareVersions}"
-                            SelectedItem="{Binding SelectedLocalFirmware}">
-                            <ListView.ItemTemplate>
-                                <DataTemplate>
-                                    <ViewCell>
-                                        <Grid>
-                                            <Grid.RowDefinitions>
-                                                <RowDefinition Height="Auto" />
-                                            </Grid.RowDefinitions>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="10" />
-                                                <ColumnDefinition Width="80" />
-                                                <ColumnDefinition Width="*" />
-                                            </Grid.ColumnDefinitions>
-                                
-                                            <Label
-                                                Text="*"
-                                                Grid.Column="0"
-                                                IsVisible="{Binding IsLatest}"/>
-
-                                            <Label
-                                                Text="{Binding Version}" 
-                                                Margin="10,0"
-                                                Grid.Column="1"
-                                                />
-                                            <Label
-                                                Text="{Binding BuildDate,
-                                                               StringFormat='{0:MM/dd/yy HH:mm}'}" 
-                                                Grid.Column="2"
-                                                />
-
-                                        </Grid>
-                                    </ViewCell>
-                                </DataTemplate>
-                            </ListView.ItemTemplate>
-                        </ListView>
-
-                        <VerticalStackLayout
-                            VerticalOptions="Center">
-                            <Button
-                                Text="Refresh"
-                                MaximumHeightRequest="40"
-                                Command="{Binding RefreshLocalFirmwareVersionsCommand}" />
-                            <Button
-                                Text="{Binding SelectedLocalFirmware.Version,
-                                               StringFormat='Write {0} to Device'}"
-                                MaximumHeightRequest="40"
-                                IsVisible="{Binding SelectedLocalFirmware,
-                                                    Converter={StaticResource objectToBool}}"
-                                Command="{Binding SendSelectedFirmwareCommand}"/>
-                        </VerticalStackLayout>
-                    </HorizontalStackLayout>
-                </Border>
-                <Label
-                    Margin="15,0"
-                    Padding="5,0"
-                    Background="White"
+                    BackgroundColor="{AppThemeBinding Light=White, Dark=#0B3749}"
                     Text="Local Firmware Versions" />
-            </AbsoluteLayout>
-        </VerticalStackLayout>
-        <Grid
-            Grid.Row="0"
-            Grid.Column="1"            
-            >
-            <Grid.RowDefinitions>
-                <RowDefinition Height="200" />
-                <RowDefinition Height="50" />
-            </Grid.RowDefinitions>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="600" />
-            </Grid.ColumnDefinitions>
-            <Editor                    
-                Grid.Row="0"
-                BackgroundColor="Black"
-                TextColor="LightGray"
-                IsTextPredictionEnabled="false"
-                IsReadOnly="True"
-                FontFamily="Courier"
-                Text="{Binding ConsoleText}"
-                HorizontalOptions="Start"
-                WidthRequest="600"
-                >
-            </Editor>
-            <Button
-                Grid.Row="1"
-                Text="Clear"
-                WidthRequest="200"
-                Command="{Binding ClearConsoleCommand}"
-                >
-            </Button>
+            </Grid>
         </Grid>
+        
+        <Grid
+            Grid.Column="1"
+            Margin="7.5,10,10,10">
 
+            <Border 
+                HorizontalOptions="FillAndExpand"
+                Margin="0,10,0,0"
+                Stroke="#23ABE3"
+                StrokeThickness="2"
+                Padding="5">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="10,10,10,10" />
+                </Border.StrokeShape>
+
+                <Grid 
+                    Margin="5" 
+                    RowSpacing="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="50" />
+                    </Grid.RowDefinitions>
+                    <Editor
+                        x:Name="editor"
+                        TextChanged="Editor_TextChanged"
+                        Grid.Row="0"
+                        BackgroundColor="Black"
+                        TextColor="LightGray"
+                        IsTextPredictionEnabled="false"
+                        IsReadOnly="True"
+                        FontFamily="Courier"
+                        Text="{Binding ConsoleText}" />
+                    <Button
+                        Grid.Row="1"
+                        BackgroundColor="#23ABE3"
+                        TextColor="White"
+                        Text="Clear"
+                        Command="{Binding ClearConsoleCommand}" />
+                </Grid>
+            </Border>
+            <Label
+                HorizontalOptions="Start"
+                VerticalOptions="Start"
+                Margin="15,0"
+                Padding="5,0"
+                Background="{AppThemeBinding Light=White, Dark=#0B3749}"
+                Text="Output" />
+        </Grid>
     </Grid>
 </ContentPage>

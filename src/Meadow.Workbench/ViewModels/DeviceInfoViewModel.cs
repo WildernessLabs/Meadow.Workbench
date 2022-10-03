@@ -10,81 +10,31 @@ using System.Windows.Input;
 
 namespace Meadow.Workbench.ViewModels;
 
-public class DeviceInfoModel : ViewModelBase
+public class DeviceInfoViewModel : ViewModelBase
 {
-    private ObservableCollection<string> _ports = new();
-    private string? _selectedPort;
-    private ObservableCollection<FirmwareInfo> _localFirmwareVersions = new();
-    private FirmwareInfo? _selectedLocalFirmware;
-    private CLI.Core.Devices.IMeadowDevice? _selectedDevice;
-    private string _consoleText = string.Empty;
     private ILogger _logger;
 
-    public DeviceInfoModel()
-    {
-        var l = new CaptureLogger();
-        l.OnLogInfo += (level, info) =>
-        {
-            ConsoleText += $"{info}\r\n";
-        };
-
-        _logger = l;
-
-        Task.Run(PortWatcherProc);
-
-        RefreshLocalFirmwareVersionsCommand.Execute(null);
-    }
-
-    private async Task PortWatcherProc()
-    {
-        while (true)
-        {
-            await Task.Delay(5000);
-
-            var ports = (await MeadowDeviceManager.GetSerialPorts()).ToArray();
-
-            var newItems = ports.Except(Ports).ToArray();
-            var removedItems = Ports.Except(ports).ToArray();
-
-            try
-            {
-                MainThread.BeginInvokeOnMainThread(() =>
-                {
-                    try
-                    {
-                        Ports.AddRange(newItems);
-                        Ports.RemoveMany(removedItems);
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine(ex.Message);
-                    }
-                });
-            }
-            catch (Exception e)
-            {
-                Debug.WriteLine(e.Message);
-            }
-        }
-    }
-
+    private string _consoleText = string.Empty;
     public string ConsoleText
     {
         get => _consoleText;
         set => this.RaiseAndSetIfChanged(ref _consoleText, value);
     }
 
+    private string? _selectedPort;
     public string? SelectedPort
     {
         get => _selectedPort;
         set => this.RaiseAndSetIfChanged(ref _selectedPort, value);
     }
 
+    private ObservableCollection<string> _ports = new();
     public ObservableCollection<string> Ports
     {
         get => _ports;
     }
 
+    private FirmwareInfo? _selectedLocalFirmware;
     public FirmwareInfo? SelectedLocalFirmware
     {
         get => _selectedLocalFirmware;
@@ -116,11 +66,13 @@ public class DeviceInfoModel : ViewModelBase
         });
     }
 
+    private ObservableCollection<FirmwareInfo> _localFirmwareVersions = new();
     public ObservableCollection<FirmwareInfo> LocalFirmwareVersions
     {
         get => _localFirmwareVersions;
     }
 
+    private CLI.Core.Devices.IMeadowDevice? _selectedDevice;
     public CLI.Core.Devices.IMeadowDevice? SelectedDevice
     {
         get => _selectedDevice;
@@ -198,4 +150,54 @@ public class DeviceInfoModel : ViewModelBase
             }
         });
     }
+
+    public DeviceInfoViewModel()
+    {
+        var l = new CaptureLogger();
+        l.OnLogInfo += (level, info) =>
+        {
+            ConsoleText += $"{info}\r\n";
+        };
+
+        _logger = l;
+
+        Task.Run(PortWatcherProc);
+
+        RefreshLocalFirmwareVersionsCommand.Execute(null);
+    }
+
+    private async Task PortWatcherProc()
+    {
+        while (true)
+        {
+            await Task.Delay(5000);
+
+            var ports = (await MeadowDeviceManager.GetSerialPorts()).ToArray();
+
+            var newItems = ports.Except(Ports).ToArray();
+            var removedItems = Ports.Except(ports).ToArray();
+
+            try
+            {
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    try
+                    {
+                        Ports.AddRange(newItems);
+                        Ports.RemoveMany(removedItems);
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine(ex.Message);
+                    }
+                });
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.Message);
+            }
+        }
+    }
+
+
 }
