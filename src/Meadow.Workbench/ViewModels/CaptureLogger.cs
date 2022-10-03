@@ -10,6 +10,10 @@ public class CaptureLogger : ILogger
 
     public IDisposable BeginScope<TState>(TState state) => default!;
 
+    public CaptureLogger()
+    {
+    }
+
     public bool IsEnabled(LogLevel logLevel)
     {
         return true;

@@ -6,7 +6,7 @@ namespace Meadow.Workbench;
 
 public partial class App : Application
 {
-    public App()
+    public App(AppShell shell)
     {
         InitializeComponent();
 
@@ -23,6 +23,6 @@ public partial class App : Application
 #endif
         });
 
-        MainPage = new AppShell();
+        MainPage = shell;
     }
 }

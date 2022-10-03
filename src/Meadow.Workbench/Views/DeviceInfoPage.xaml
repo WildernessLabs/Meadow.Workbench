@@ -7,10 +7,11 @@
              Title="Meadow Device Information"
              BackgroundColor="{AppThemeBinding Light=White, Dark=#0B3749}">
 
+    <!--
     <ContentPage.BindingContext>
         <viewmodels:DeviceInfoViewModel/>
     </ContentPage.BindingContext>
-
+    -->
     <ContentPage.Resources>
         <converters:ObjectToBoolConverter x:Key="objectToBool" />
     </ContentPage.Resources>
@@ -102,7 +103,7 @@
                                     FontAttributes="Bold"
                                     WidthRequest="120" />
                                 <Label
-                                    Text="{Binding SelectedDevice.DeviceInfo.DeviceName}" />
+                                    Text="{Binding SelectedConnection.Device.DeviceInfo.DeviceName}" />
                             </HorizontalStackLayout>
 
                             <HorizontalStackLayout>
@@ -111,7 +112,7 @@
                                     FontAttributes="Bold"
                                     WidthRequest="120" />
                                 <Label
-                                    Text="{Binding SelectedDevice.DeviceInfo.SerialNumber}" />
+                                    Text="{Binding SelectedConnection.Device.DeviceInfo.SerialNumber}" />
                             </HorizontalStackLayout>
 
                             <HorizontalStackLayout>
@@ -120,7 +121,7 @@
                                     FontAttributes="Bold"
                                     WidthRequest="120" />
                                 <Label
-                                    Text="{Binding SelectedDevice.DeviceInfo.HardwareVersion}" />
+                                    Text="{Binding SelectedConnection.Device.DeviceInfo.HardwareVersion}" />
                             </HorizontalStackLayout>
 
                             <HorizontalStackLayout>
@@ -129,7 +130,7 @@
                                     FontAttributes="Bold"
                                     WidthRequest="120" />
                                 <Label
-                                    Text="{Binding SelectedDevice.DeviceInfo.MeadowOsVersion}" />
+                                    Text="{Binding SelectedConnection.Device.DeviceInfo.MeadowOsVersion}" />
                             </HorizontalStackLayout>
 
                             <HorizontalStackLayout>
@@ -138,7 +139,7 @@
                                     FontAttributes="Bold"
                                     WidthRequest="120"/>
                                 <Label
-                                    Text="{Binding SelectedDevice.DeviceInfo.MonoVersion}" />
+                                    Text="{Binding SelectedConnection.Device.DeviceInfo.MonoVersion}" />
                             </HorizontalStackLayout>
 
                             <HorizontalStackLayout>
@@ -147,7 +148,7 @@
                                     FontAttributes="Bold"
                                     WidthRequest="120"/>
                                 <Label
-                                    Text="{Binding SelectedDevice.DeviceInfo.CoProcessorOsVersion}" />
+                                    Text="{Binding SelectedConnection.Device.DeviceInfo.CoProcessorOsVersion}" />
                             </HorizontalStackLayout>
                         </FlexLayout>
 
@@ -155,31 +156,15 @@
                             Grid.Column="1" 
                             Spacing="5"
                             VerticalOptions="Center" >
-
-                            <Button
-                                Text="Get Device Info" 
-                                Command="{Binding SelectDeviceCommand}"
-                                IsEnabled="{Binding SelectedPort, Converter={StaticResource objectToBool}}"
-                                BackgroundColor="#23ABE3" 
-                                TextColor="White">
-                                <Button.Triggers>
-                                    <DataTrigger TargetType="Button" Binding="{Binding SelectedPort, Converter={StaticResource objectToBool}}" Value="true">
-                                        <Setter Property="Opacity" Value="1" />
-                                    </DataTrigger>
-                                    <DataTrigger TargetType="Button" Binding="{Binding SelectedPort, Converter={StaticResource objectToBool}}" Value="false">
-                                        <Setter Property="Opacity" Value="0.5" />
-                                    </DataTrigger>
-                                </Button.Triggers>
-                            </Button>
                             <Button
                                 Text="Reset" BackgroundColor="#23ABE3" TextColor="White"
                                 Command="{Binding ResetDeviceCommand}"
-                                IsEnabled="{Binding SelectedDevice, Converter={StaticResource objectToBool}}">
+                                IsEnabled="{Binding MeadowConnected, Converter={StaticResource objectToBool}}">
                                 <Button.Triggers>
-                                    <DataTrigger TargetType="Button" Binding="{Binding SelectedPort, Converter={StaticResource objectToBool}}" Value="true">
+                                    <DataTrigger TargetType="Button" Binding="{Binding MeadowConnected, Converter={StaticResource objectToBool}}" Value="true">
                                         <Setter Property="Opacity" Value="1" />
                                     </DataTrigger>
-                                    <DataTrigger TargetType="Button" Binding="{Binding SelectedPort, Converter={StaticResource objectToBool}}" Value="false">
+                                    <DataTrigger TargetType="Button" Binding="{Binding MeadowConnected, Converter={StaticResource objectToBool}}" Value="false">
                                         <Setter Property="Opacity" Value="0.5" />
                                     </DataTrigger>
                                 </Button.Triggers>
@@ -187,12 +172,12 @@
                             <Button
                                 Text="Deploy App" BackgroundColor="#23ABE3" TextColor="White"
                                 Command="{Binding DeployAppCommand}" 
-                                IsEnabled="{Binding SelectedDevice, Converter={StaticResource objectToBool}}">
+                                IsEnabled="{Binding MeadowConnected, Converter={StaticResource objectToBool}}">
                                 <Button.Triggers>
-                                    <DataTrigger TargetType="Button" Binding="{Binding SelectedPort, Converter={StaticResource objectToBool}}" Value="true">
+                                    <DataTrigger TargetType="Button" Binding="{Binding MeadowConnected, Converter={StaticResource objectToBool}}" Value="true">
                                         <Setter Property="Opacity" Value="1" />
                                     </DataTrigger>
-                                    <DataTrigger TargetType="Button" Binding="{Binding SelectedPort, Converter={StaticResource objectToBool}}" Value="false">
+                                    <DataTrigger TargetType="Button" Binding="{Binding MeadowConnected, Converter={StaticResource objectToBool}}" Value="false">
                                         <Setter Property="Opacity" Value="0.5" />
                                     </DataTrigger>
                                 </Button.Triggers>
@@ -206,7 +191,7 @@
                     Margin="15,0"
                     Padding="5,0"
                     Background="{AppThemeBinding Light=White, Dark=#0B3749}"
-                    Text="Connected Device" />
+                    Text="{Binding MeadowConnected, StringFormat='Device Connected: {0}'}" />
             </Grid>
 
             <Grid
@@ -375,16 +360,20 @@
                         <RowDefinition Height="*" />
                         <RowDefinition Height="50" />
                     </Grid.RowDefinitions>
-                    <Editor
-                        x:Name="editor"
-                        TextChanged="Editor_TextChanged"
-                        Grid.Row="0"
-                        BackgroundColor="Black"
-                        TextColor="LightGray"
-                        IsTextPredictionEnabled="false"
-                        IsReadOnly="True"
-                        FontFamily="Courier"
-                        Text="{Binding ConsoleText}" />
+                    <CollectionView
+                        BackgroundColor="Black"                        
+                        ItemsSource="{Binding ConsoleOutput}"
+                        ItemsUpdatingScrollMode="KeepLastItemInView"
+                        >
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Label 
+                                    Text="{Binding .}" 
+                                    FontFamily="Courier New" 
+                                    TextColor="LightGray" />
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>                        
+                    </CollectionView>
                     <Button
                         Grid.Row="1"
                         BackgroundColor="#23ABE3"

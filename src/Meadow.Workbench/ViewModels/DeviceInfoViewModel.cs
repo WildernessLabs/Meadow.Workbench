@@ -1,7 +1,5 @@
 ﻿using DynamicData;
 using Meadow.CLI.Core;
-using Meadow.CLI.Core.DeviceManagement;
-using Meadow.CLI.Core.Devices;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using System.Collections.ObjectModel;
@@ -12,20 +10,37 @@ namespace Meadow.Workbench.ViewModels;
 
 public class DeviceInfoViewModel : ViewModelBase
 {
-    private ILogger _logger;
+    private CaptureLogger _logger;
+    private MeadowConnectionManager _connectionManager;
 
-    private string _consoleText = string.Empty;
-    public string ConsoleText
+    private ObservableCollection<string> _consoleOutput = new ObservableCollection<string>();
+    public ObservableCollection<string> ConsoleOutput
     {
-        get => _consoleText;
-        set => this.RaiseAndSetIfChanged(ref _consoleText, value);
+        get => _consoleOutput;
+    }
+
+    private bool _meadowConnected = false;
+    public bool MeadowConnected
+    {
+        get => _meadowConnected;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _meadowConnected, value);
+            // this will force a device info refresh
+            this.RaisePropertyChanged(nameof(SelectedConnection));
+        }
     }
 
     private string? _selectedPort;
     public string? SelectedPort
     {
         get => _selectedPort;
-        set => this.RaiseAndSetIfChanged(ref _selectedPort, value);
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _selectedPort, value);
+
+            SelectedConnection = _connectionManager[value];
+        }
     }
 
     private ObservableCollection<string> _ports = new();
@@ -72,36 +87,34 @@ public class DeviceInfoViewModel : ViewModelBase
         get => _localFirmwareVersions;
     }
 
-    private CLI.Core.Devices.IMeadowDevice? _selectedDevice;
-    public CLI.Core.Devices.IMeadowDevice? SelectedDevice
+    private IMeadowConnection? _selectedConnection;
+    public IMeadowConnection? SelectedConnection
     {
-        get => _selectedDevice;
-        set => this.RaiseAndSetIfChanged(ref _selectedDevice, value);
+        get => _selectedConnection;
+        set
+        {
+            if (value != null)
+            {
+                MeadowConnected = value.IsConnected;
+
+                // TODO: when we change connections, remove old handlers
+                value.ConnectionStateChanged += (connection, newState) =>
+                {
+                    MeadowConnected = newState;
+                };
+
+                value.AutoReconnect = true;
+            }
+
+            this.RaiseAndSetIfChanged(ref _selectedConnection, value);
+        }
     }
 
     public ICommand ClearConsoleCommand
     {
         get => new Command(() =>
         {
-            ConsoleText = string.Empty;
-        });
-    }
-
-    public ICommand SelectDeviceCommand
-    {
-        get => new Command(() =>
-        {
-            MainThread.BeginInvokeOnMainThread(async () =>
-            {
-                if (SelectedPort != null)
-                {
-                    SelectedDevice = await MeadowDeviceManager.GetMeadowForSerialPort(SelectedPort, logger: _logger);
-                }
-                else
-                {
-                    SelectedDevice = null;
-                }
-            });
+            ConsoleOutput.Clear();
         });
     }
 
@@ -109,10 +122,10 @@ public class DeviceInfoViewModel : ViewModelBase
     {
         get => new Command(async () =>
         {
-            if (SelectedDevice == null || SelectedLocalFirmware == null) return;
+            //            if (SelectedDevice == null || SelectedLocalFirmware == null) return;
 
-            var m = new MeadowDeviceHelper(SelectedDevice, null);
-            await m.FlashOsAsync(osVersion: SelectedLocalFirmware.Version);
+            //            var m = new MeadowDeviceHelper(SelectedDevice, null);
+            //            await m.FlashOsAsync(osVersion: SelectedLocalFirmware.Version);
         });
     }
 
@@ -120,10 +133,7 @@ public class DeviceInfoViewModel : ViewModelBase
     {
         get => new Command(() =>
         {
-            _ = SelectedDevice?.ResetMeadowAsync();
-            SelectedDevice = null;
-            SelectedPort = null;
-            _ports.Clear();
+            SelectedConnection?.Device?.ResetMeadowAsync();
         });
     }
 
@@ -134,14 +144,14 @@ public class DeviceInfoViewModel : ViewModelBase
             // TODO: remember last selected location
             try
             {
-                if (SelectedDevice == null) return;
+                if (SelectedConnection == null) return;
 
                 var result = await FilePicker.Default.PickAsync(PickOptions.Default);
                 if (result != null)
                 {
                     var path = result.FullPath;
-                    var m = new MeadowDeviceHelper(SelectedDevice, null);
-                    await m.DeployAppAsync(path);
+                    //                    var m = new MeadowDeviceHelper(SelectedDevice, null);
+                    //                    await m.DeployAppAsync(path);
                 }
             }
             catch (Exception ex)
@@ -151,53 +161,37 @@ public class DeviceInfoViewModel : ViewModelBase
         });
     }
 
-    public DeviceInfoViewModel()
+    public DeviceInfoViewModel(ILogger logger, MeadowConnectionManager connectionManager)
     {
-        var l = new CaptureLogger();
-        l.OnLogInfo += (level, info) =>
+        _logger = logger as CaptureLogger;
+        if (_logger == null)
         {
-            ConsoleText += $"{info}\r\n";
+            _logger = new CaptureLogger();
+        }
+
+        _logger.OnLogInfo += (level, info) =>
+        {
+            ConsoleOutput.Add(info);
         };
 
-        _logger = l;
-
-        Task.Run(PortWatcherProc);
+        _connectionManager = connectionManager;
+        _connectionManager.ConnectionAdded += OnConnectionAdded;
 
         RefreshLocalFirmwareVersionsCommand.Execute(null);
     }
 
-    private async Task PortWatcherProc()
+    private void OnConnectionAdded(IMeadowConnection connection)
     {
-        while (true)
+        MainThread.BeginInvokeOnMainThread(() =>
         {
-            await Task.Delay(5000);
-
-            var ports = (await MeadowDeviceManager.GetSerialPorts()).ToArray();
-
-            var newItems = ports.Except(Ports).ToArray();
-            var removedItems = Ports.Except(ports).ToArray();
-
             try
             {
-                MainThread.BeginInvokeOnMainThread(() =>
-                {
-                    try
-                    {
-                        Ports.AddRange(newItems);
-                        Ports.RemoveMany(removedItems);
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine(ex.Message);
-                    }
-                });
+                Ports.Add(connection.Name);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Debug.WriteLine(e.Message);
+                Debug.WriteLine(ex.Message);
             }
-        }
+        });
     }
-
-
 }
