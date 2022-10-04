@@ -1,6 +1,5 @@
 ﻿using DynamicData;
 using Meadow.CLI.Core;
-using Meadow.CLI.Core.Internals.Dfu;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using System.Collections.ObjectModel;
@@ -158,76 +157,13 @@ public class DeviceInfoViewModel : ViewModelBase
 
     private async Task UpdateFirmware(FirmwareInfo version, IMeadowConnection connection)
     {
+        if (connection == null || connection.Device == null || !connection.IsConnected) return;
+
         try
         {
-            if (connection == null || connection.Device == null || !connection.IsConnected) return;
-            connection.AutoReconnect = false;
-
             // TODO: tell user to power with boot button pressed?
 
-            await connection.Device.EnterDfuModeAsync().ConfigureAwait(false);
-
-            var success = await DfuUtils.DfuFlashAsync(
-                string.Empty,
-                version.Version,
-                null,
-                _logger).ConfigureAwait(false);
-
-            await connection.Device.MonoDisableAsync()
-                .ConfigureAwait(false);
-
-            await Task.Delay(2000);
-            connection.Disconnect();
-            await Task.Delay(5000);
-
-            connection.Connect();
-            while (!connection.IsConnected)
-            {
-                // wait for re-connection?
-                await Task.Delay(1000);
-            }
-
-            await connection.Device.UpdateMonoRuntimeAsync(
-                null,
-                osVersion: version.Version);
-
-            await Task.Delay(2000);
-            connection.Disconnect();
-            await Task.Delay(5000);
-
-            connection.Connect();
-            while (!connection.IsConnected)
-            {
-                // wait for re-connection?
-                await Task.Delay(1000);
-            }
-
-            await connection.Device.MonoDisableAsync().ConfigureAwait(false);
-
-            await Task.Delay(2000);
-
-            while (!connection.IsConnected)
-            {
-                // wait for re-connection?
-                await Task.Delay(1000);
-            }
-
-            await connection.Device.FlashEspAsync(DownloadManager.FirmwareDownloadsFilePath, version.Version)
-                               .ConfigureAwait(false);
-
-            // Reset the meadow again to ensure flash worked.
-            await connection.Device.ResetMeadowAsync()
-                               .ConfigureAwait(false);
-
-            await Task.Delay(2000);
-            connection.Disconnect();
-            await Task.Delay(5000);
-
-            connection.Connect();
-
-            await connection.Device
-                            .GetDeviceInfoAsync(TimeSpan.FromSeconds(60))
-                            .ConfigureAwait(false);
+            await FirmwareManager.PushFirmwareToDevice(connection, version.Version, _logger);
         }
         catch (Exception ex)
         {
@@ -237,6 +173,14 @@ public class DeviceInfoViewModel : ViewModelBase
         {
             connection.AutoReconnect = true;
         }
+
+        // refresh the device info
+
+        await connection.WaitForConnection(TimeSpan.FromSeconds(5));
+
+        await connection.Device
+                        .GetDeviceInfoAsync(TimeSpan.FromSeconds(60))
+                        .ConfigureAwait(false);
     }
 
     public ICommand ResetDeviceCommand
