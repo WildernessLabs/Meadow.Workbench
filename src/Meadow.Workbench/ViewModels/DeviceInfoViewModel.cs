@@ -1,5 +1,6 @@
 ﻿using DynamicData;
 using Meadow.CLI.Core;
+using Meadow.CLI.Core.Internals.Dfu;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using System.Collections.ObjectModel;
@@ -160,8 +161,17 @@ public class DeviceInfoViewModel : ViewModelBase
         try
         {
             if (connection == null || connection.Device == null || !connection.IsConnected) return;
-
             connection.AutoReconnect = false;
+
+            // TODO: tell user to power with boot button pressed?
+
+            await connection.Device.EnterDfuModeAsync().ConfigureAwait(false);
+
+            var success = await DfuUtils.DfuFlashAsync(
+                string.Empty,
+                version.Version,
+                null,
+                _logger).ConfigureAwait(false);
 
             await connection.Device.MonoDisableAsync()
                 .ConfigureAwait(false);
