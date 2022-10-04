@@ -161,11 +161,16 @@ public class DeviceInfoViewModel : ViewModelBase
         {
             if (connection == null || connection.Device == null || !connection.IsConnected) return;
 
+            connection.AutoReconnect = false;
+
             await connection.Device.MonoDisableAsync()
                 .ConfigureAwait(false);
 
             await Task.Delay(2000);
+            connection.Disconnect();
+            await Task.Delay(5000);
 
+            connection.Connect();
             while (!connection.IsConnected)
             {
                 // wait for re-connection?
@@ -173,11 +178,14 @@ public class DeviceInfoViewModel : ViewModelBase
             }
 
             await connection.Device.UpdateMonoRuntimeAsync(
-                DownloadManager.FirmwareDownloadsFilePath,
+                null,
                 osVersion: version.Version);
 
             await Task.Delay(2000);
+            connection.Disconnect();
+            await Task.Delay(5000);
 
+            connection.Connect();
             while (!connection.IsConnected)
             {
                 // wait for re-connection?
@@ -201,14 +209,23 @@ public class DeviceInfoViewModel : ViewModelBase
             await connection.Device.ResetMeadowAsync()
                                .ConfigureAwait(false);
 
-            // TODO: Verify that the device info returns the expected version
+            await Task.Delay(2000);
+            connection.Disconnect();
+            await Task.Delay(5000);
+
+            connection.Connect();
+
             await connection.Device
-                                   .GetDeviceInfoAsync(TimeSpan.FromSeconds(60))
-                                   .ConfigureAwait(false);
+                            .GetDeviceInfoAsync(TimeSpan.FromSeconds(60))
+                            .ConfigureAwait(false);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error flashing OS to Meadow");
+        }
+        finally
+        {
+            connection.AutoReconnect = true;
         }
     }
 
@@ -254,7 +271,10 @@ public class DeviceInfoViewModel : ViewModelBase
 
         _logger.OnLogInfo += (level, info) =>
         {
-            ConsoleOutput.Add(info);
+            lock (ConsoleOutput)
+            {
+                ConsoleOutput.Add(info);
+            }
         };
 
         _connectionManager = connectionManager;

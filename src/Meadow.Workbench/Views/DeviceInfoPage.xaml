@@ -366,7 +366,7 @@
                     <CollectionView
                         BackgroundColor="Black"                        
                         ItemsSource="{Binding ConsoleOutput}"
-                        ItemsUpdatingScrollMode="KeepLastItemInView"
+                        ItemsUpdatingScrollMode="KeepLastItemInView"                        
                         >
                         <CollectionView.ItemTemplate>
                             <DataTemplate>
