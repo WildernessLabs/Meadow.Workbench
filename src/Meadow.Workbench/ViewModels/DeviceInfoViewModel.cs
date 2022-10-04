@@ -149,11 +149,67 @@ public class DeviceInfoViewModel : ViewModelBase
     {
         get => new Command(async () =>
         {
-            //            if (SelectedDevice == null || SelectedLocalFirmware == null) return;
+            if (SelectedLocalFirmware == null || SelectedConnection == null) return;
 
-            //            var m = new MeadowDeviceHelper(SelectedDevice, null);
-            //            await m.FlashOsAsync(osVersion: SelectedLocalFirmware.Version);
+            await UpdateFirmware(SelectedLocalFirmware, SelectedConnection);
         });
+    }
+
+    private async Task UpdateFirmware(FirmwareInfo version, IMeadowConnection connection)
+    {
+        try
+        {
+            if (connection == null || connection.Device == null || !connection.IsConnected) return;
+
+            await connection.Device.MonoDisableAsync()
+                .ConfigureAwait(false);
+
+            await Task.Delay(2000);
+
+            while (!connection.IsConnected)
+            {
+                // wait for re-connection?
+                await Task.Delay(1000);
+            }
+
+            await connection.Device.UpdateMonoRuntimeAsync(
+                DownloadManager.FirmwareDownloadsFilePath,
+                osVersion: version.Version);
+
+            await Task.Delay(2000);
+
+            while (!connection.IsConnected)
+            {
+                // wait for re-connection?
+                await Task.Delay(1000);
+            }
+
+            await connection.Device.MonoDisableAsync().ConfigureAwait(false);
+
+            await Task.Delay(2000);
+
+            while (!connection.IsConnected)
+            {
+                // wait for re-connection?
+                await Task.Delay(1000);
+            }
+
+            await connection.Device.FlashEspAsync(DownloadManager.FirmwareDownloadsFilePath, version.Version)
+                               .ConfigureAwait(false);
+
+            // Reset the meadow again to ensure flash worked.
+            await connection.Device.ResetMeadowAsync()
+                               .ConfigureAwait(false);
+
+            // TODO: Verify that the device info returns the expected version
+            await connection.Device
+                                   .GetDeviceInfoAsync(TimeSpan.FromSeconds(60))
+                                   .ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error flashing OS to Meadow");
+        }
     }
 
     public ICommand ResetDeviceCommand
