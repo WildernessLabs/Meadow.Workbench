@@ -7,15 +7,10 @@
              Title="Meadow Device Information"
              BackgroundColor="{AppThemeBinding Light=White, Dark=#0B3749}">
 
-    <!--
-    <ContentPage.BindingContext>
-        <viewmodels:DeviceInfoViewModel/>
-    </ContentPage.BindingContext>
-    -->
     <ContentPage.Resources>
         <converters:ObjectToBoolConverter x:Key="objectToBool" />
     </ContentPage.Resources>
-
+    
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="7*" />
@@ -220,6 +215,7 @@
                                 <RowDefinition Height="*" />
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
 
                             <Label
@@ -270,6 +266,13 @@
                                 TextColor="White"
                                 Text="Refresh"
                                 Command="{Binding RefreshLocalFirmwareVersionsCommand}" />
+                            
+                            <Button
+                                Grid.Row="4"
+                                Background="#23ABE3"
+                                TextColor="White"
+                                Text="Download New"
+                                Command="{Binding GetFirmwareCommand}" />
                         </Grid>
 
                         <Line 

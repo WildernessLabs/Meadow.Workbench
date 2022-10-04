@@ -56,6 +56,33 @@ public class DeviceInfoViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _selectedLocalFirmware, value);
     }
 
+
+    public ICommand GetFirmwareCommand
+    {
+        get => new Command(async () =>
+        {
+            string version = await App.Current.MainPage.DisplayPromptAsync("Firmware Download", "What is the version number?");
+
+            if (string.IsNullOrEmpty(version))
+            {
+                // abort
+                return;
+            }
+
+            var fi = await FirmwareManager.GetRemoteFirmwareInfo(version, _logger);
+            if (fi == null)
+            {
+                await App.Current.MainPage.DisplayAlert("Firmware Download", $"Version {version} does not exist.", "OK");
+            }
+            else
+            {
+                // download
+                await FirmwareManager.GetRemoteFirmware(version, _logger);
+                RefreshLocalFirmwareVersionsCommand.Execute(null);
+            }
+        });
+    }
+
     public ICommand RefreshLocalFirmwareVersionsCommand
     {
         get => new Command(() =>
