@@ -6,7 +6,7 @@ namespace Meadow.Workbench;
 
 public partial class App : Application
 {
-    public App(AppShell shell)
+    public App(AppShell shell, UserSettingsService settings)
     {
         InitializeComponent();
 
@@ -19,10 +19,18 @@ public partial class App : Application
             IntPtr windowHandle = WinRT.Interop.WindowNative.GetWindowHandle(nativeWindow);
             WindowId windowId = Win32Interop.GetWindowIdFromWindow(windowHandle);
             AppWindow appWindow = AppWindow.GetFromWindowId(windowId);
-            appWindow.Resize(new SizeInt32(1366, 768));
+
+            appWindow.Resize(new SizeInt32((int)settings.Settings.ShellSize.Width, (int)settings.Settings.ShellSize.Height));
+            appWindow.Move(new PointInt32((int)settings.Settings.ShellPosition.X, (int)settings.Settings.ShellPosition.Y));
 #endif
         });
 
         MainPage = shell;
     }
+
+    protected override Window CreateWindow(IActivationState? activationState)
+    {
+        return base.CreateWindow(activationState);
+    }
+
 }

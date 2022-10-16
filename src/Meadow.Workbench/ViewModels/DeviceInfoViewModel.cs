@@ -5,6 +5,7 @@ using ReactiveUI;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Windows.Input;
+using static Meadow.Workbench.MauiProgram;
 
 namespace Meadow.Workbench.ViewModels;
 
@@ -12,6 +13,33 @@ public class DeviceInfoViewModel : ViewModelBase
 {
     private CaptureLogger _logger;
     private MeadowConnectionManager _connectionManager;
+    private UserSettingsService _settingsService;
+    private IFolderPicker _folderPicker;
+
+    public DeviceInfoViewModel(ILogger logger, MeadowConnectionManager connectionManager, UserSettingsService settingsService, IFolderPicker folderPicker)
+    {
+        _logger = logger as CaptureLogger;
+        if (_logger == null)
+        {
+            _logger = new CaptureLogger();
+        }
+
+        _logger.OnLogInfo += (level, info) =>
+        {
+            lock (ConsoleOutput)
+            {
+                ConsoleOutput.Add(info);
+            }
+        };
+
+        _folderPicker = folderPicker;
+        _settingsService = settingsService;
+
+        _connectionManager = connectionManager;
+        _connectionManager.ConnectionAdded += OnConnectionAdded;
+
+        RefreshLocalFirmwareVersionsCommand.Execute(null);
+    }
 
     private ObservableCollection<string> _consoleOutput = new ObservableCollection<string>();
     public ObservableCollection<string> ConsoleOutput
@@ -200,41 +228,29 @@ public class DeviceInfoViewModel : ViewModelBase
             {
                 if (SelectedConnection == null) return;
 
-                var result = await FilePicker.Default.PickAsync(PickOptions.Default);
-                if (result != null)
+                var pickedFolder = await _folderPicker.PickFolder();
+
+                // see if there's an App.exe in the folder
+                var app = Directory.GetFiles(pickedFolder, "App.dll").FirstOrDefault();
+
+                if (app == null)
                 {
-                    var path = result.FullPath;
-                    //                    var m = new MeadowDeviceHelper(SelectedDevice, null);
-                    //                    await m.DeployAppAsync(path);
+                    await App.Current.MainPage.DisplayAlert("Invalid Location", $"Select a folder containing a compiled 'App.dll'.", "OK");
+                    return;
                 }
+
+                // app name is the project name - look in the folder above "bin"
+                var projectFolder = pickedFolder.Substring(0, pickedFolder.IndexOf("\\bin"));
+                var projectFile = Directory.GetFiles(projectFolder, "*proj").FirstOrDefault();
+                var appName = "";
+
+
             }
             catch (Exception ex)
             {
                 Debug.WriteLine(ex);
             }
         });
-    }
-
-    public DeviceInfoViewModel(ILogger logger, MeadowConnectionManager connectionManager)
-    {
-        _logger = logger as CaptureLogger;
-        if (_logger == null)
-        {
-            _logger = new CaptureLogger();
-        }
-
-        _logger.OnLogInfo += (level, info) =>
-        {
-            lock (ConsoleOutput)
-            {
-                ConsoleOutput.Add(info);
-            }
-        };
-
-        _connectionManager = connectionManager;
-        _connectionManager.ConnectionAdded += OnConnectionAdded;
-
-        RefreshLocalFirmwareVersionsCommand.Execute(null);
     }
 
     private void OnConnectionAdded(IMeadowConnection connection)
