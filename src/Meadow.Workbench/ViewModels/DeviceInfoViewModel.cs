@@ -259,11 +259,10 @@ public class DeviceInfoViewModel : ViewModelBase
         });
     }
 
-    public ICommand DeployAppCommand
+    public ICommand BrowseAppCommand
     {
         get => new Command(async () =>
         {
-            // TODO: remember last selected location
             try
             {
                 if (SelectedConnection == null) return;
@@ -283,9 +282,37 @@ public class DeviceInfoViewModel : ViewModelBase
                 }
 
                 _settingsService.Settings.KnownApplications.Add(pickedFolder);
+                _settingsService.SaveCurrentSettings();
                 KnownApps.Add(info);
                 SelectedApp = info;
 
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex);
+            }
+        });
+    }
+
+    public ICommand DeployAppCommand
+    {
+        get => new Command(async () =>
+        {
+            if (SelectedConnection == null || SelectedApp == null) return;
+
+            try
+            {
+                var connection = SelectedConnection;
+                var osVersion = SelectedConnection.Device.DeviceInfo.MeadowOsVersion;
+
+                await connection.Device.MonoDisable();
+
+                await Task.Delay(1000);
+
+                // wait for reconnect
+                await connection.WaitForConnection(TimeSpan.FromSeconds(15));
+
+                await connection.Device.DeployApp(SelectedApp.FullName, osVersion);
             }
             catch (Exception ex)
             {
@@ -308,29 +335,4 @@ public class DeviceInfoViewModel : ViewModelBase
             }
         });
     }
-}
-
-public class AppInfo
-{
-    private FileInfo _fi;
-
-    public AppInfo(DirectoryInfo di)
-    {
-        // see if there's an App.exe in the folder
-        _fi = di.GetFiles("App.dll").FirstOrDefault();
-
-        if (_fi == null)
-        {
-            throw new Exception("Invalid Location");
-        }
-
-        // app name is the project name - look in the folder above "bin"
-        var projectFolder = di.FullName.Substring(0, di.FullName.IndexOf("\\bin"));
-        var projectFile = Directory.GetFiles(projectFolder, "*proj").FirstOrDefault();
-
-        Name = Path.GetFileNameWithoutExtension(projectFile);
-    }
-
-    public string Name { get; init; }
-    public DateTime LastChanged => _fi.LastWriteTime;
 }
