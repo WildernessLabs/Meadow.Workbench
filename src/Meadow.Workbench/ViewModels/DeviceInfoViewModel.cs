@@ -5,7 +5,6 @@ using ReactiveUI;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Windows.Input;
-using static Meadow.Workbench.MauiProgram;
 
 namespace Meadow.Workbench.ViewModels;
 
@@ -39,6 +38,7 @@ public class DeviceInfoViewModel : ViewModelBase
         _connectionManager.ConnectionAdded += OnConnectionAdded;
 
         RefreshLocalFirmwareVersionsCommand.Execute(null);
+        RefreshKnownApps();
     }
 
     private ObservableCollection<string> _consoleOutput = new ObservableCollection<string>();
@@ -165,6 +165,47 @@ public class DeviceInfoViewModel : ViewModelBase
         }
     }
 
+    private AppInfo? _selectedApp;
+    public AppInfo? SelectedApp
+    {
+        get => _selectedApp;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _selectedApp, value);
+        }
+    }
+
+    private ObservableCollection<AppInfo> _knownApps = new();
+    public ObservableCollection<AppInfo> KnownApps
+    {
+        get => _knownApps;
+    }
+
+    private void RefreshKnownApps()
+    {
+        KnownApps.Clear();
+        var updatedList = false;
+        foreach (var app in _settingsService.Settings.KnownApplications)
+        {
+            var di = new DirectoryInfo(app);
+            if (di.Exists)
+            {
+                KnownApps.Add(new AppInfo(di));
+            }
+            else
+            {
+                // doesn't exist, so remove it
+                _settingsService.Settings.KnownApplications.Remove(app);
+                updatedList = true;
+            }
+        }
+
+        if (updatedList)
+        {
+            _settingsService.SaveCurrentSettings();
+        }
+    }
+
     public ICommand ClearConsoleCommand
     {
         get => new Command(() =>
@@ -207,15 +248,14 @@ public class DeviceInfoViewModel : ViewModelBase
         await connection.WaitForConnection(TimeSpan.FromSeconds(5));
 
         await connection.Device
-                        .GetDeviceInfoAsync(TimeSpan.FromSeconds(60))
-                        .ConfigureAwait(false);
+                        .GetDeviceInfo(TimeSpan.FromSeconds(60));
     }
 
     public ICommand ResetDeviceCommand
     {
         get => new Command(() =>
         {
-            SelectedConnection?.Device?.ResetMeadowAsync();
+            SelectedConnection?.Device?.ResetMeadow();
         });
     }
 
@@ -230,20 +270,21 @@ public class DeviceInfoViewModel : ViewModelBase
 
                 var pickedFolder = await _folderPicker.PickFolder();
 
-                // see if there's an App.exe in the folder
-                var app = Directory.GetFiles(pickedFolder, "App.dll").FirstOrDefault();
+                AppInfo info;
 
-                if (app == null)
+                try
+                {
+                    info = new AppInfo(new DirectoryInfo(pickedFolder));
+                }
+                catch
                 {
                     await App.Current.MainPage.DisplayAlert("Invalid Location", $"Select a folder containing a compiled 'App.dll'.", "OK");
                     return;
                 }
 
-                // app name is the project name - look in the folder above "bin"
-                var projectFolder = pickedFolder.Substring(0, pickedFolder.IndexOf("\\bin"));
-                var projectFile = Directory.GetFiles(projectFolder, "*proj").FirstOrDefault();
-                var appName = "";
-
+                _settingsService.Settings.KnownApplications.Add(pickedFolder);
+                KnownApps.Add(info);
+                SelectedApp = info;
 
             }
             catch (Exception ex)
@@ -267,4 +308,29 @@ public class DeviceInfoViewModel : ViewModelBase
             }
         });
     }
+}
+
+public class AppInfo
+{
+    private FileInfo _fi;
+
+    public AppInfo(DirectoryInfo di)
+    {
+        // see if there's an App.exe in the folder
+        _fi = di.GetFiles("App.dll").FirstOrDefault();
+
+        if (_fi == null)
+        {
+            throw new Exception("Invalid Location");
+        }
+
+        // app name is the project name - look in the folder above "bin"
+        var projectFolder = di.FullName.Substring(0, di.FullName.IndexOf("\\bin"));
+        var projectFile = Directory.GetFiles(projectFolder, "*proj").FirstOrDefault();
+
+        Name = Path.GetFileNameWithoutExtension(projectFile);
+    }
+
+    public string Name { get; init; }
+    public DateTime LastChanged => _fi.LastWriteTime;
 }
