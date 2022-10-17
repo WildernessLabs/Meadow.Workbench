@@ -248,15 +248,14 @@ public class DeviceInfoViewModel : ViewModelBase
         await connection.WaitForConnection(TimeSpan.FromSeconds(5));
 
         await connection.Device
-                        .GetDeviceInfoAsync(TimeSpan.FromSeconds(60))
-                        .ConfigureAwait(false);
+                        .GetDeviceInfo(TimeSpan.FromSeconds(60));
     }
 
     public ICommand ResetDeviceCommand
     {
         get => new Command(() =>
         {
-            SelectedConnection?.Device?.ResetMeadowAsync();
+            SelectedConnection?.Device?.ResetMeadow();
         });
     }
 

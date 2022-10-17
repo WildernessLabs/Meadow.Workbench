@@ -1,8 +1,4 @@
-﻿using Microsoft.UI;
-using Microsoft.UI.Windowing;
-using Windows.Graphics;
-
-namespace Meadow.Workbench;
+﻿namespace Meadow.Workbench;
 
 public partial class App : Application
 {
@@ -16,12 +12,13 @@ public partial class App : Application
             var mauiWindow = handler.VirtualView;
             var nativeWindow = handler.PlatformView;
             nativeWindow.Activate();
-            IntPtr windowHandle = WinRT.Interop.WindowNative.GetWindowHandle(nativeWindow);
-            WindowId windowId = Win32Interop.GetWindowIdFromWindow(windowHandle);
-            AppWindow appWindow = AppWindow.GetFromWindowId(windowId);
+            
+            var windowHandle = WinRT.Interop.WindowNative.GetWindowHandle(nativeWindow);
+            var windowId = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(windowHandle);
+            var appWindow = Microsoft.UI.Windowing.AppWindow.GetFromWindowId(windowId);
 
-            appWindow.Resize(new SizeInt32((int)settings.Settings.ShellSize.Width, (int)settings.Settings.ShellSize.Height));
-            appWindow.Move(new PointInt32((int)settings.Settings.ShellPosition.X, (int)settings.Settings.ShellPosition.Y));
+            appWindow.Resize(new Windows.Graphics.SizeInt32((int)settings.Settings.ShellSize.Width, (int)settings.Settings.ShellSize.Height));
+            appWindow.Move(new Windows.Graphics.PointInt32((int)settings.Settings.ShellPosition.X, (int)settings.Settings.ShellPosition.Y));
 #endif
         });
 
