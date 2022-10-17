@@ -23,8 +23,9 @@
             Margin="10,10,7.5,10">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
+                <RowDefinition Height="160" />
+                <RowDefinition Height="2*" />
+                <RowDefinition Height="3*" />
             </Grid.RowDefinitions>
             
             <Grid
@@ -164,19 +165,6 @@
                                     </DataTrigger>
                                 </Button.Triggers>
                             </Button>
-                            <Button
-                                Text="Deploy App" BackgroundColor="#23ABE3" TextColor="White"
-                                Command="{Binding DeployAppCommand}" 
-                                IsEnabled="{Binding MeadowConnected, Converter={StaticResource objectToBool}}">
-                                <Button.Triggers>
-                                    <DataTrigger TargetType="Button" Binding="{Binding MeadowConnected, Converter={StaticResource objectToBool}}" Value="true">
-                                        <Setter Property="Opacity" Value="1" />
-                                    </DataTrigger>
-                                    <DataTrigger TargetType="Button" Binding="{Binding MeadowConnected, Converter={StaticResource objectToBool}}" Value="false">
-                                        <Setter Property="Opacity" Value="0.5" />
-                                    </DataTrigger>
-                                </Button.Triggers>
-                            </Button>
                         </VerticalStackLayout>
                     </Grid>
                 </Border>
@@ -188,9 +176,103 @@
                     Background="{AppThemeBinding Light=White, Dark=#0B3749}"
                     Text="{Binding MeadowConnected, StringFormat='Device Connected: {0}'}" />
             </Grid>
-
             <Grid
                 Grid.Row="2">
+                <Border 
+                    Margin="0,10,0,0"
+                    Stroke="#23ABE3"
+                    StrokeThickness="2"
+                    Padding="5">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="10" />
+                    </Border.StrokeShape>
+                </Border>
+                
+                <Grid
+                    Margin="5">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <VerticalStackLayout
+                        Margin="5,15"
+                        Grid.Column="0">
+                        <Label
+                            Text="Select an App to deploy:" />
+
+                        <ListView
+                            ItemsSource="{Binding KnownApps}"
+                            SelectedItem="{Binding SelectedApp}">
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <ViewCell>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="70" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <Label
+                                                Grid.Column="0"
+                                                Text="{Binding Name}" />
+                                            <Label
+                                                Grid.Column="1"
+                                                Text="{Binding LastChanged, StringFormat='{0:MM/dd/yy HH:mm}'}"
+                                                Margin="10,0,0,0"/>
+
+                                        </Grid>
+                                    </ViewCell>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+
+                    </VerticalStackLayout>
+                    
+                    <VerticalStackLayout
+                        Margin="0,15,5,0"
+                        Grid.Column="1">
+
+                        <Button
+                            Text="Browse" BackgroundColor="#23ABE3" TextColor="White"
+                            Command="{Binding BrowseAppCommand}" 
+                            IsEnabled="{Binding SelectedApp, Converter={StaticResource objectToBool}}">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button" Binding="{Binding MeadowConnected, Converter={StaticResource objectToBool}}" Value="true">
+                                    <Setter Property="Opacity" Value="1" />
+                                </DataTrigger>
+                                <DataTrigger TargetType="Button" Binding="{Binding MeadowConnected, Converter={StaticResource objectToBool}}" Value="false">
+                                    <Setter Property="Opacity" Value="0.5" />
+                                </DataTrigger>
+                            </Button.Triggers>
+                        </Button>
+                        <Button
+                            Text="Deploy App" BackgroundColor="#23ABE3" TextColor="White"
+                            Command="{Binding DeployAppCommand}" 
+                            IsEnabled="{Binding MeadowConnected, Converter={StaticResource objectToBool}}">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button" Binding="{Binding MeadowConnected, Converter={StaticResource objectToBool}}" Value="true">
+                                    <Setter Property="Opacity" Value="1" />
+                                </DataTrigger>
+                                <DataTrigger TargetType="Button" Binding="{Binding MeadowConnected, Converter={StaticResource objectToBool}}" Value="false">
+                                    <Setter Property="Opacity" Value="0.5" />
+                                </DataTrigger>
+                            </Button.Triggers>
+                        </Button>
+                    </VerticalStackLayout>
+                </Grid>
+                
+                <Label 
+                    HorizontalOptions="Start"
+                    VerticalOptions="Start"
+                    Margin="15,0"
+                    Padding="5,0"
+                    BackgroundColor="{AppThemeBinding Light=White, Dark=#0B3749}"
+                    Text="Applications" />
+            </Grid>
+
+            <Grid
+                Grid.Row="3">
                 <Border 
                     Margin="0,10,0,0"
                     Stroke="#23ABE3"
