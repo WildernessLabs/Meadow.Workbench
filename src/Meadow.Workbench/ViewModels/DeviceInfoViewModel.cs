@@ -27,7 +27,14 @@ public class DeviceInfoViewModel : ViewModelBase
         {
             lock (ConsoleOutput)
             {
-                ConsoleOutput.Add(info);
+                try
+                {
+                    ConsoleOutput.Add(info);
+                }
+                catch (ArgumentOutOfRangeException)
+                {
+                    // feels like a bug in the MAUI control here - just ignore it
+                }
             }
         };
 
@@ -302,17 +309,14 @@ public class DeviceInfoViewModel : ViewModelBase
 
             try
             {
-                var connection = SelectedConnection;
-                var osVersion = SelectedConnection.Device.DeviceInfo.MeadowOsVersion;
+                var di = new DirectoryInfo(Path.GetDirectoryName(SelectedApp.FullName));
+                if (!di.Exists)
+                {
+                    await App.Current.MainPage.DisplayAlert("Invalid Location", $"Select a valid folder containing 'App.dll'.", "OK");
+                    return;
+                }
 
-                await connection.Device.MonoDisable();
-
-                await Task.Delay(1000);
-
-                // wait for reconnect
-                await connection.WaitForConnection(TimeSpan.FromSeconds(15));
-
-                await connection.Device.DeployApp(SelectedApp.FullName, osVersion);
+                await FirmwareManager.PushApplicationToDevice(SelectedConnection, di, _logger);
             }
             catch (Exception ex)
             {
