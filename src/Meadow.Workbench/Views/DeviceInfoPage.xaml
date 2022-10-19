@@ -360,22 +360,30 @@
                             <Label
                                 Text="Choose an action:" />
 
-                            <Button
-                                Command="{Binding SendSelectedFirmwareCommand}"
-                                Margin="0,5,0,0"
-                                Background="#23ABE3"
-                                TextColor="White">
-                                <Button.Triggers>
-                                    <DataTrigger TargetType="Button" Binding="{Binding SelectedLocalFirmware, Converter={StaticResource objectToBool}}" Value="true">
-                                        <Setter Property="Text" Value="{Binding SelectedLocalFirmware.Version, StringFormat='Write {0} to Device'}" />
-                                        <Setter Property="Opacity" Value="1" />
-                                    </DataTrigger>
-                                    <DataTrigger TargetType="Button" Binding="{Binding SelectedLocalFirmware, Converter={StaticResource objectToBool}}" Value="false">
-                                        <Setter Property="Text" Value="Choose a Meadow.OS version" />
-                                        <Setter Property="Opacity" Value="0.5" />
-                                    </DataTrigger>
-                                </Button.Triggers>
-                            </Button>
+                            <HorizontalStackLayout>
+                                <Button
+                                    Command="{Binding SendSelectedFirmwareCommand}"
+                                    Margin="0,5,0,0"
+                                    Background="#23ABE3"
+                                    TextColor="White">
+                                    <Button.Triggers>
+                                        <DataTrigger TargetType="Button" Binding="{Binding SelectedLocalFirmware, Converter={StaticResource objectToBool}}" Value="true">
+                                            <Setter Property="Text" Value="{Binding SelectedLocalFirmware.Version, StringFormat='Write {0} to Device'}" />
+                                            <Setter Property="Opacity" Value="1" />
+                                        </DataTrigger>
+                                        <DataTrigger TargetType="Button" Binding="{Binding SelectedLocalFirmware, Converter={StaticResource objectToBool}}" Value="false">
+                                            <Setter Property="Text" Value="Choose a Meadow.OS version" />
+                                            <Setter Property="Opacity" Value="0.5" />
+                                        </DataTrigger>
+                                    </Button.Triggers>
+                                </Button>
+                                <Label
+                                    Text="Use DFU"
+                                    VerticalOptions="Center"/>
+                                <CheckBox
+                                    IsChecked="{Binding UseDfuMode}" />
+
+                            </HorizontalStackLayout>
                             <Button
                                 Text="Update Mono Runtime"
                                 Background="#23ABE3"

@@ -91,6 +91,16 @@ public class DeviceInfoViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _selectedLocalFirmware, value);
     }
 
+    private bool _useDFU = false;
+    public bool UseDfuMode
+    {
+        get => _useDFU;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _useDFU, value);
+            this.RaisePropertyChanged(nameof(UseDfuMode));
+        }
+    }
 
     public ICommand GetFirmwareCommand
     {
@@ -225,7 +235,10 @@ public class DeviceInfoViewModel : ViewModelBase
     {
         get => new Command(async () =>
         {
-            if (SelectedLocalFirmware == null || SelectedConnection == null) return;
+            if (!UseDfuMode)
+            {
+                if (SelectedLocalFirmware == null || SelectedConnection == null) return;
+            }
 
             await UpdateFirmware(SelectedLocalFirmware, SelectedConnection);
         });
@@ -233,13 +246,16 @@ public class DeviceInfoViewModel : ViewModelBase
 
     private async Task UpdateFirmware(FirmwareInfo version, IMeadowConnection connection)
     {
-        if (connection == null || connection.Device == null || !connection.IsConnected) return;
+        if (!UseDfuMode)
+        {
+            if (connection == null || connection.Device == null || !connection.IsConnected) return;
+        }
 
         try
         {
             // TODO: tell user to power with boot button pressed?
 
-            await FirmwareManager.PushFirmwareToDevice(connection, version.Version, _logger);
+            await FirmwareManager.PushFirmwareToDevice(_connectionManager, connection, version.Version, _logger);
         }
         catch (Exception ex)
         {
