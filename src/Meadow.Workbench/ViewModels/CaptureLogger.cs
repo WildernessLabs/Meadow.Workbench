@@ -10,6 +10,8 @@ public class CaptureLogger : ILogger
 
     public IDisposable BeginScope<TState>(TState state) => default!;
 
+    public LogLevel Level { get; set; } = LogLevel.Information;
+
     public CaptureLogger()
     {
     }
@@ -21,13 +23,15 @@ public class CaptureLogger : ILogger
 
     public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
     {
+        if (logLevel < Level) return;
+
         if (state is string s)
         {
             OnLogInfo(logLevel, s);
         }
         else
         {
-            OnLogInfo(logLevel, state.ToString());
+            OnLogInfo(logLevel, state?.ToString() ?? String.Empty);
         }
     }
 }

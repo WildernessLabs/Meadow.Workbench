@@ -1,5 +1,6 @@
 ﻿using DynamicData;
 using Meadow.CLI.Core;
+using Meadow.CLI.Core.Exceptions;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using System.Collections.ObjectModel;
@@ -23,19 +24,24 @@ public class DeviceInfoViewModel : ViewModelBase
             _logger = new CaptureLogger();
         }
 
+        SelectedLogLevel = LogLevel.Information;
+
         _logger.OnLogInfo += (level, info) =>
         {
-            lock (ConsoleOutput)
+            MainThread.BeginInvokeOnMainThread(() =>
             {
-                try
+                lock (ConsoleOutput)
                 {
-                    ConsoleOutput.Add(info);
+                    try
+                    {
+                        ConsoleOutput.Add(info);
+                    }
+                    catch (ArgumentOutOfRangeException)
+                    {
+                        // feels like a bug in the MAUI control here - just ignore it
+                    }
                 }
-                catch (ArgumentOutOfRangeException)
-                {
-                    // feels like a bug in the MAUI control here - just ignore it
-                }
-            }
+            });
         };
 
         _folderPicker = folderPicker;
@@ -46,6 +52,22 @@ public class DeviceInfoViewModel : ViewModelBase
 
         RefreshLocalFirmwareVersionsCommand.Execute(null);
         RefreshKnownApps();
+    }
+
+    public LogLevel _logLevel;
+    public LogLevel SelectedLogLevel
+    {
+        get => _logLevel;
+        set
+        {
+            _logger.Level = value;
+            this.RaiseAndSetIfChanged(ref _logLevel, value);
+        }
+    }
+
+    public LogLevel[] LogLevels
+    {
+        get => Enum.GetValues(typeof(LogLevel)).Cast<LogLevel>().ToArray();
     }
 
     private ObservableCollection<string> _consoleOutput = new ObservableCollection<string>();
@@ -244,7 +266,7 @@ public class DeviceInfoViewModel : ViewModelBase
         });
     }
 
-    private async Task UpdateFirmware(FirmwareInfo version, IMeadowConnection connection)
+    private async Task UpdateFirmware(FirmwareInfo version, IMeadowConnection? connection)
     {
         if (!UseDfuMode)
         {
@@ -257,13 +279,21 @@ public class DeviceInfoViewModel : ViewModelBase
 
             await FirmwareManager.PushFirmwareToDevice(_connectionManager, connection, version.Version, _logger);
         }
+        catch (DeviceNotFoundException)
+        {
+            await App.Current.MainPage.DisplayAlert("Device Not Found", $"No connected Meadow device found", "OK");
+            return;
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error flashing OS to Meadow");
         }
         finally
         {
-            connection.AutoReconnect = true;
+            if (connection != null)
+            {
+                connection.AutoReconnect = true;
+            }
         }
 
         // refresh the device info
