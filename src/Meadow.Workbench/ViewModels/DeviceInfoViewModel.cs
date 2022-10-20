@@ -296,12 +296,20 @@ public class DeviceInfoViewModel : ViewModelBase
             }
         }
 
-        // refresh the device info
+        if (connection != null)
+        {
+            // refresh the device info
+            try
+            {
+                await connection.WaitForConnection(TimeSpan.FromSeconds(5));
 
-        await connection.WaitForConnection(TimeSpan.FromSeconds(5));
-
-        await connection.Device
-                        .GetDeviceInfo(TimeSpan.FromSeconds(60));
+                await connection.Device.GetDeviceInfo(TimeSpan.FromSeconds(60));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed getting device info");
+            }
+        }
     }
 
     public ICommand ResetDeviceCommand
