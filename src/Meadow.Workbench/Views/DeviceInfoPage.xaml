@@ -272,20 +272,34 @@
                     <Border.StrokeShape>
                         <RoundRectangle CornerRadius="10" />
                     </Border.StrokeShape>
-
                     <Grid ColumnSpacing="10">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="20" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <Label
+                            Grid.Row="0"
+                            Grid.ColumnSpan="3"
+                            BackgroundColor="Red"
+                            TextColor="White"
+                            Text="{Binding LatestFirwareVersion, StringFormat='New version {0} is available'}"
+                            IsVisible="{Binding FirmwareUpdateAvailable}" />
+
 
                         <Grid 
+                            Grid.Row="1"
                             Grid.Column="0"
                             RowSpacing="10">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="*" />
+                                <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
@@ -339,21 +353,31 @@
                                 TextColor="White"
                                 Text="Refresh"
                                 Command="{Binding RefreshLocalFirmwareVersionsCommand}" />
-                            
+
                             <Button
                                 Grid.Row="4"
                                 Background="#23ABE3"
                                 TextColor="White"
-                                Text="Download New"
+                                IsVisible="{Binding FirmwareUpdateAvailable}"
+                                Text="{Binding LatestFirwareVersion, StringFormat='Download {0}'}"
+                                Command="{Binding DownloadLatestFirmwareCommand}" />
+                            
+                            <Button
+                                Grid.Row="5"
+                                Background="#23ABE3"
+                                TextColor="White"
+                                Text="Download Specific"
                                 Command="{Binding GetFirmwareCommand}" />
                         </Grid>
 
                         <Line 
+                            Grid.Row="1"                            
                             Grid.Column="1" 
                             StrokeThickness="2"
                             BackgroundColor="#23ABE3" />
 
                         <VerticalStackLayout 
+                            Grid.Row="1"
                             Grid.Column="2"
                             Spacing="5">
 
