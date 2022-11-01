@@ -51,7 +51,9 @@ public class DeviceInfoViewModel : ViewModelBase
         _connectionManager.ConnectionAdded += OnConnectionAdded;
 
         RefreshLocalFirmwareVersionsCommand.Execute(null);
+        CheckForNewFirmware();
         RefreshKnownApps();
+        Task.Run(() => RtcUpdater());
     }
 
     public LogLevel _logLevel;
@@ -113,6 +115,20 @@ public class DeviceInfoViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _selectedLocalFirmware, value);
     }
 
+    private bool _firmwareUpdateAvailable;
+    public bool FirmwareUpdateAvailable
+    {
+        get => _firmwareUpdateAvailable;
+        set => this.RaiseAndSetIfChanged(ref _firmwareUpdateAvailable, value);
+    }
+
+    private string _latestFirwareVersion;
+    public string LatestFirwareVersion
+    {
+        get => _latestFirwareVersion;
+        set => this.RaiseAndSetIfChanged(ref _latestFirwareVersion, value);
+    }
+
     private bool _useDFU = false;
     public bool UseDfuMode
     {
@@ -122,6 +138,17 @@ public class DeviceInfoViewModel : ViewModelBase
             this.RaiseAndSetIfChanged(ref _useDFU, value);
             this.RaisePropertyChanged(nameof(UseDfuMode));
         }
+    }
+
+    public ICommand DownloadLatestFirmwareCommand
+    {
+        get => new Command(async () =>
+        {
+            // download
+            await FirmwareManager.GetRemoteFirmware(LatestFirwareVersion, _logger);
+            RefreshLocalFirmwareVersionsCommand.Execute(null);
+            CheckForNewFirmware();
+        });
     }
 
     public ICommand GetFirmwareCommand
@@ -214,6 +241,16 @@ public class DeviceInfoViewModel : ViewModelBase
         }
     }
 
+    private DateTimeOffset? _lastRtc;
+    public DateTimeOffset? LastRtc
+    {
+        get => _lastRtc;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _lastRtc, value);
+        }
+    }
+
     private ObservableCollection<AppInfo> _knownApps = new();
     public ObservableCollection<AppInfo> KnownApps
     {
@@ -245,11 +282,33 @@ public class DeviceInfoViewModel : ViewModelBase
         }
     }
 
+    private void CheckForNewFirmware()
+    {
+        Task.Run(async () =>
+        {
+            LatestFirwareVersion = await FirmwareManager.GetCloudLatestFirmwareVersion();
+            var match = LocalFirmwareVersions.FirstOrDefault(v => v.Version == LatestFirwareVersion);
+
+            FirmwareUpdateAvailable = match == null;
+        });
+    }
+
     public ICommand ClearConsoleCommand
     {
         get => new Command(() =>
         {
             ConsoleOutput.Clear();
+        });
+    }
+
+    public ICommand RefreshDeviceInfo
+    {
+        get => new Command(async () =>
+        {
+            if (SelectedConnection == null || SelectedConnection.Device == null) return;
+
+            await SelectedConnection.Device.GetDeviceInfo(TimeSpan.FromSeconds(5));
+            this.RaisePropertyChanged(nameof(SelectedConnection));
         });
     }
 
@@ -276,8 +335,9 @@ public class DeviceInfoViewModel : ViewModelBase
         try
         {
             // TODO: tell user to power with boot button pressed?
-
-            await FirmwareManager.PushFirmwareToDevice(_connectionManager, connection, version.Version, _logger);
+            var updater = FirmwareManager.GetFirmwareUpdater(_connectionManager);
+            // TODO: watch the state to update the UI?
+            await updater.Update(connection, version.Version);
         }
         catch (DeviceNotFoundException)
         {
@@ -379,6 +439,23 @@ public class DeviceInfoViewModel : ViewModelBase
         });
     }
 
+    public ICommand TimeSyncCommand
+    {
+        get => new Command(async () =>
+        {
+            if (SelectedConnection == null || SelectedConnection.Device == null) return;
+
+            try
+            {
+                await SelectedConnection.Device.SetRtcTime(DateTimeOffset.UtcNow);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex);
+            }
+        });
+    }
+
     private void OnConnectionAdded(IMeadowConnection connection)
     {
         MainThread.BeginInvokeOnMainThread(() =>
@@ -392,5 +469,25 @@ public class DeviceInfoViewModel : ViewModelBase
                 Debug.WriteLine(ex.Message);
             }
         });
+    }
+
+    private async void RtcUpdater()
+    {
+        while (true)
+        {
+            if (SelectedConnection != null && SelectedConnection.Device != null)
+            {
+                try
+                {
+                    LastRtc = await SelectedConnection.Device.GetRtcTime();
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(ex.Message);
+                }
+            }
+
+            await Task.Delay(TimeSpan.FromSeconds(5));
+        }
     }
 }
