@@ -53,7 +53,7 @@ public class DeviceInfoViewModel : ViewModelBase
         RefreshLocalFirmwareVersionsCommand.Execute(null);
         CheckForNewFirmware();
         RefreshKnownApps();
-
+        Task.Run(() => RtcUpdater());
     }
 
     public LogLevel _logLevel;
@@ -241,6 +241,16 @@ public class DeviceInfoViewModel : ViewModelBase
         }
     }
 
+    private DateTimeOffset? _lastRtc;
+    public DateTimeOffset? LastRtc
+    {
+        get => _lastRtc;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _lastRtc, value);
+        }
+    }
+
     private ObservableCollection<AppInfo> _knownApps = new();
     public ObservableCollection<AppInfo> KnownApps
     {
@@ -288,6 +298,17 @@ public class DeviceInfoViewModel : ViewModelBase
         get => new Command(() =>
         {
             ConsoleOutput.Clear();
+        });
+    }
+
+    public ICommand RefreshDeviceInfo
+    {
+        get => new Command(async () =>
+        {
+            if (SelectedConnection == null || SelectedConnection.Device == null) return;
+
+            await SelectedConnection.Device.GetDeviceInfo(TimeSpan.FromSeconds(5));
+            this.RaisePropertyChanged(nameof(SelectedConnection));
         });
     }
 
@@ -418,6 +439,23 @@ public class DeviceInfoViewModel : ViewModelBase
         });
     }
 
+    public ICommand TimeSyncCommand
+    {
+        get => new Command(async () =>
+        {
+            if (SelectedConnection == null || SelectedConnection.Device == null) return;
+
+            try
+            {
+                await SelectedConnection.Device.SetRtcTime(DateTimeOffset.UtcNow);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex);
+            }
+        });
+    }
+
     private void OnConnectionAdded(IMeadowConnection connection)
     {
         MainThread.BeginInvokeOnMainThread(() =>
@@ -431,5 +469,25 @@ public class DeviceInfoViewModel : ViewModelBase
                 Debug.WriteLine(ex.Message);
             }
         });
+    }
+
+    private async void RtcUpdater()
+    {
+        while (true)
+        {
+            if (SelectedConnection != null && SelectedConnection.Device != null)
+            {
+                try
+                {
+                    LastRtc = await SelectedConnection.Device.GetRtcTime();
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(ex.Message);
+                }
+            }
+
+            await Task.Delay(TimeSpan.FromSeconds(5));
+        }
     }
 }

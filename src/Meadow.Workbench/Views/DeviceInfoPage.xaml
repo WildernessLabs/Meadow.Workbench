@@ -146,6 +146,14 @@
                                 <Label
                                     Text="{Binding SelectedConnection.Device.DeviceInfo.CoProcessorOsVersion}" />
                             </HorizontalStackLayout>
+                            <HorizontalStackLayout>
+                                <Label
+                                    Text="RTC:"
+                                    FontAttributes="Bold"
+                                    WidthRequest="120"/>
+                                <Label
+                                    Text="{Binding LastRtc}" />
+                            </HorizontalStackLayout>
                         </FlexLayout>
 
                         <VerticalStackLayout
@@ -164,6 +172,24 @@
                                         <Setter Property="Opacity" Value="0.5" />
                                     </DataTrigger>
                                 </Button.Triggers>
+                            </Button>
+                            <Button
+                                Text="Refresh" BackgroundColor="#23ABE3" TextColor="White"
+                                Command="{Binding RefreshDeviceInfo}"
+                                IsEnabled="{Binding MeadowConnected, Converter={StaticResource objectToBool}}">
+                                <Button.Triggers>
+                                    <DataTrigger TargetType="Button" Binding="{Binding MeadowConnected, Converter={StaticResource objectToBool}}" Value="true">
+                                        <Setter Property="Opacity" Value="1" />
+                                    </DataTrigger>
+                                    <DataTrigger TargetType="Button" Binding="{Binding MeadowConnected, Converter={StaticResource objectToBool}}" Value="false">
+                                        <Setter Property="Opacity" Value="0.5" />
+                                    </DataTrigger>
+                                </Button.Triggers>
+                            </Button>
+                            <Button
+                                Text="Sync Time" BackgroundColor="#23ABE3" TextColor="White"
+                                Command="{Binding TimeSyncCommand}"
+                                IsEnabled="{Binding MeadowConnected, Converter={StaticResource objectToBool}}">
                             </Button>
                         </VerticalStackLayout>
                     </Grid>
