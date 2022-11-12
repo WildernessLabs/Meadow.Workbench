@@ -23,7 +23,7 @@
             Margin="10,10,7.5,10">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="160" />
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="2*" />
                 <RowDefinition Height="3*" />
             </Grid.RowDefinitions>
@@ -62,9 +62,11 @@
                 <Label
                     HorizontalOptions="Start"
                     VerticalOptions="Start"
-                    Margin="15,0"
+                    Margin="15,-5"
                     Padding="5,0"
                     Background="{AppThemeBinding Light=White, Dark=#0B3749}"
+                    FontAttributes="Bold"
+                    FontSize="Small"
                     Text="Connection" />
             </Grid>
 
@@ -86,76 +88,137 @@
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
 
-                        <FlexLayout
-                            Direction="Column"
-                            AlignItems="Start"
-                            JustifyContent="SpaceBetween"
+                        <Grid
                             Grid.Column="0"
-                            VerticalOptions="Center">
+                            >
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition />
+                                <RowDefinition />
+                                <RowDefinition />
+                                <RowDefinition />
+                                <RowDefinition />
+                                <RowDefinition />
+                                <RowDefinition />
+                            </Grid.RowDefinitions>
 
-                            <HorizontalStackLayout>
-                                <Label
-                                    Text="Name:"
-                                    FontAttributes="Bold"
-                                    WidthRequest="120" />
-                                <Label
-                                    Text="{Binding SelectedConnection.Device.DeviceInfo.DeviceName}" />
-                            </HorizontalStackLayout>
+                            <Label
+                                Padding="2"
+                                BackgroundColor="WhiteSmoke"
+                                Grid.Row="0"
+                                Grid.Column="0"
+                                Text="Name:"
+                                FontAttributes="Bold"
+                                HorizontalTextAlignment="End"
+                                WidthRequest="120" />
+                            <Label
+                                Padding="2"
+                                Grid.Row="0"
+                                Grid.Column="1"
+                                HorizontalTextAlignment="Start"
+                                Text="{Binding SelectedConnection.Device.DeviceInfo.DeviceName}" />
 
-                            <HorizontalStackLayout>
-                                <Label
-                                    Text="Serial #:"
-                                    FontAttributes="Bold"
-                                    WidthRequest="120" />
-                                <Label
-                                    Text="{Binding SelectedConnection.Device.DeviceInfo.SerialNumber}" />
-                            </HorizontalStackLayout>
+                            <Label
+                                Padding="2"
+                                BackgroundColor="WhiteSmoke"
+                                Grid.Row="1"
+                                Grid.Column="0"
+                                Text="Serial #:"
+                                FontAttributes="Bold"
+                                HorizontalTextAlignment="End"
+                                WidthRequest="120" />
+                            <Label
+                                Padding="2"
+                                Grid.Row="1"
+                                Grid.Column="1"
+                                HorizontalTextAlignment="Start"
+                                Text="{Binding SelectedConnection.Device.DeviceInfo.SerialNumber}" />
 
-                            <HorizontalStackLayout>
-                                <Label
-                                    Text="Hardware:"
-                                    FontAttributes="Bold"
-                                    WidthRequest="120" />
-                                <Label
-                                    Text="{Binding SelectedConnection.Device.DeviceInfo.HardwareVersion}" />
-                            </HorizontalStackLayout>
+                            <Label
+                                Padding="5"
+                                BackgroundColor="WhiteSmoke"
+                                Grid.Row="2"
+                                Grid.Column="0"
+                                Text="Hardware:"
+                                FontAttributes="Bold"
+                                HorizontalTextAlignment="End"
+                                WidthRequest="120" />
+                            <Label
+                                Padding="5"
+                                Grid.Row="2"
+                                Grid.Column="1"
+                                HorizontalTextAlignment="Start"
+                                Text="{Binding SelectedConnection.Device.DeviceInfo.HardwareVersion}" />
 
-                            <HorizontalStackLayout>
-                                <Label
-                                    Text="OS:" 
-                                    FontAttributes="Bold"
-                                    WidthRequest="120" />
-                                <Label
-                                    Text="{Binding SelectedConnection.Device.DeviceInfo.MeadowOsVersion}" />
-                            </HorizontalStackLayout>
+                            <Label
+                                Padding="5"
+                                BackgroundColor="WhiteSmoke"
+                                Grid.Row="3"
+                                Grid.Column="0"
+                                Text="OS:"
+                                FontAttributes="Bold"
+                                HorizontalTextAlignment="End"
+                                WidthRequest="120" />
+                            <Label
+                                Padding="5"
+                                Grid.Row="3"
+                                Grid.Column="1"
+                                HorizontalTextAlignment="Start"
+                                Text="{Binding SelectedConnection.Device.DeviceInfo.MeadowOsVersion}" />
 
-                            <HorizontalStackLayout>
-                                <Label
-                                    Text="Mono:"
-                                    FontAttributes="Bold"
-                                    WidthRequest="120"/>
-                                <Label
-                                    Text="{Binding SelectedConnection.Device.DeviceInfo.MonoVersion}" />
-                            </HorizontalStackLayout>
+                            <Label
+                                Padding="5"
+                                BackgroundColor="WhiteSmoke"
+                                Grid.Row="4"
+                                Grid.Column="0"
+                                Text="Runtime:"
+                                FontAttributes="Bold"
+                                HorizontalTextAlignment="End"
+                                WidthRequest="120" />
+                            <Label
+                                Padding="5"
+                                Grid.Row="4"
+                                Grid.Column="1"
+                                HorizontalTextAlignment="Start"
+                                Text="{Binding SelectedConnection.Device.DeviceInfo.RuntimeVersion}" />
 
-                            <HorizontalStackLayout>
-                                <Label
-                                    Text="Coprocessor:"
-                                    FontAttributes="Bold"
-                                    WidthRequest="120"/>
-                                <Label
-                                    Text="{Binding SelectedConnection.Device.DeviceInfo.CoProcessorOsVersion}" />
-                            </HorizontalStackLayout>
-                            <HorizontalStackLayout>
-                                <Label
-                                    Text="RTC:"
-                                    FontAttributes="Bold"
-                                    WidthRequest="120"/>
-                                <Label
-                                    Text="{Binding LastRtc}" />
-                            </HorizontalStackLayout>
-                        </FlexLayout>
+                            <Label
+                                Padding="5"
+                                BackgroundColor="WhiteSmoke"
+                                Grid.Row="5"
+                                Grid.Column="0"
+                                Text="Coprocessor:"
+                                FontAttributes="Bold"
+                                HorizontalTextAlignment="End"
+                                WidthRequest="120" />
+                            <Label
+                                Padding="5"
+                                Grid.Row="5"
+                                Grid.Column="1"
+                                HorizontalTextAlignment="Start"
+                                Text="{Binding SelectedConnection.Device.DeviceInfo.CoProcessorOsVersion}" />
 
+                            <Label
+                                Padding="5"
+                                BackgroundColor="WhiteSmoke"
+                                Grid.Row="6"
+                                Grid.Column="0"
+                                Text="Clock:"
+                                FontAttributes="Bold"
+                                HorizontalTextAlignment="End"
+                                WidthRequest="120" />
+                            <Label
+                                Padding="5"
+                                Grid.Row="6"
+                                Grid.Column="1"
+                                HorizontalTextAlignment="Start"
+                                Text="{Binding LastRtc}" />
+                        </Grid>
+                        
                         <VerticalStackLayout
                             Grid.Column="1" 
                             Spacing="5"
@@ -235,7 +298,7 @@
                                     <ViewCell>
                                         <Grid>
                                             <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="70" />
+                                                <ColumnDefinition Width="*" />
                                                 <ColumnDefinition Width="*" />
                                             </Grid.ColumnDefinitions>
 
@@ -282,9 +345,11 @@
                 <Label 
                     HorizontalOptions="Start"
                     VerticalOptions="Start"
-                    Margin="15,0"
+                    Margin="15,-5"
                     Padding="5,0"
                     BackgroundColor="{AppThemeBinding Light=White, Dark=#0B3749}"
+                    FontAttributes="Bold"
+                    FontSize="Small"
                     Text="Applications" />
             </Grid>
 
@@ -466,9 +531,11 @@
                 <Label 
                     HorizontalOptions="Start"
                     VerticalOptions="Start"
-                    Margin="15,0"
+                    Margin="15,-5"
                     Padding="5,0"
                     BackgroundColor="{AppThemeBinding Light=White, Dark=#0B3749}"
+                    FontAttributes="Bold"
+                    FontSize="Small"
                     Text="Local Firmware Versions" />
             </Grid>
         </Grid>

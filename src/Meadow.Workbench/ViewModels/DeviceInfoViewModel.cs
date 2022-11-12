@@ -51,7 +51,6 @@ public class DeviceInfoViewModel : ViewModelBase
         _connectionManager.ConnectionAdded += OnConnectionAdded;
 
         RefreshLocalFirmwareVersionsCommand.Execute(null);
-        CheckForNewFirmware();
         RefreshKnownApps();
         Task.Run(() => RtcUpdater());
     }
@@ -147,7 +146,6 @@ public class DeviceInfoViewModel : ViewModelBase
             // download
             await FirmwareManager.GetRemoteFirmware(LatestFirwareVersion, _logger);
             RefreshLocalFirmwareVersionsCommand.Execute(null);
-            CheckForNewFirmware();
         });
     }
 
@@ -192,6 +190,7 @@ public class DeviceInfoViewModel : ViewModelBase
                 {
                     LocalFirmwareVersions.AddRange(newItems);
                     LocalFirmwareVersions.RemoveMany(removedItems);
+                    CheckForNewFirmware();
                 }
                 catch (Exception ex)
                 {
