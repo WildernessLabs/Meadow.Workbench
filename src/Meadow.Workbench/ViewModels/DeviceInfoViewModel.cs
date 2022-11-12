@@ -121,6 +121,13 @@ public class DeviceInfoViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _firmwareUpdateAvailable, value);
     }
 
+    private bool _firmwareUpdateInProgress;
+    public bool FirmwareUpdateInProgress
+    {
+        get => _firmwareUpdateInProgress;
+        set => this.RaiseAndSetIfChanged(ref _firmwareUpdateInProgress, value);
+    }
+
     private string _latestFirwareVersion;
     public string LatestFirwareVersion
     {
@@ -331,6 +338,8 @@ public class DeviceInfoViewModel : ViewModelBase
             if (connection == null || connection.Device == null || !connection.IsConnected) return;
         }
 
+        FirmwareUpdateInProgress = true;
+
         try
         {
             // TODO: tell user to power with boot button pressed?
@@ -353,6 +362,7 @@ public class DeviceInfoViewModel : ViewModelBase
             {
                 connection.AutoReconnect = true;
             }
+            FirmwareUpdateInProgress = false;
         }
 
         if (connection != null)
@@ -474,7 +484,7 @@ public class DeviceInfoViewModel : ViewModelBase
     {
         while (true)
         {
-            if (SelectedConnection != null && SelectedConnection.Device != null)
+            if (SelectedConnection != null && SelectedConnection.Device != null && !FirmwareUpdateInProgress)
             {
                 try
                 {
