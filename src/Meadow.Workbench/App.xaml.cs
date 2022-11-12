@@ -2,6 +2,19 @@
 
 public partial class App : Application
 {
+    readonly MyWindow Window;
+
+    public App(MyWindow window)
+    {
+        Window = window;
+
+        InitializeComponent();
+    }
+
+    protected override Window CreateWindow(IActivationState? activationState)
+        => Window;
+
+    /*
     public App(AppShell shell, UserSettingsService settings)
     {
         InitializeComponent();
@@ -24,10 +37,36 @@ public partial class App : Application
 
         MainPage = shell;
     }
+    */
+}
 
-    protected override Window CreateWindow(IActivationState? activationState)
+public class MyWindow : Window
+{
+    public MyWindow(AppShell shell, UserSettingsService settings)
+        : base(shell)
     {
-        return base.CreateWindow(activationState);
+        Settings = settings;
     }
 
+    readonly UserSettingsService Settings;
+
+    protected override void OnCreated()
+    {
+        base.OnCreated();
+
+        Settings.LoadSettings();
+        X = Settings.Settings.ShellPosition.X;
+        Y = Settings.Settings.ShellPosition.Y;
+        Width = Settings.Settings.ShellSize.Width;
+        Height = Settings.Settings.ShellSize.Height;
+    }
+
+    protected override void OnDestroying()
+    {
+        Settings.Settings.ShellPosition = new Point(X, Y);
+        Settings.Settings.ShellSize = new Size(Width, Height);
+        Settings.SaveCurrentSettings();
+
+        base.OnDestroying();
+    }
 }

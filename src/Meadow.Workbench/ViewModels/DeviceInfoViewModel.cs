@@ -28,7 +28,7 @@ public class DeviceInfoViewModel : ViewModelBase
 
         _logger.OnLogInfo += (level, info) =>
         {
-            MainThread.BeginInvokeOnMainThread(() =>
+            Application.Current.Dispatcher.Dispatch(() =>
             {
                 lock (ConsoleOutput)
                 {
@@ -186,7 +186,7 @@ public class DeviceInfoViewModel : ViewModelBase
             var newItems = builds.Except(LocalFirmwareVersions).ToArray();
             var removedItems = LocalFirmwareVersions.Except(builds).ToArray();
 
-            MainThread.BeginInvokeOnMainThread(() =>
+            Application.Current.Dispatcher.Dispatch(() =>
             {
                 try
                 {
@@ -458,7 +458,7 @@ public class DeviceInfoViewModel : ViewModelBase
 
     private void OnConnectionAdded(IMeadowConnection connection)
     {
-        MainThread.BeginInvokeOnMainThread(() =>
+        Application.Current.Dispatcher.Dispatch(() =>
         {
             try
             {
