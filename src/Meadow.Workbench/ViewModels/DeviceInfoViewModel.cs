@@ -465,6 +465,30 @@ public class DeviceInfoViewModel : ViewModelBase
         });
     }
 
+    public ICommand CopyDeviceInfoCommand
+    {
+        get => new Command(async () =>
+        {
+            if (SelectedConnection == null || SelectedConnection.Device == null || SelectedConnection.Device.DeviceInfo == null) return;
+
+            try
+            {
+                var info = $"Name: {SelectedConnection.Device.DeviceInfo.DeviceName}\r\n" +
+                           $"Serial #: {SelectedConnection.Device.DeviceInfo.SerialNumber}\r\n" +
+                           $"Hardware: {SelectedConnection.Device.DeviceInfo.HardwareVersion}\r\n" +
+                           $"OS: {SelectedConnection.Device.DeviceInfo.MeadowOsVersion}\r\n" +
+                           $"Runtime: {SelectedConnection.Device.DeviceInfo.RuntimeVersion}\r\n" +
+                           $"Coprocessor: {SelectedConnection.Device.DeviceInfo.CoProcessorOsVersion}\r\n";
+
+                await Clipboard.SetTextAsync(info);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex);
+            }
+        });
+    }
+
     private void OnConnectionAdded(IMeadowConnection connection)
     {
         Application.Current.Dispatcher.Dispatch(() =>

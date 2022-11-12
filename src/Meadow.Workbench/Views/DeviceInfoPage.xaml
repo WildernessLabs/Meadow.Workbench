@@ -250,6 +250,11 @@
                                 </Button.Triggers>
                             </Button>
                             <Button
+                                Text="Copy to Clipboard" BackgroundColor="#23ABE3" TextColor="White"
+                                Command="{Binding CopyDeviceInfoCommand}"
+                                IsEnabled="{Binding MeadowConnected, Converter={StaticResource objectToBool}}">
+                            </Button>
+                            <Button
                                 Text="Sync Time" BackgroundColor="#23ABE3" TextColor="White"
                                 Command="{Binding TimeSyncCommand}"
                                 IsEnabled="{Binding MeadowConnected, Converter={StaticResource objectToBool}}">
