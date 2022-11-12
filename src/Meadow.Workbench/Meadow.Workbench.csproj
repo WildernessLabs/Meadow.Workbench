@@ -1,9 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net6.0-ios;net6.0-maccatalyst</TargetFrameworks>
+		<TargetFrameworks>net7.0-maccatalyst</TargetFrameworks>
 		<!--<TargetFrameworks>net6.0-android;net6.0-ios;net6.0-maccatalyst</TargetFrameworks> -->
-		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net6.0-windows10.0.19041.0</TargetFrameworks>
+		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net7.0-windows10.0.19041.0</TargetFrameworks>
 		<!-- Uncomment to also build the tizen app. You will need to install tizen by following this: https://github.com/Samsung/Tizen.NET -->
 		<!-- <TargetFrameworks>$(TargetFrameworks);net6.0-tizen</TargetFrameworks> -->
 		<OutputType>Exe</OutputType>
@@ -58,9 +58,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <ProjectReference Include="..\..\..\Maple\src\Server\Web.Maple.MapleServer.csproj" />
 	  <ProjectReference Include="..\..\..\Meadow.CLI\Meadow.CLI.Core\Meadow.CLI.Core.csproj" />
 	  <ProjectReference Include="..\..\..\Meadow.Contracts\Source\Meadow.Contracts\Meadow.Contracts.csproj" />
-	  <ProjectReference Include="..\..\..\Meadow.Foundation\Source\Meadow.Foundation.Libraries_and_Frameworks\Web.Maple.MapleServer\Driver\Web.Maple.MapleServer.csproj" />
 	  <ProjectReference Include="..\..\..\Meadow.TestSuite\src\TestSuite\Meadow.TestSuite.Core\Meadow.TestSuite.Core.csproj" />
 	  <ProjectReference Include="..\..\..\Meadow.TestSuite\src\TestSuite\Meadow.TestSuite.Director\Meadow.TestSuite.Director.csproj" />
 	  <ProjectReference Include="..\Meadow.Update.Server\Meadow.Update.Server.csproj" />

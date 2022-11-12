@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Meadow.Foundation\Source\Meadow.Foundation.Libraries_and_Frameworks\Web.Maple.MapleServer\Driver\Web.Maple.MapleServer.csproj" />
+    <ProjectReference Include="..\..\..\Maple\src\Server\Web.Maple.MapleServer.csproj" />
   </ItemGroup>
 
 </Project>
