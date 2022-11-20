@@ -188,7 +188,7 @@ public class DeviceInfoViewModel : ViewModelBase
         {
             // a file system monitor might be in order for this instead?
             var builds = FirmwareManager.GetAllLocalFirmwareBuilds();
-            var newItems = builds.Except(LocalFirmwareVersions).ToArray();
+            var newItems = builds.Except(LocalFirmwareVersions).ToArray().Reverse();
             var removedItems = LocalFirmwareVersions.Except(builds).ToArray();
 
             Application.Current.Dispatcher.Dispatch(() =>
