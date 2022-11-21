@@ -22,19 +22,22 @@
                 <Setter Property="Padding" Value="5" />
             </Style>
 
-            <Style x:Key="TitleLabelStyle" TargetType="Label">
+            <Style x:Key="BaseTitleLabelStyle" TargetType="Label">
                 <Setter Property="HorizontalOptions" Value="Start" />
                 <Setter Property="VerticalOptions" Value="Start" />
-                <Setter Property="Margin" Value="15,-5" />
                 <Setter Property="Padding" Value="5,0" />
                 <Setter Property="Background" Value="{AppThemeBinding Light=White, Dark=#0B3749}" />
                 <Setter Property="FontAttributes" Value="Bold" />
                 <Setter Property="FontSize" Value="Small" />
             </Style>
 
+            <Style x:Key="TitleLabelStyle" TargetType="Label" BasedOn="{StaticResource BaseTitleLabelStyle}">
+                <Setter Property="Margin" Value="15,-5" />
+                
+            </Style>
+
             <Style x:Key="BaseButtonStyle" TargetType="Button">
                 <Setter Property="TextColor" Value="White" />
-                <Setter Property="FontAttributes" Value="Bold" />
                 <Setter Property="CornerRadius" Value="5" />
                 <Setter Property="HeightRequest" Value="35" />
                 <Setter Property="Padding" Value="0" />
@@ -257,26 +260,7 @@
                 </Label>
             </Grid>
 
-            <!--Applications-->
-            <!--<Grid
-                Grid.Row="2">
-                <Border 
-                    Style="{StaticResource BorderStyle}">
-                    <Border.StrokeShape>
-                        <RoundRectangle CornerRadius="10" />
-                    </Border.StrokeShape>
-
-                    
-
-                    
-                </Border>
-
-                <Label 
-                    Text="Applications"
-                    Style="{StaticResource TitleLabelStyle}" />
-            </Grid>-->
-
-            <!--Local Firmware Versions-->
+            <!-- Firmware | Applications | File System -->
             <Grid
                 Grid.Row="2">
                 <Border 
@@ -286,6 +270,7 @@
                     </Border.StrokeShape>
 
                     <Grid>
+                        <!-- Firmware -->
                         <Grid 
                             IsVisible="{Binding IsFirmwareTab}"
                             Margin="10"
@@ -388,7 +373,7 @@
                             <VerticalStackLayout 
                                 Grid.Row="1"
                                 Grid.Column="2"
-                                Spacing="10">
+                                Spacing="2">
 
                                 <Label
                                     Text="Choose an action:" />
@@ -445,15 +430,19 @@
                             </VerticalStackLayout>
                         </Grid>
 
+                        <!-- Applications -->
                         <Grid 
                             IsVisible="{Binding IsApplicationTab}"
-                            Margin="10">
+                            Margin="10"
+                            ColumnSpacing="10">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
 
                             <VerticalStackLayout
+                                Grid.Column="0"
                                 Spacing="10">
                                 <Label
                                     Text="Select an App to deploy:" />
@@ -467,7 +456,7 @@
                                                 <Grid>
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="*" />
-                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
                                                     </Grid.ColumnDefinitions>
 
                                                     <Label
@@ -484,25 +473,35 @@
                                 </ListView>
                             </VerticalStackLayout>
 
+                            <Line 
+                                Grid.Row="1"
+                                Grid.Column="1" 
+                                StrokeThickness="2"
+                                BackgroundColor="#23ABE3" />
+
                             <VerticalStackLayout
-                                Grid.Column="1"
+                                Grid.Column="2"
                                 Spacing="5">
+
+                                <Label
+                                    Text="Choose an action:" />
+
                                 <Button 
                                     Text="Add App" 
-                                    Style="{StaticResource ButtonStyle}"
+                                    Style="{StaticResource BaseButtonStyle}"
                                     Command="{Binding BrowseAppCommand}" />
                                 <Button 
                                     Text="Remove App" 
-                                    Style="{StaticResource ButtonStyle}"
+                                    Style="{StaticResource BaseButtonStyle}"
                                     Command="{Binding BrowseAppCommand}" />
                             </VerticalStackLayout>
                         </Grid>
 
+                        <!-- File System -->
                         <Grid 
                             BackgroundColor="Blue"
                             IsVisible="{Binding IsFileSystemTab}"
                             Margin="10">
-                            
                         </Grid>
                     </Grid>
                 </Border>
@@ -513,65 +512,81 @@
                         <ColumnDefinition />
                         <ColumnDefinition />
                     </Grid.ColumnDefinitions>
-                    
-                    <Label 
+
+                    <Grid 
                         Grid.Column="0"
-                        Text="Firmware"
-                        Style="{StaticResource TitleLabelStyle}">
-                        <Label.GestureRecognizers>
-                            <TapGestureRecognizer  Command="{Binding FirmwareTabCommand}" NumberOfTapsRequired="1" />
-                        </Label.GestureRecognizers>
-                        <Label.Triggers>
-                            <DataTrigger TargetType="Label" Binding="{Binding IsFirmwareTab}" Value="true">
-                                <Setter Property="Opacity" Value="1" />
-                            </DataTrigger>
-                            <DataTrigger TargetType="Label" Binding="{Binding IsFirmwareTab}" Value="false">
-                                <Setter Property="Opacity" Value="0.65" />
-                            </DataTrigger>
-                        </Label.Triggers>
-                    </Label>
+                        HorizontalOptions="Start" 
+                        VerticalOptions="Start"
+                        Margin="15,-5"
+                        BackgroundColor="{AppThemeBinding Light=White, Dark=#0B3749}">
+                        <Label 
+                            Text="Firmware"
+                            Style="{StaticResource BaseTitleLabelStyle}">
+                            <Label.GestureRecognizers>
+                                <TapGestureRecognizer  Command="{Binding FirmwareTabCommand}" NumberOfTapsRequired="1" />
+                            </Label.GestureRecognizers>
+                            <Label.Triggers>
+                                <DataTrigger TargetType="Label" Binding="{Binding IsFirmwareTab}" Value="true">
+                                    <Setter Property="Opacity" Value="1" />
+                                </DataTrigger>
+                                <DataTrigger TargetType="Label" Binding="{Binding IsFirmwareTab}" Value="false">
+                                    <Setter Property="Opacity" Value="0.65" />
+                                </DataTrigger>
+                            </Label.Triggers>
+                        </Label>
+                    </Grid>
 
-                    <Label
+                    <Grid
                         Grid.Column="1"
-                        Text="Applications"
-                        Opacity="0.75"
-                        HorizontalOptions="Center"
-                        Style="{StaticResource TitleLabelStyle}">
-                        <Label.GestureRecognizers>
-                            <TapGestureRecognizer Command="{Binding ApplicationTabCommand}"  NumberOfTapsRequired="1" />
-                        </Label.GestureRecognizers>
-                        <Label.Triggers>
-                            <DataTrigger TargetType="Label" Binding="{Binding IsApplicationTab}" Value="true">
-                                <Setter Property="Opacity" Value="1" />
-                            </DataTrigger>
-                            <DataTrigger TargetType="Label" Binding="{Binding IsApplicationTab}" Value="false">
-                                <Setter Property="Opacity" Value="0.65" />
-                            </DataTrigger>
-                        </Label.Triggers>
-                    </Label>
+                        HorizontalOptions="Center" 
+                        VerticalOptions="Start"
+                        Margin="15,-5"
+                        BackgroundColor="{AppThemeBinding Light=White, Dark=#0B3749}">
+                        <Label
+                            Grid.Column="1"
+                            Text="Applications"
+                            Style="{StaticResource BaseTitleLabelStyle}">
+                            <Label.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding ApplicationTabCommand}"  NumberOfTapsRequired="1" />
+                            </Label.GestureRecognizers>
+                            <Label.Triggers>
+                                <DataTrigger TargetType="Label" Binding="{Binding IsApplicationTab}" Value="true">
+                                    <Setter Property="Opacity" Value="1" />
+                                </DataTrigger>
+                                <DataTrigger TargetType="Label" Binding="{Binding IsApplicationTab}" Value="false">
+                                    <Setter Property="Opacity" Value="0.65" />
+                                </DataTrigger>
+                            </Label.Triggers>
+                        </Label>
+                    </Grid>
 
-                    <Label
+                    <Grid
                         Grid.Column="2"
-                        Text="File System"
-                        Opacity="0.75"
-                        HorizontalOptions="End"
-                        Style="{StaticResource TitleLabelStyle}">
-                        <Label.GestureRecognizers>
-                            <TapGestureRecognizer  Command="{Binding FileSystemTabCommand}"  NumberOfTapsRequired="1" />
-                        </Label.GestureRecognizers>
-                        <Label.Triggers>
-                            <DataTrigger TargetType="Label" Binding="{Binding IsFileSystemTab}" Value="true">
-                                <Setter Property="Opacity" Value="1" />
-                            </DataTrigger>
-                            <DataTrigger TargetType="Label" Binding="{Binding IsFileSystemTab}" Value="false">
-                                <Setter Property="Opacity" Value="0.65" />
-                            </DataTrigger>
-                        </Label.Triggers>
-                    </Label>
+                        HorizontalOptions="End" 
+                        VerticalOptions="Start"
+                        Margin="15,-5"
+                        BackgroundColor="{AppThemeBinding Light=White, Dark=#0B3749}">
+                        <Label
+                            Text="File System"
+                            Style="{StaticResource BaseTitleLabelStyle}">
+                            <Label.GestureRecognizers>
+                                <TapGestureRecognizer  Command="{Binding FileSystemTabCommand}"  NumberOfTapsRequired="1" />
+                            </Label.GestureRecognizers>
+                            <Label.Triggers>
+                                <DataTrigger TargetType="Label" Binding="{Binding IsFileSystemTab}" Value="true">
+                                    <Setter Property="Opacity" Value="1" />
+                                </DataTrigger>
+                                <DataTrigger TargetType="Label" Binding="{Binding IsFileSystemTab}" Value="false">
+                                    <Setter Property="Opacity" Value="0.65" />
+                                </DataTrigger>
+                            </Label.Triggers>
+                        </Label>
+                    </Grid>
                 </Grid>
             </Grid>
         </Grid>
 
+        <!-- Output -->
         <Grid
             Grid.Column="1"
             Margin="10">
@@ -588,7 +603,7 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
-                        <RowDefinition Height="50" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
                     <Grid
@@ -609,28 +624,29 @@
                             SelectedItem="{Binding SelectedLogLevel}" HorizontalOptions="FillAndExpand" />
                     </Grid>
 
-                    <CollectionView
-                        Grid.Row="1"
-                        BackgroundColor="Black"
-                        ItemsSource="{Binding ConsoleOutput}"
-                        ItemsUpdatingScrollMode="KeepLastItemInView">
-                        <CollectionView.ItemTemplate>
-                            <DataTemplate>
-                                <Label 
-                                    Text="{Binding .}" 
-                                    Margin="0"
-                                    Padding="5,0"
-                                    FontFamily="Courier New" 
-                                    TextColor="LightGray" />
-                            </DataTemplate>
-                        </CollectionView.ItemTemplate>
-                    </CollectionView>
+                    <ScrollView
+                        Grid.Row="1">
+                        <StackLayout
+                            BackgroundColor="Black"
+                            BindableLayout.ItemsSource="{Binding ConsoleOutput}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate>
+                                    <Label
+                                        Text="{Binding .}" 
+                                        Margin="0"
+                                        Padding="5,0"
+                                        FontFamily="Courier New" 
+                                        TextColor="LightGray" />
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </StackLayout>
+                    </ScrollView>
+
                     <Button
                         Grid.Row="2"
-                        BackgroundColor="#23ABE3"
-                        TextColor="White"
                         Text="Clear"
-                        Command="{Binding ClearConsoleCommand}" />
+                        Command="{Binding ClearConsoleCommand}"
+                        Style="{StaticResource BaseButtonStyle}"/>
                 </Grid>
             </Border>
             <Label
