@@ -60,7 +60,6 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
             
@@ -259,6 +258,25 @@
             </Grid>
 
             <!--Applications-->
+            <!--<Grid
+                Grid.Row="2">
+                <Border 
+                    Style="{StaticResource BorderStyle}">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="10" />
+                    </Border.StrokeShape>
+
+                    
+
+                    
+                </Border>
+
+                <Label 
+                    Text="Applications"
+                    Style="{StaticResource TitleLabelStyle}" />
+            </Grid>-->
+
+            <!--Local Firmware Versions-->
             <Grid
                 Grid.Row="2">
                 <Border 
@@ -267,75 +285,8 @@
                         <RoundRectangle CornerRadius="10" />
                     </Border.StrokeShape>
 
-                    <Grid BackgroundColor="Red"
-                        Margin="10">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-
-                        <VerticalStackLayout>
-                            <Label
-                                Text="Select an App to deploy:" />
-
-                            <ListView
-                                ItemsSource="{Binding KnownApps}"
-                                SelectedItem="{Binding SelectedApp}">
-                                <ListView.ItemTemplate>
-                                    <DataTemplate>
-                                        <ViewCell>
-                                            <Grid>
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="*" />
-                                                    <ColumnDefinition Width="*" />
-                                                </Grid.ColumnDefinitions>
-
-                                                <Label
-                                                    Grid.Column="0"
-                                                    Text="{Binding Name}" />
-                                                <Label
-                                                    Grid.Column="1"
-                                                    Text="{Binding LastChanged, StringFormat='{0:MM/dd/yy HH:mm}'}"
-                                                    Margin="10,0,0,0"/>
-
-                                            </Grid>
-                                        </ViewCell>
-                                    </DataTemplate>
-                                </ListView.ItemTemplate>
-                            </ListView>
-                        </VerticalStackLayout>
-
-                        <VerticalStackLayout
-                            Grid.Column="1"
-                            Spacing="5">
-
-                            <Button 
-                                Text="Add App" 
-                                Style="{StaticResource ButtonStyle}"
-                                Command="{Binding BrowseAppCommand}" />
-                            <Button 
-                                Text="Remove App" 
-                                Style="{StaticResource ButtonStyle}"
-                                Command="{Binding BrowseAppCommand}" />
-                        </VerticalStackLayout>
-                    </Grid>
-                </Border>
-
-                <Label 
-                    Text="Applications"
-                    Style="{StaticResource TitleLabelStyle}" />
-            </Grid>
-
-            <!--Local Firmware Versions-->
-            <Grid
-                Grid.Row="3">
-                <Border 
-                    Style="{StaticResource BorderStyle}">
-                    <Border.StrokeShape>
-                        <RoundRectangle CornerRadius="10" />
-                    </Border.StrokeShape>
-
-                    <Grid BackgroundColor="Red"
+                    <Grid>
+                        <Grid BackgroundColor="Red" IsVisible="false"
                         Margin="10"
                         ColumnSpacing="10">
                         <Grid.ColumnDefinitions>
@@ -491,10 +442,100 @@
                             </Button>
                         </VerticalStackLayout>
                     </Grid>
+
+                        <Grid BackgroundColor="Red"
+                            Margin="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <VerticalStackLayout
+                                Spacing="10">
+                                <Label
+                                    Text="Select an App to deploy:" />
+
+                                <ListView
+                                    RowHeight="20"
+                                    ItemsSource="{Binding KnownApps}"
+                                    SelectedItem="{Binding SelectedApp}">
+                                    <ListView.ItemTemplate>
+                                        <DataTemplate>
+                                            <ViewCell>
+                                                <Grid Margin="20">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="*" />
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <Label
+                                                        Grid.Column="0"
+                                                        Text="{Binding Name}" />
+                                                    <Label
+                                                        Grid.Column="1"
+                                                        Text="{Binding LastChanged, StringFormat='{0:MM/dd/yy HH:mm}'}"
+                                                        Margin="10,0,0,0"/>
+                                                </Grid>
+                                            </ViewCell>
+                                        </DataTemplate>
+                                    </ListView.ItemTemplate>
+                                </ListView>
+                            </VerticalStackLayout>
+
+                            <VerticalStackLayout
+                                Grid.Column="1"
+                                Spacing="5">
+                                <Button 
+                                    Text="Add App" 
+                                    Style="{StaticResource ButtonStyle}"
+                                    Command="{Binding BrowseAppCommand}" />
+                                <Button 
+                                    Text="Remove App" 
+                                    Style="{StaticResource ButtonStyle}"
+                                    Command="{Binding BrowseAppCommand}" />
+                            </VerticalStackLayout>
+                        </Grid>
+                    </Grid>
                 </Border>
-                <Label 
-                    Text="Local Firmware Versions"
-                    Style="{StaticResource TitleLabelStyle}" />
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition />
+                        <ColumnDefinition />
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+                    
+                    <Label 
+                        Grid.Column="0"
+                        Text="Firmware"
+                        Style="{StaticResource TitleLabelStyle}">
+                        <Label.GestureRecognizers>
+                            <ClickGestureRecognizer Command="{Binding}" />
+                        </Label.GestureRecognizers>
+                    </Label>
+
+                    <Label
+                        Grid.Column="1"
+                        Text="Applications"
+                        Opacity="0.75"
+                        HorizontalOptions="Center"
+                        Style="{StaticResource TitleLabelStyle}">
+                        <Label.GestureRecognizers>
+                            <ClickGestureRecognizer Command="{Binding}" />
+                        </Label.GestureRecognizers>
+                    </Label>
+
+                    <Label
+                        Grid.Column="2"
+                        Text="File System"
+                        Opacity="0.75"
+                        HorizontalOptions="End"
+                        Style="{StaticResource TitleLabelStyle}">
+                        <Label.GestureRecognizers>
+                            <ClickGestureRecognizer Command="{Binding}" />
+                        </Label.GestureRecognizers>
+                    </Label>
+                </Grid>
             </Grid>
         </Grid>
 

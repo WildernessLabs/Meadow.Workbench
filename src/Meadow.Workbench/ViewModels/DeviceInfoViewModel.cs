@@ -16,45 +16,6 @@ public class DeviceInfoViewModel : ViewModelBase
     private UserSettingsService _settingsService;
     private IFolderPicker _folderPicker;
 
-    public DeviceInfoViewModel(ILogger logger, MeadowConnectionManager connectionManager, UserSettingsService settingsService, IFolderPicker folderPicker)
-    {
-        _logger = logger as CaptureLogger;
-        if (_logger == null)
-        {
-            _logger = new CaptureLogger();
-        }
-
-        SelectedLogLevel = LogLevel.Information;
-
-        _logger.OnLogInfo += (level, info) =>
-        {
-            Application.Current.Dispatcher.Dispatch(() =>
-            {
-                lock (ConsoleOutput)
-                {
-                    try
-                    {
-                        ConsoleOutput.Add(info);
-                    }
-                    catch (ArgumentOutOfRangeException)
-                    {
-                        // feels like a bug in the MAUI control here - just ignore it
-                    }
-                }
-            });
-        };
-
-        _folderPicker = folderPicker;
-        _settingsService = settingsService;
-
-        _connectionManager = connectionManager;
-        _connectionManager.ConnectionAdded += OnConnectionAdded;
-
-        RefreshLocalFirmwareVersionsCommand.Execute(null);
-        RefreshKnownApps();
-        Task.Run(() => RtcUpdater());
-    }
-
     public LogLevel _logLevel;
     public LogLevel SelectedLogLevel
     {
@@ -146,6 +107,61 @@ public class DeviceInfoViewModel : ViewModelBase
         }
     }
 
+    private ObservableCollection<FirmwareInfo> _localFirmwareVersions = new();
+    public ObservableCollection<FirmwareInfo> LocalFirmwareVersions
+    {
+        get => _localFirmwareVersions;
+    }
+
+    private IMeadowConnection? _selectedConnection;
+    public IMeadowConnection? SelectedConnection
+    {
+        get => _selectedConnection;
+        set
+        {
+            if (value != null)
+            {
+                MeadowConnected = value.IsConnected;
+
+                // TODO: when we change connections, remove old handlers
+                value.ConnectionStateChanged += (connection, newState) =>
+                {
+                    MeadowConnected = newState;
+                };
+
+                value.AutoReconnect = true;
+            }
+
+            this.RaiseAndSetIfChanged(ref _selectedConnection, value);
+        }
+    }
+
+    private AppInfo? _selectedApp;
+    public AppInfo? SelectedApp
+    {
+        get => _selectedApp;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _selectedApp, value);
+        }
+    }
+
+    private DateTimeOffset? _lastRtc;
+    public DateTimeOffset? LastRtc
+    {
+        get => _lastRtc;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _lastRtc, value);
+        }
+    }
+
+    private ObservableCollection<AppInfo> _knownApps = new();
+    public ObservableCollection<AppInfo> KnownApps
+    {
+        get => _knownApps;
+    }
+
     public ICommand DownloadLatestFirmwareCommand
     {
         get => new Command(async () =>
@@ -208,97 +224,6 @@ public class DeviceInfoViewModel : ViewModelBase
         });
     }
 
-    private ObservableCollection<FirmwareInfo> _localFirmwareVersions = new();
-    public ObservableCollection<FirmwareInfo> LocalFirmwareVersions
-    {
-        get => _localFirmwareVersions;
-    }
-
-    private IMeadowConnection? _selectedConnection;
-    public IMeadowConnection? SelectedConnection
-    {
-        get => _selectedConnection;
-        set
-        {
-            if (value != null)
-            {
-                MeadowConnected = value.IsConnected;
-
-                // TODO: when we change connections, remove old handlers
-                value.ConnectionStateChanged += (connection, newState) =>
-                {
-                    MeadowConnected = newState;
-                };
-
-                value.AutoReconnect = true;
-            }
-
-            this.RaiseAndSetIfChanged(ref _selectedConnection, value);
-        }
-    }
-
-    private AppInfo? _selectedApp;
-    public AppInfo? SelectedApp
-    {
-        get => _selectedApp;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref _selectedApp, value);
-        }
-    }
-
-    private DateTimeOffset? _lastRtc;
-    public DateTimeOffset? LastRtc
-    {
-        get => _lastRtc;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref _lastRtc, value);
-        }
-    }
-
-    private ObservableCollection<AppInfo> _knownApps = new();
-    public ObservableCollection<AppInfo> KnownApps
-    {
-        get => _knownApps;
-    }
-
-    private void RefreshKnownApps()
-    {
-        KnownApps.Clear();
-        var updatedList = false;
-        foreach (var app in _settingsService.Settings.KnownApplications)
-        {
-            var di = new DirectoryInfo(app);
-            if (di.Exists)
-            {
-                KnownApps.Add(new AppInfo(di));
-            }
-            else
-            {
-                // doesn't exist, so remove it
-                _settingsService.Settings.KnownApplications.Remove(app);
-                updatedList = true;
-            }
-        }
-
-        if (updatedList)
-        {
-            _settingsService.SaveCurrentSettings();
-        }
-    }
-
-    private void CheckForNewFirmware()
-    {
-        Task.Run(async () =>
-        {
-            LatestFirwareVersion = await FirmwareManager.GetCloudLatestFirmwareVersion();
-            var match = LocalFirmwareVersions.FirstOrDefault(v => v.Version == LatestFirwareVersion);
-
-            FirmwareUpdateAvailable = match == null;
-        });
-    }
-
     public ICommand ClearConsoleCommand
     {
         get => new Command(() =>
@@ -329,56 +254,6 @@ public class DeviceInfoViewModel : ViewModelBase
 
             await UpdateFirmware(SelectedLocalFirmware, SelectedConnection);
         });
-    }
-
-    private async Task UpdateFirmware(FirmwareInfo version, IMeadowConnection? connection)
-    {
-        if (!UseDfuMode)
-        {
-            if (connection == null || connection.Device == null || !connection.IsConnected) return;
-        }
-
-        FirmwareUpdateInProgress = true;
-
-        try
-        {
-            // TODO: tell user to power with boot button pressed?
-            var updater = FirmwareManager.GetFirmwareUpdater(_connectionManager);
-            // TODO: watch the state to update the UI?
-            await updater.Update(connection, version.Version);
-        }
-        catch (DeviceNotFoundException)
-        {
-            await App.Current.MainPage.DisplayAlert("Device Not Found", $"No connected Meadow device found", "OK");
-            return;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error flashing OS to Meadow");
-        }
-        finally
-        {
-            if (connection != null)
-            {
-                connection.AutoReconnect = true;
-            }
-            FirmwareUpdateInProgress = false;
-        }
-
-        if (connection != null)
-        {
-            // refresh the device info
-            try
-            {
-                await connection.WaitForConnection(TimeSpan.FromSeconds(5));
-
-                await connection.Device.GetDeviceInfo(TimeSpan.FromSeconds(60));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed getting device info");
-            }
-        }
     }
 
     public ICommand ResetDeviceCommand
@@ -489,6 +364,99 @@ public class DeviceInfoViewModel : ViewModelBase
         });
     }
 
+    public DeviceInfoViewModel(
+        ILogger logger,
+        MeadowConnectionManager connectionManager,
+        UserSettingsService settingsService,
+        IFolderPicker folderPicker)
+    {
+        _logger = logger as CaptureLogger;
+        if (_logger == null)
+        {
+            _logger = new CaptureLogger();
+        }
+
+        SelectedLogLevel = LogLevel.Information;
+
+        _logger.OnLogInfo += (level, info) =>
+        {
+            Application.Current.Dispatcher.Dispatch(() =>
+            {
+                lock (ConsoleOutput)
+                {
+                    try
+                    {
+                        ConsoleOutput.Add(info);
+                    }
+                    catch (ArgumentOutOfRangeException)
+                    {
+                        // feels like a bug in the MAUI control here - just ignore it
+                    }
+                }
+            });
+        };
+
+        _folderPicker = folderPicker;
+        _settingsService = settingsService;
+
+        _connectionManager = connectionManager;
+        _connectionManager.ConnectionAdded += OnConnectionAdded;
+
+        RefreshLocalFirmwareVersionsCommand.Execute(null);
+        RefreshKnownApps();
+        Task.Run(() => RtcUpdater());
+    }
+
+    private async Task UpdateFirmware(FirmwareInfo version, IMeadowConnection? connection)
+    {
+        if (!UseDfuMode)
+        {
+            if (connection == null || connection.Device == null || !connection.IsConnected) return;
+        }
+
+        FirmwareUpdateInProgress = true;
+
+        try
+        {
+            // TODO: tell user to power with boot button pressed?
+            var updater = FirmwareManager.GetFirmwareUpdater(_connectionManager);
+            // TODO: watch the state to update the UI?
+            await updater.Update(connection, version.Version);
+        }
+        catch (DeviceNotFoundException)
+        {
+            await App.Current.MainPage.DisplayAlert("Device Not Found", $"No connected Meadow device found", "OK");
+            return;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error flashing OS to Meadow");
+        }
+        finally
+        {
+            if (connection != null)
+            {
+                connection.AutoReconnect = true;
+            }
+            FirmwareUpdateInProgress = false;
+        }
+
+        if (connection != null)
+        {
+            // refresh the device info
+            try
+            {
+                await connection.WaitForConnection(TimeSpan.FromSeconds(5));
+
+                await connection.Device.GetDeviceInfo(TimeSpan.FromSeconds(60));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed getting device info");
+            }
+        }
+    }
+
     private void OnConnectionAdded(IMeadowConnection connection)
     {
         Application.Current.Dispatcher.Dispatch(() =>
@@ -522,5 +490,41 @@ public class DeviceInfoViewModel : ViewModelBase
 
             await Task.Delay(TimeSpan.FromSeconds(5));
         }
+    }
+
+    private void RefreshKnownApps()
+    {
+        KnownApps.Clear();
+        var updatedList = false;
+        foreach (var app in _settingsService.Settings.KnownApplications)
+        {
+            var di = new DirectoryInfo(app);
+            if (di.Exists)
+            {
+                KnownApps.Add(new AppInfo(di));
+            }
+            else
+            {
+                // doesn't exist, so remove it
+                _settingsService.Settings.KnownApplications.Remove(app);
+                updatedList = true;
+            }
+        }
+
+        if (updatedList)
+        {
+            _settingsService.SaveCurrentSettings();
+        }
+    }
+
+    private void CheckForNewFirmware()
+    {
+        Task.Run(async () =>
+        {
+            LatestFirwareVersion = await FirmwareManager.GetCloudLatestFirmwareVersion();
+            var match = LocalFirmwareVersions.FirstOrDefault(v => v.Version == LatestFirwareVersion);
+
+            FirmwareUpdateAvailable = match == null;
+        });
     }
 }
