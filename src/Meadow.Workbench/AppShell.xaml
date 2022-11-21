@@ -6,6 +6,7 @@
     xmlns:local="clr-namespace:Meadow.Workbench"
     xmlns:views="clr-namespace:Meadow.Workbench.Views"
     Shell.FlyoutBehavior="Disabled" 
+    BackgroundColor="{AppThemeBinding Light=White, Dark=#0B3749}"
     Title="Meadow Workbench">
     
     <TabBar>

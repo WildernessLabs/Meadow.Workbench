@@ -286,164 +286,167 @@
                     </Border.StrokeShape>
 
                     <Grid>
-                        <Grid BackgroundColor="Red" IsVisible="false"
-                        Margin="10"
-                        ColumnSpacing="10">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="*" />
-                        </Grid.RowDefinitions>
-
-                        <Label
-                            Grid.Row="0"
-                            Grid.ColumnSpan="3"
-                            TextColor="White"
-                            Text="{Binding LatestFirwareVersion, StringFormat='New version {0} is available'}"
-                            IsVisible="{Binding FirmwareUpdateAvailable}" />
-
                         <Grid 
-                            Grid.Row="1"
-                            Grid.Column="0"
-                            RowSpacing="10">
+                            IsVisible="{Binding IsFirmwareTab}"
+                            Margin="10"
+                            ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="*" />
-                                <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
 
                             <Label
                                 Grid.Row="0"
-                                Text="Select a Meadow.OS versions:" />
+                                Grid.ColumnSpan="3"
+                                TextColor="White"
+                                Text="{Binding LatestFirwareVersion, StringFormat='New version {0} is available'}"
+                                IsVisible="{Binding FirmwareUpdateAvailable}" />
 
-                            <ListView
+                            <Grid 
                                 Grid.Row="1"
-                                ItemsSource="{Binding LocalFirmwareVersions}"
-                                SelectedItem="{Binding SelectedLocalFirmware}">
-                                <ListView.ItemTemplate>
-                                    <DataTemplate>
-                                        <ViewCell>
-                                            <Grid>
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="10" />
-                                                    <ColumnDefinition Width="70" />
-                                                    <ColumnDefinition Width="*" />
-                                                </Grid.ColumnDefinitions>
+                                Grid.Column="0"
+                                RowSpacing="10">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
 
-                                                <Label
-                                                    Grid.Column="0"
-                                                    Text="*"
-                                                    IsVisible="{Binding IsLatest}"/>
-                                                <Label
-                                                    Grid.Column="1"
-                                                    Text="{Binding Version}" />
-                                                <Label
-                                                    Grid.Column="2"
-                                                    Text="{Binding BuildDate, StringFormat='{0:MM/dd/yy HH:mm}'}"
-                                                    Margin="10,0,0,0"/>
+                                <Label
+                                    Grid.Row="0"
+                                    Text="Select a Meadow.OS versions:" />
 
-                                            </Grid>
-                                        </ViewCell>
-                                    </DataTemplate>
-                                </ListView.ItemTemplate>
-                            </ListView>
+                                <ListView
+                                    Grid.Row="1"
+                                    ItemsSource="{Binding LocalFirmwareVersions}"
+                                    SelectedItem="{Binding SelectedLocalFirmware}">
+                                    <ListView.ItemTemplate>
+                                        <DataTemplate>
+                                            <ViewCell>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="10" />
+                                                        <ColumnDefinition Width="70" />
+                                                        <ColumnDefinition Width="*" />
+                                                    </Grid.ColumnDefinitions>
 
-                            <VerticalStackLayout
-                                Grid.Row="2"
-                                Spacing="2">
-                                <Label 
-                                    Text="* latest production version"
-                                    FontSize="Caption"
-                                    HorizontalOptions="Center" />
+                                                    <Label
+                                                        Grid.Column="0"
+                                                        Text="*"
+                                                        IsVisible="{Binding IsLatest}"/>
+                                                    <Label
+                                                        Grid.Column="1"
+                                                        Text="{Binding Version}" />
+                                                    <Label
+                                                        Grid.Column="2"
+                                                        Text="{Binding BuildDate, StringFormat='{0:MM/dd/yy HH:mm}'}"
+                                                        Margin="10,0,0,0"/>
+
+                                                </Grid>
+                                            </ViewCell>
+                                        </DataTemplate>
+                                    </ListView.ItemTemplate>
+                                </ListView>
+
+                                <VerticalStackLayout
+                                    Grid.Row="2"
+                                    Spacing="2">
+                                    <Label 
+                                        Text="* latest production version"
+                                        FontSize="Caption"
+                                        HorizontalOptions="Center" />
+
+                                    <Button
+                                        Text="Refresh"
+                                        Style="{StaticResource BaseButtonStyle}"
+                                        Command="{Binding RefreshLocalFirmwareVersionsCommand}" />
+
+                                    <Button
+                                        Text="{Binding LatestFirwareVersion, StringFormat='Download {0}'}"
+                                        IsVisible="{Binding FirmwareUpdateAvailable}"
+                                        Style="{StaticResource BaseButtonStyle}"
+                                        Command="{Binding DownloadLatestFirmwareCommand}" />
+
+                                    <Button
+                                        Text="Download Specific"
+                                        Command="{Binding GetFirmwareCommand}"
+                                        Style="{StaticResource BaseButtonStyle}" />
+                                </VerticalStackLayout>
+                            </Grid>
+
+                            <Line 
+                                Grid.Row="1"
+                                Grid.Column="1" 
+                                StrokeThickness="2"
+                                BackgroundColor="#23ABE3" />
+
+                            <VerticalStackLayout 
+                                Grid.Row="1"
+                                Grid.Column="2"
+                                Spacing="10">
+
+                                <Label
+                                    Text="Choose an action:" />
+
+                                <VerticalStackLayout Spacing="0">
+                                    <Button
+                                        Command="{Binding SendSelectedFirmwareCommand}"
+                                        Style="{StaticResource BaseButtonStyle}">
+                                        <Button.Triggers>
+                                            <DataTrigger TargetType="Button" Binding="{Binding SelectedLocalFirmware, Converter={StaticResource objectToBool}}" Value="true">
+                                                <Setter Property="Text" Value="{Binding SelectedLocalFirmware.Version, StringFormat='Flash {0} to Device'}" />
+                                                <Setter Property="Opacity" Value="1" />
+                                            </DataTrigger>
+                                            <DataTrigger TargetType="Button" Binding="{Binding SelectedLocalFirmware, Converter={StaticResource objectToBool}}" Value="false">
+                                                <Setter Property="Text" Value="Choose a Meadow.OS version" />
+                                                <Setter Property="Opacity" Value="0.5" />
+                                            </DataTrigger>
+                                        </Button.Triggers>
+                                    </Button>
+                                    <HorizontalStackLayout HorizontalOptions="Center">
+                                        <Label
+                                            Text="Device in BOOT mode"
+                                            VerticalOptions="Center"/>
+                                        <CheckBox 
+                                            Margin="5,0,0,0"
+                                            IsChecked="{Binding UseDfuMode}" />
+                                    </HorizontalStackLayout>
+                                </VerticalStackLayout>
 
                                 <Button
-                                    Text="Refresh"
-                                    Style="{StaticResource BaseButtonStyle}"
-                                    Command="{Binding RefreshLocalFirmwareVersionsCommand}" />
-
-                                <Button
-                                    Text="{Binding LatestFirwareVersion, StringFormat='Download {0}'}"
-                                    IsVisible="{Binding FirmwareUpdateAvailable}"
-                                    Style="{StaticResource BaseButtonStyle}"
-                                    Command="{Binding DownloadLatestFirmwareCommand}" />
-                            
-                                <Button
-                                    Text="Download Specific"
-                                    Command="{Binding GetFirmwareCommand}"
-                                    Style="{StaticResource BaseButtonStyle}" />
-                            </VerticalStackLayout>
-                        </Grid>
-
-                        <Line 
-                            Grid.Row="1"
-                            Grid.Column="1" 
-                            StrokeThickness="2"
-                            BackgroundColor="#23ABE3" />
-
-                        <VerticalStackLayout 
-                            Grid.Row="1"
-                            Grid.Column="2"
-                            Spacing="10">
-
-                            <Label
-                                Text="Choose an action:" />
-
-                            <VerticalStackLayout Spacing="-5">
-                                <Button
-                                    Command="{Binding SendSelectedFirmwareCommand}"
+                                    Text="Update Mono Runtime"
                                     Style="{StaticResource BaseButtonStyle}">
                                     <Button.Triggers>
                                         <DataTrigger TargetType="Button" Binding="{Binding SelectedLocalFirmware, Converter={StaticResource objectToBool}}" Value="true">
-                                            <Setter Property="Text" Value="{Binding SelectedLocalFirmware.Version, StringFormat='Flash {0} to Device'}" />
                                             <Setter Property="Opacity" Value="1" />
                                         </DataTrigger>
                                         <DataTrigger TargetType="Button" Binding="{Binding SelectedLocalFirmware, Converter={StaticResource objectToBool}}" Value="false">
-                                            <Setter Property="Text" Value="Choose a Meadow.OS version" />
                                             <Setter Property="Opacity" Value="0.5" />
                                         </DataTrigger>
                                     </Button.Triggers>
                                 </Button>
-                                <HorizontalStackLayout HorizontalOptions="Center">
-                                    <Label
-                                        Text="Use DFU (device is in BOOT mode)"
-                                        VerticalOptions="Center"/>
-                                    <CheckBox 
-                                        IsChecked="{Binding UseDfuMode}" />
-                                </HorizontalStackLayout>
+                                <Button
+                                    Text="Flash Co-Processor"
+                                    Style="{StaticResource BaseButtonStyle}">
+                                    <Button.Triggers>
+                                        <DataTrigger TargetType="Button" Binding="{Binding SelectedLocalFirmware, Converter={StaticResource objectToBool}}" Value="true">
+                                            <Setter Property="Opacity" Value="1" />
+                                        </DataTrigger>
+                                        <DataTrigger TargetType="Button" Binding="{Binding SelectedLocalFirmware, Converter={StaticResource objectToBool}}" Value="false">
+                                            <Setter Property="Opacity" Value="0.5" />
+                                        </DataTrigger>
+                                    </Button.Triggers>
+                                </Button>
                             </VerticalStackLayout>
+                        </Grid>
 
-                            <Button
-                                Text="Update Mono Runtime"
-                                Style="{StaticResource BaseButtonStyle}">
-                                <Button.Triggers>
-                                    <DataTrigger TargetType="Button" Binding="{Binding SelectedLocalFirmware, Converter={StaticResource objectToBool}}" Value="true">
-                                        <Setter Property="Opacity" Value="1" />
-                                    </DataTrigger>
-                                    <DataTrigger TargetType="Button" Binding="{Binding SelectedLocalFirmware, Converter={StaticResource objectToBool}}" Value="false">
-                                        <Setter Property="Opacity" Value="0.5" />
-                                    </DataTrigger>
-                                </Button.Triggers>
-                            </Button>
-                            <Button
-                                Text="Flash Co-Processor"
-                                Style="{StaticResource BaseButtonStyle}">
-                                <Button.Triggers>
-                                    <DataTrigger TargetType="Button" Binding="{Binding SelectedLocalFirmware, Converter={StaticResource objectToBool}}" Value="true">
-                                        <Setter Property="Opacity" Value="1" />
-                                    </DataTrigger>
-                                    <DataTrigger TargetType="Button" Binding="{Binding SelectedLocalFirmware, Converter={StaticResource objectToBool}}" Value="false">
-                                        <Setter Property="Opacity" Value="0.5" />
-                                    </DataTrigger>
-                                </Button.Triggers>
-                            </Button>
-                        </VerticalStackLayout>
-                    </Grid>
-
-                        <Grid BackgroundColor="Red"
+                        <Grid 
+                            IsVisible="{Binding IsApplicationTab}"
                             Margin="10">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
@@ -456,13 +459,12 @@
                                     Text="Select an App to deploy:" />
 
                                 <ListView
-                                    RowHeight="20"
                                     ItemsSource="{Binding KnownApps}"
                                     SelectedItem="{Binding SelectedApp}">
                                     <ListView.ItemTemplate>
                                         <DataTemplate>
                                             <ViewCell>
-                                                <Grid Margin="20">
+                                                <Grid>
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="*" />
                                                         <ColumnDefinition Width="*" />
@@ -495,6 +497,13 @@
                                     Command="{Binding BrowseAppCommand}" />
                             </VerticalStackLayout>
                         </Grid>
+
+                        <Grid 
+                            BackgroundColor="Blue"
+                            IsVisible="{Binding IsFileSystemTab}"
+                            Margin="10">
+                            
+                        </Grid>
                     </Grid>
                 </Border>
 
@@ -510,8 +519,16 @@
                         Text="Firmware"
                         Style="{StaticResource TitleLabelStyle}">
                         <Label.GestureRecognizers>
-                            <ClickGestureRecognizer Command="{Binding}" />
+                            <TapGestureRecognizer  Command="{Binding FirmwareTabCommand}" NumberOfTapsRequired="1" />
                         </Label.GestureRecognizers>
+                        <Label.Triggers>
+                            <DataTrigger TargetType="Label" Binding="{Binding IsFirmwareTab}" Value="true">
+                                <Setter Property="Opacity" Value="1" />
+                            </DataTrigger>
+                            <DataTrigger TargetType="Label" Binding="{Binding IsFirmwareTab}" Value="false">
+                                <Setter Property="Opacity" Value="0.65" />
+                            </DataTrigger>
+                        </Label.Triggers>
                     </Label>
 
                     <Label
@@ -521,8 +538,16 @@
                         HorizontalOptions="Center"
                         Style="{StaticResource TitleLabelStyle}">
                         <Label.GestureRecognizers>
-                            <ClickGestureRecognizer Command="{Binding}" />
+                            <TapGestureRecognizer Command="{Binding ApplicationTabCommand}"  NumberOfTapsRequired="1" />
                         </Label.GestureRecognizers>
+                        <Label.Triggers>
+                            <DataTrigger TargetType="Label" Binding="{Binding IsApplicationTab}" Value="true">
+                                <Setter Property="Opacity" Value="1" />
+                            </DataTrigger>
+                            <DataTrigger TargetType="Label" Binding="{Binding IsApplicationTab}" Value="false">
+                                <Setter Property="Opacity" Value="0.65" />
+                            </DataTrigger>
+                        </Label.Triggers>
                     </Label>
 
                     <Label
@@ -532,8 +557,16 @@
                         HorizontalOptions="End"
                         Style="{StaticResource TitleLabelStyle}">
                         <Label.GestureRecognizers>
-                            <ClickGestureRecognizer Command="{Binding}" />
+                            <TapGestureRecognizer  Command="{Binding FileSystemTabCommand}"  NumberOfTapsRequired="1" />
                         </Label.GestureRecognizers>
+                        <Label.Triggers>
+                            <DataTrigger TargetType="Label" Binding="{Binding IsFileSystemTab}" Value="true">
+                                <Setter Property="Opacity" Value="1" />
+                            </DataTrigger>
+                            <DataTrigger TargetType="Label" Binding="{Binding IsFileSystemTab}" Value="false">
+                                <Setter Property="Opacity" Value="0.65" />
+                            </DataTrigger>
+                        </Label.Triggers>
                     </Label>
                 </Grid>
             </Grid>

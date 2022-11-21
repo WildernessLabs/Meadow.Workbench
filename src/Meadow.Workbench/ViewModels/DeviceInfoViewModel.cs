@@ -62,6 +62,27 @@ public class DeviceInfoViewModel : ViewModelBase
         }
     }
 
+    private bool _isFirmwareTab;
+    public bool IsFirmwareTab
+    {
+        get => _isFirmwareTab;
+        set => this.RaiseAndSetIfChanged(ref _isFirmwareTab, value);
+    }
+
+    private bool _isApplicationTab;
+    public bool IsApplicationTab
+    {
+        get => _isApplicationTab;
+        set => this.RaiseAndSetIfChanged(ref _isApplicationTab, value);
+    }
+
+    private bool _isFileSystemTab;
+    public bool IsFileSystemTab
+    {
+        get => _isFileSystemTab;
+        set => this.RaiseAndSetIfChanged(ref _isFileSystemTab, value);
+    }
+
     private ObservableCollection<string> _ports = new();
     public ObservableCollection<string> Ports
     {
@@ -364,6 +385,33 @@ public class DeviceInfoViewModel : ViewModelBase
         });
     }
 
+    public ICommand FirmwareTabCommand
+    {
+        get => new Command(() =>
+        {
+            IsApplicationTab = IsFileSystemTab = false;
+            IsFirmwareTab = true;
+        });
+    }
+
+    public ICommand ApplicationTabCommand
+    {
+        get => new Command(() =>
+        {
+            IsFirmwareTab = IsFileSystemTab = false;
+            IsApplicationTab = true;
+        });
+    }
+
+    public ICommand FileSystemTabCommand
+    {
+        get => new Command(() =>
+        {
+            IsApplicationTab = IsFirmwareTab = false;
+            IsFileSystemTab = true;
+        });
+    }
+
     public DeviceInfoViewModel(
         ILogger logger,
         MeadowConnectionManager connectionManager,
@@ -395,6 +443,8 @@ public class DeviceInfoViewModel : ViewModelBase
                 }
             });
         };
+
+        IsFirmwareTab = true;
 
         _folderPicker = folderPicker;
         _settingsService = settingsService;
