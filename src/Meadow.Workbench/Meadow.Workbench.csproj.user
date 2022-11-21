@@ -6,9 +6,6 @@
     <ActiveDebugProfile>Mac Catalyst</ActiveDebugProfile>
   </PropertyGroup>
   <ItemGroup>
-    <MauiXaml Update="Controls\FirmwareView.xaml">
-      <SubType>Designer</SubType>
-    </MauiXaml>
     <MauiXaml Update="Views\DeviceInfoPage.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>

@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:converters="clr-namespace:Meadow.Workbench.Converters"
+             x:Class="Meadow.Workbench.Controls.DeviceInfoContent">
+    <ContentView.Resources>
+        <converters:ObjectToBoolConverter x:Key="objectToBool" />
+        <ResourceDictionary>
+            <Color x:Key="TextColor">#555</Color>
+
+            <Style x:Key="BorderStyle" TargetType="Border">
+                <Setter Property="HorizontalOptions" Value="FillAndExpand" />
+                <Setter Property="Margin" Value="0,10,0,0" />
+                <Setter Property="Stroke" Value="#23ABE3" />
+                <Setter Property="StrokeThickness" Value="2" />
+                <Setter Property="Padding" Value="5" />
+            </Style>
+
+            <Style x:Key="TitleLabelStyle" TargetType="Label">
+                <Setter Property="HorizontalOptions" Value="Start" />
+                <Setter Property="VerticalOptions" Value="Start" />
+                <Setter Property="Margin" Value="15,-5" />
+                <Setter Property="Padding" Value="5,0" />
+                <Setter Property="Background" Value="{AppThemeBinding Light=White, Dark=#0B3749}" />
+                <Setter Property="FontAttributes" Value="Bold" />
+                <Setter Property="FontSize" Value="Small" />
+            </Style>
+
+            <Style x:Key="BaseButtonStyle" TargetType="Button">
+                <Setter Property="TextColor" Value="White" />
+                <Setter Property="FontAttributes" Value="Bold" />
+                <Setter Property="CornerRadius" Value="5" />
+                <Setter Property="HeightRequest" Value="35" />
+                <Setter Property="Padding" Value="0" />
+                <Setter Property="BackgroundColor" Value="#23ABE3" />
+            </Style>
+
+            <Style x:Key="ButtonStyle" TargetType="Button" BasedOn="{StaticResource BaseButtonStyle}">
+                <Setter Property="WidthRequest" Value="150" />
+            </Style>
+        </ResourceDictionary>
+    </ContentView.Resources>
+
+    <Grid
+        Grid.Row="1">
+        <Border 
+            Style="{StaticResource BorderStyle}">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="10" />
+            </Border.StrokeShape>
+
+            <Grid
+                Margin="10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <Grid
+                    Grid.Column="0"
+                    ColumnSpacing="10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="120" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="21"/>
+                        <RowDefinition Height="21"/>
+                        <RowDefinition Height="21"/>
+                        <RowDefinition Height="21"/>
+                        <RowDefinition Height="21"/>
+                        <RowDefinition Height="21"/>
+                        <RowDefinition Height="21"/>
+                    </Grid.RowDefinitions>
+
+                    <Label
+                        Grid.Row="0"
+                        Grid.Column="0"
+                        Text="Name:"
+                        FontAttributes="Bold"
+                        HorizontalTextAlignment="End" />
+                    <Label
+                        Grid.Row="0"
+                        Grid.Column="1"
+                        Text="{Binding SelectedConnection.Device.DeviceInfo.DeviceName}" />
+
+                    <Label
+                        Grid.Row="1"
+                        Grid.Column="0"
+                        Text="Serial #:"
+                        FontAttributes="Bold"
+                        HorizontalTextAlignment="End" />
+                    <Label
+                        Grid.Row="1"
+                        Grid.Column="1"
+                        Text="{Binding SelectedConnection.Device.DeviceInfo.SerialNumber}" />
+
+                    <Label
+                        Grid.Row="2"
+                        Grid.Column="0"
+                        Text="Hardware:"
+                        FontAttributes="Bold"
+                        HorizontalTextAlignment="End" />
+                    <Label
+                        Grid.Row="2"
+                        Grid.Column="1"
+                        Text="{Binding SelectedConnection.Device.DeviceInfo.HardwareVersion}" />
+
+                    <Label
+                        Grid.Row="3"
+                        Grid.Column="0"
+                        Text="OS:"
+                        FontAttributes="Bold"
+                        HorizontalTextAlignment="End" />
+                    <Label
+                        Grid.Row="3"
+                        Grid.Column="1"
+                        Text="{Binding SelectedConnection.Device.DeviceInfo.MeadowOsVersion}" />
+
+                    <Label
+                        Grid.Row="4"
+                        Grid.Column="0"
+                        Text="Runtime:"
+                        FontAttributes="Bold"
+                        HorizontalTextAlignment="End" />
+                    <Label
+                        Grid.Row="4"
+                        Grid.Column="1"
+                        Text="{Binding SelectedConnection.Device.DeviceInfo.RuntimeVersion}" />
+
+                    <Label
+                        Grid.Row="5"
+                        Grid.Column="0"
+                        Text="Coprocessor:"
+                        FontAttributes="Bold"
+                        HorizontalTextAlignment="End" />
+                    <Label
+                        Grid.Row="5"
+                        Grid.Column="1"
+                        Text="{Binding SelectedConnection.Device.DeviceInfo.CoProcessorOsVersion}" />
+
+                    <Label
+                        Grid.Row="6"
+                        Grid.Column="0"
+                        Text="Clock:"
+                        FontAttributes="Bold"
+                        HorizontalTextAlignment="End" />
+                    <Label
+                        Grid.Row="6"
+                        Grid.Column="1"
+                        Text="{Binding LastRtc}" />
+                </Grid>
+
+                <VerticalStackLayout
+                    Grid.Column="1" 
+                    Spacing="2"
+                    VerticalOptions="Center">
+                    <VerticalStackLayout.Triggers>
+                        <DataTrigger TargetType="VerticalStackLayout" Binding="{Binding MeadowConnected}" Value="true">
+                            <Setter Property="Opacity" Value="1" />
+                            <Setter Property="IsEnabled" Value="true" />
+                        </DataTrigger>
+                        <DataTrigger TargetType="VerticalStackLayout" Binding="{Binding MeadowConnected}" Value="false">
+                            <Setter Property="Opacity" Value="0.75" />
+                            <Setter Property="IsEnabled" Value="false" />
+                        </DataTrigger>
+                    </VerticalStackLayout.Triggers>
+                    <Button
+                        Text="Reset"
+                        Style="{StaticResource ButtonStyle}"
+                        Command="{Binding ResetDeviceCommand}" />
+                    <Button
+                        Text="Refresh" 
+                        Style="{StaticResource ButtonStyle}"
+                        Command="{Binding RefreshDeviceInfo}" />
+                    <Button
+                        Text="Copy to Clipboard"
+                        Style="{StaticResource ButtonStyle}"
+                        Command="{Binding CopyDeviceInfoCommand}">
+                    </Button>
+                    <Button
+                        Text="Sync Time" 
+                        Style="{StaticResource ButtonStyle}"
+                        Command="{Binding TimeSyncCommand}">
+                    </Button>
+                </VerticalStackLayout>
+            </Grid>
+        </Border>
+        <Label
+            Style="{StaticResource TitleLabelStyle}">
+            <Label.Triggers>
+                <DataTrigger TargetType="Label" Binding="{Binding MeadowConnected}" Value="true">
+                    <Setter Property="Text" Value="Device Connected" />
+                </DataTrigger>
+                <DataTrigger TargetType="Label" Binding="{Binding MeadowConnected}" Value="false">
+                    <Setter Property="Text" Value="Device Disconnected" />
+                </DataTrigger>
+            </Label.Triggers>
+        </Label>
+    </Grid>
+</ContentView>

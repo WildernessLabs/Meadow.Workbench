@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:converters="clr-namespace:Meadow.Workbench.Converters"
+             x:Class="Meadow.Workbench.Controls.OutputContent">
+
+    <ContentView.Resources>
+        <converters:ObjectToBoolConverter x:Key="objectToBool" />
+        <ResourceDictionary>
+            <Color x:Key="TextColor">#555</Color>
+
+            <Style x:Key="BorderStyle" TargetType="Border">
+                <Setter Property="HorizontalOptions" Value="FillAndExpand" />
+                <Setter Property="Margin" Value="0,10,0,0" />
+                <Setter Property="Stroke" Value="#23ABE3" />
+                <Setter Property="StrokeThickness" Value="2" />
+                <Setter Property="Padding" Value="5" />
+            </Style>
+
+            <Style x:Key="TitleLabelStyle" TargetType="Label">
+                <Setter Property="HorizontalOptions" Value="Start" />
+                <Setter Property="VerticalOptions" Value="Start" />
+                <Setter Property="Margin" Value="15,-5" />
+                <Setter Property="Padding" Value="5,0" />
+                <Setter Property="Background" Value="{AppThemeBinding Light=White, Dark=#0B3749}" />
+                <Setter Property="FontAttributes" Value="Bold" />
+                <Setter Property="FontSize" Value="Small" />
+            </Style>
+
+            <Style x:Key="BaseButtonStyle" TargetType="Button">
+                <Setter Property="TextColor" Value="White" />
+                <Setter Property="FontAttributes" Value="Bold" />
+                <Setter Property="CornerRadius" Value="5" />
+                <Setter Property="HeightRequest" Value="35" />
+                <Setter Property="Padding" Value="0" />
+                <Setter Property="BackgroundColor" Value="#23ABE3" />
+            </Style>
+
+            <Style x:Key="ButtonStyle" TargetType="Button" BasedOn="{StaticResource BaseButtonStyle}">
+                <Setter Property="WidthRequest" Value="150" />
+            </Style>
+        </ResourceDictionary>
+    </ContentView.Resources>
+
+    <Grid
+        Grid.Column="1"
+        Margin="10">
+
+        <Border 
+            Style="{StaticResource BorderStyle}">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="10" />
+            </Border.StrokeShape>
+
+            <Grid 
+                Padding="10" 
+                RowSpacing="10">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <Grid
+                    ColumnSpacing="10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Label 
+                        Grid.Column="0"
+                        VerticalOptions="Center"
+                        Text="Select Output Type:" />
+
+                    <Picker 
+                        Grid.Column="1"
+                        ItemsSource="{Binding LogLevels}"
+                        SelectedItem="{Binding SelectedLogLevel}" HorizontalOptions="FillAndExpand" />
+                </Grid>
+
+                <ScrollView
+                    Grid.Row="1">
+                    <StackLayout
+                        BackgroundColor="Black"
+                        BindableLayout.ItemsSource="{Binding ConsoleOutput}">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate>
+                                <Label
+                                    Text="{Binding .}" 
+                                    Margin="0"
+                                    Padding="5,0"
+                                    FontFamily="Courier New" 
+                                    TextColor="LightGray" />
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </StackLayout>
+                </ScrollView>
+
+                <Button
+                    Grid.Row="2"
+                    Text="Clear"
+                    Command="{Binding ClearConsoleCommand}"
+                    Style="{StaticResource BaseButtonStyle}"/>
+            </Grid>
+        </Border>
+        <Label
+            Text="Output"
+            Style="{StaticResource TitleLabelStyle}" />
+    </Grid>
+
+</ContentView>
