@@ -9,7 +9,7 @@ using System.Windows.Input;
 
 namespace Meadow.Workbench.ViewModels;
 
-public class DeviceInfoViewModel : ViewModelBase
+public partial class DeviceInfoViewModel : ViewModelBase
 {
     private CaptureLogger _logger;
     private MeadowConnectionManager _connectionManager;

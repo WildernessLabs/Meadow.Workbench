@@ -5,8 +5,66 @@
     x:Class="Meadow.Workbench.Controls.FileSystemContent">
 
     <Grid 
-        BackgroundColor="Blue"
-        IsVisible="{Binding IsFileSystemTab}"
         Margin="10">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition />
+            <ColumnDefinition />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition />
+        </Grid.RowDefinitions>
+
+        <Grid 
+            Grid.Row="0"
+            Grid.Column="0"
+            RowSpacing="10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <Label
+                Grid.Row="0"
+                FontSize="Caption"
+                Text="Files on Meadow:" />
+            
+            <ListView
+                Grid.Row="1"
+                ItemsSource="{Binding RemoteFiles}"
+                SelectedItem="{Binding RemoteSelectedFile}" >
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <ViewCell>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="100" />
+                                    <ColumnDefinition Width="100" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <Label
+                                        Grid.Column="0"
+                                        Text="{Binding FileName}" />
+                                <Label
+                                        Grid.Column="1"
+                                        Text="{Binding FileDate}" />
+                                <Label
+                                        Grid.Column="2"
+                                        Text="{Binding FileSize}" />
+                            </Grid>
+
+                        </ViewCell>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+
+            <Button
+                Grid.Row="2"
+                Text="Refresh"
+                Style="{StaticResource BaseButtonStyle}"
+                Command="{Binding RefreshRemoteFilesCommand}" />
+
+        </Grid>
     </Grid>
 </ContentView>
