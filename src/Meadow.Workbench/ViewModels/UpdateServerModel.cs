@@ -49,7 +49,7 @@ public class UpdateServerModel : ViewModelBase
     {
         get => new Command(async () =>
         {
-            await _publisher.MakeUpdateAvailable();
+            await _publisher.MakeUpdateAvailable(SelectedUpdate);
         });
     }
 

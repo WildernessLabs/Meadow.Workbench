@@ -1,5 +1,4 @@
-﻿using Meadow.CLI.Core.DeviceManagement;
-using ReactiveUI;
+﻿using ReactiveUI;
 
 namespace Meadow.Workbench;
 

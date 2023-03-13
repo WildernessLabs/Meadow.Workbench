@@ -16,7 +16,7 @@ namespace Meadow.Update
         private IMqttClient _client;
 
         public string SourceFolder { get; }
-
+        public string UpdateServer { get; } = "http://192.168.1.133:5000";
         public UpdatePublisher()
         {
             var factory = new MqttFactory();
@@ -49,16 +49,16 @@ namespace Meadow.Update
             return list.ToArray();
         }
 
-        public async Task MakeUpdateAvailable()
+        public async Task MakeUpdateAvailable(string selectedUpdate)
         {
             var options = new MqttClientOptionsBuilder()
                 .WithClientId("workbench")
-                .WithTcpServer("localhost", 1883)
+                .WithTcpServer("192.168.1.133", 1883)
                 .Build();
 
             await _client.ConnectAsync(options);
 
-            var update = GenerateMessageForUpdate("0.6.7.13");
+            var update = GenerateMessageForUpdate(selectedUpdate);
 
             var json = JsonSerializer.Serialize(update);
 
@@ -87,10 +87,11 @@ namespace Meadow.Update
             // get the update info (hash, etc)
             var hash = GetFileHash(fi);
 
+
             var update = new UpdateMessage
             {
                 MpakID = updateName,
-                MpakDownloadUrl = $"http://192.168.1.133:5000/update/{updateName}",
+                MpakDownloadUrl = $"{UpdateServer}/update/{updateName}",
                 DownloadHash = hash,
                 DownloadSize = fi.Length,
                 PublishedOn = fi.CreationTimeUtc,
