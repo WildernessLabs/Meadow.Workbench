@@ -4,8 +4,8 @@
     {
         private static uint _sequenceNumber;
 
-        public static Command Build<T>(uint userData = 0, ushort extraData = 0, ushort protocol = Protocol.HCOM_PROTOCOL_HCOM_VERSION_NUMBER)
-            where T : Command, new()
+        public static Request Build<T>(uint userData = 0, ushort extraData = 0, ushort protocol = Protocol.HCOM_PROTOCOL_HCOM_VERSION_NUMBER)
+            where T : Request, new()
         {
             var sequence = Interlocked.Increment(ref _sequenceNumber);
             if (sequence > ushort.MaxValue)

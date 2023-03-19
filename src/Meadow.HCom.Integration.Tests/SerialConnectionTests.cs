@@ -16,16 +16,33 @@ namespace Meadow.HCom.Integration.Tests
         }
 
         [Fact]
+        public async void TestListen()
+        {
+            using (var connection = new SerialConnection(ValidPortName))
+            {
+                Assert.Equal(ConnectionState.Disconnected, connection.State);
+                var connected = await connection.TryAttach(TimeSpan.FromSeconds(2));
+
+                while (true)
+                {
+                    await Task.Delay(1000);
+                }
+            }
+        }
+
+        [Fact]
         public async void TestAttachPositive()
         {
-            var connection = new SerialConnection(ValidPortName);
-            Assert.Equal(ConnectionState.Disconnected, connection.State);
-            var connected = await connection.TryAttach(TimeSpan.FromSeconds(2));
-            Assert.Equal(ConnectionState.Connected, connection.State);
-
-            while (true)
+            using (var connection = new SerialConnection(ValidPortName))
             {
-                await Task.Delay(1000);
+                Assert.Equal(ConnectionState.Disconnected, connection.State);
+                var connected = await connection.TryAttach(TimeSpan.FromSeconds(2));
+                Assert.Equal(ConnectionState.Connected, connection.State);
+
+                while (true)
+                {
+                    await Task.Delay(1000);
+                }
             }
         }
     }

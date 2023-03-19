@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using System.Buffers;
 using System.Diagnostics;
 using System.IO.Ports;
 
@@ -17,11 +18,14 @@ namespace Meadow.Hcom
         private ILogger? _logger;
         private bool _isDisposed;
         private ConnectionState _state;
+        private readonly CancellationTokenSource _cts;
 
         public IMeadowDevice? Device { get; private set; }
 
         public SerialConnection(string port, ILogger? logger = default)
         {
+            _cts = new CancellationTokenSource();
+
             if (!SerialPort.GetPortNames().Contains(port, StringComparer.InvariantCultureIgnoreCase))
             {
                 throw new ArgumentException($"Serial Port '{port}' not found.");
@@ -32,10 +36,17 @@ namespace Meadow.Hcom
             _port = new SerialPort(port);
             _port.ReadTimeout = _port.WriteTimeout = 5000;
 
-            new Thread(ListenerProc)
+            new Thread(() => _ = ListenerProc())
             {
                 IsBackground = true,
                 Name = "HCOM Listener"
+            }
+            .Start();
+
+            new Thread(CommandManager)
+            {
+                IsBackground = true,
+                Name = "HCOM Sender"
             }
             .Start();
         }
@@ -72,6 +83,8 @@ namespace Meadow.Hcom
             State = ConnectionState.Disconnected;
         }
 
+        private Queue<Request> _pendingCommands = new Queue<Request>();
+
         public async Task<bool> TryAttach(TimeSpan timeout = default)
         {
             try
@@ -81,7 +94,11 @@ namespace Meadow.Hcom
 
                 // search for the device via HCOM
                 var command = CommandBuilder.Build<GetDeviceInfoCommand>();
-                SendCommand(command);
+                command.SequenceNumber = 42;
+
+                _pendingCommands.Enqueue(command);
+
+                // wait for sequence number
 
                 // if HCOM fails, check for DFU/bootloader mode
 
@@ -97,7 +114,21 @@ namespace Meadow.Hcom
             }
         }
 
-        private void SendCommand(Command command)
+        private void CommandManager()
+        {
+            while (!_isDisposed)
+            {
+                while (_pendingCommands.Count > 0)
+                {
+                    var command = _pendingCommands.Dequeue();
+                    SendCommand(command);
+                }
+
+                Thread.Sleep(1000);
+            }
+        }
+
+        private void SendCommand(Request command)
         {
             // TODO: verify we're connected
 
@@ -202,42 +233,152 @@ namespace Meadow.Hcom
         }
 
 
-        private void ListenerProc()
+        private class SerialMessage
+        {
+            private readonly IList<Memory<byte>> _segments;
+
+            public SerialMessage(Memory<byte> segment)
+            {
+                _segments = new List<Memory<byte>>();
+                _segments.Add(segment);
+            }
+
+            public void AddSegment(Memory<byte> segment)
+            {
+                _segments.Add(segment);
+            }
+
+            public byte[] ToArray()
+            {
+                using var ms = new MemoryStream();
+                foreach (var segment in _segments)
+                {
+                    // We could just call ToArray on the `Memory` but that will result in an uncontrolled allocation.
+                    var tmp = ArrayPool<byte>.Shared.Rent(segment.Length);
+                    segment.CopyTo(tmp);
+                    ms.Write(tmp, 0, segment.Length);
+                    ArrayPool<byte>.Shared.Return(tmp);
+                }
+                return ms.ToArray();
+            }
+        }
+
+        private async Task ListenerProc()
         {
             var readBuffer = new byte[ReadBufferSizeBytes];
+            var decodedBuffer = new byte[8192];
+            var messageBytes = new CircularBuffer<byte>(8192 * 2);
+            var delimiter = new byte[] { 0x00 };
+            var index = 0;
 
             while (!_isDisposed)
             {
                 if (_port.IsOpen)
                 {
-                    var length = _port.BytesToRead;
-
-                    if (length > 0)
+                    try
                     {
-                        // TODO: packetize if > buffer size
+                        var receivedLength = await _port.BaseStream.ReadAsync(readBuffer, 0, readBuffer.Length);
 
-                        var read = _port.Read(readBuffer, 0, length);
-
-                        if (read > 0)
+                        if (receivedLength > 0)
                         {
-                            // process the data
+                            messageBytes.Append(readBuffer, 0, receivedLength);
 
-                            // append to queue
+                            while (messageBytes.Count > 0)
+                            {
+                                index = messageBytes.FirstIndexOf(delimiter);
 
-                            // look for response packet
+                                if (index < 0)
+                                {
+                                    break;
+                                }
+                                var packetBytes = messageBytes.Remove(index + 1);
 
-                            // extract response packet
+                                if (packetBytes.Length == 1)
+                                {
+                                    // It's possible that we may find a series of 0x00 values in the buffer.
+                                    // This is because when the sender is blocked (because this code isn't
+                                    // running) it will attempt to send a single 0x00 before the full message.
+                                    // This allows it to test for a connection. When the connection is
+                                    // unblocked this 0x00 is sent and gets put into the buffer along with
+                                    // any others that were queued along the usb serial pipe line.
 
-                            // forward response packet
+                                    // we discard this single 0x00 byte
+                                }
+                                else
+                                {
+                                    var decodedSize = CobsTools.CobsDecoding(packetBytes, packetBytes.Length - delimiter.Length, ref decodedBuffer);
+
+                                    // now parse this per the HCOM protocol definition
+                                    var response = Response.Parse(decodedBuffer, decodedSize);
+
+                                    if (response is TextInformationResponse tir)
+                                    {
+                                        // raise this up
+                                        Debug.WriteLine(tir.Text);
+                                    }
+                                }
+                            }
                         }
                     }
-                    Thread.Sleep(100);
+                    catch (TimeoutException)
+                    {
+                    }
+                    catch (ThreadAbortException)
+                    {
+                        //ignoring for now until we wire cancellation ...
+                        //this blocks the thread abort exception when the console app closes
+                    }
+                    catch (InvalidOperationException)
+                    {
+                        // common if the port is reset/closed (e.g. mono enable/disable) - don't spew confusing info
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogTrace(ex, "An error occurred while listening to the serial port.");
+                        await Task.Delay(100, _cts.Token);
+                    }
                 }
                 else
                 {
-                    Thread.Sleep(1000);
+                    await (Task.Delay(500));
                 }
             }
+        }
+
+        private bool DecodeAndProcessPacket(Memory<byte> packetBuffer, CancellationToken cancellationToken)
+        {
+            var decodedBuffer = ArrayPool<byte>.Shared.Rent(8192);
+            var packetLength = packetBuffer.Length;
+            // It's possible that we may find a series of 0x00 values in the buffer.
+            // This is because when the sender is blocked (because this code isn't
+            // running) it will attempt to send a single 0x00 before the full message.
+            // This allows it to test for a connection. When the connection is
+            // unblocked this 0x00 is sent and gets put into the buffer along with
+            // any others that were queued along the usb serial pipe line.
+            if (packetLength == 1)
+            {
+                //_logger.LogTrace("Throwing out 0x00 from buffer");
+                return false;
+            }
+
+            var decodedSize = CobsTools.CobsDecoding(packetBuffer.ToArray(), packetLength, ref decodedBuffer);
+
+            /*
+            // If a message is too short it is ignored
+            if (decodedSize < MeadowDeviceManager.ProtocolHeaderSize)
+            {
+                return false;
+            }
+
+            Debug.Assert(decodedSize <= MeadowDeviceManager.MaxAllowableMsgPacketLength);
+
+            // Process the received packet
+            ParseAndProcessReceivedPacket(decodedBuffer.AsSpan(0, decodedSize).ToArray(),
+                                          cancellationToken);
+
+            */
+            ArrayPool<byte>.Shared.Return(decodedBuffer);
+            return true;
         }
 
         protected virtual void Dispose(bool disposing)

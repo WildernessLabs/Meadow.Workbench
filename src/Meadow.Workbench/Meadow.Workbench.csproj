@@ -12,7 +12,7 @@
 		<SingleProject>true</SingleProject>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
-		
+		<LangVersion>10</LangVersion>
 		<!-- Display name -->
 		<ApplicationTitle>Meadow.Workbench</ApplicationTitle>
 
@@ -79,6 +79,10 @@
 	  <MauiXaml Update="Views\UpdateServerPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Communications\Connections\" />
 	</ItemGroup>
 
 </Project>
