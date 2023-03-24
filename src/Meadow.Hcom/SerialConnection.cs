@@ -7,7 +7,7 @@ namespace Meadow.Hcom
 {
     public delegate void ConnectionStateChangedHandler(SerialConnection connection, ConnectionState oldState, ConnectionState newState);
 
-    public class SerialConnection : IDisposable
+    public class SerialConnection : IDisposable, IHcomConnection
     {
         public const int DefaultBaudRate = 115200;
         public const int ReadBufferSizeBytes = 0x2000;
@@ -19,6 +19,9 @@ namespace Meadow.Hcom
         private bool _isDisposed;
         private ConnectionState _state;
         private readonly CancellationTokenSource _cts;
+        private List<IConnectionListener> _listeners = new List<IConnectionListener>();
+        private Queue<Request> _pendingCommands = new Queue<Request>();
+        private bool _maintainConnection;
 
         public IMeadowDevice? Device { get; private set; }
 
@@ -49,6 +52,80 @@ namespace Meadow.Hcom
                 Name = "HCOM Sender"
             }
             .Start();
+        }
+
+        private bool MaintainConnection
+        {
+            get => _maintainConnection;
+            set
+            {
+                if (value == MaintainConnection) return;
+
+                _maintainConnection = value;
+
+                if (value)
+                {
+                    if (_connectionManager == null || _connectionManager.ThreadState != System.Threading.ThreadState.Running)
+                    {
+                        _connectionManager = new Thread(ConnectionManagerProc)
+                        {
+                            IsBackground = true,
+                            Name = "HCOM Connection Manager"
+                        };
+                        _connectionManager.Start();
+
+                    }
+                }
+            }
+        }
+
+        private Thread? _connectionManager = null;
+
+        private void ConnectionManagerProc()
+        {
+            while (_maintainConnection)
+            {
+                Debug.WriteLine("Checking COM port...");
+                if (!_port.IsOpen)
+                {
+                    try
+                    {
+                        Debug.WriteLine("Opening COM port...");
+                        _port.Open();
+                        Debug.WriteLine("Opened COM port");
+                    }
+                    catch
+                    {
+                        Thread.Sleep(1000);
+                    }
+                }
+                else
+                {
+                    Thread.Sleep(1000);
+                }
+            }
+        }
+
+        public void AddListener(IConnectionListener listener)
+        {
+            lock (_listeners)
+            {
+                _listeners.Add(listener);
+            }
+
+            Open();
+
+            MaintainConnection = true;
+        }
+
+        public void RemoveListener(IConnectionListener listener)
+        {
+            lock (_listeners)
+            {
+                _listeners.Remove(listener);
+            }
+
+            // TODO: stop maintaining connection?
         }
 
         public ConnectionState State
@@ -82,8 +159,6 @@ namespace Meadow.Hcom
 
             State = ConnectionState.Disconnected;
         }
-
-        private Queue<Request> _pendingCommands = new Queue<Request>();
 
         public async Task<bool> TryAttach(TimeSpan timeout = default)
         {
@@ -313,8 +388,13 @@ namespace Meadow.Hcom
 
                                     if (response is TextInformationResponse tir)
                                     {
-                                        // raise this up
-                                        Debug.WriteLine(tir.Text);
+                                        // send the message to any listeners
+                                        Debug.WriteLine($"INFO> {tir.Text}");
+
+                                        foreach (var listener in _listeners)
+                                        {
+                                            listener.OnInformationMessageReceived(tir.Text);
+                                        }
                                     }
                                 }
                             }
@@ -322,20 +402,24 @@ namespace Meadow.Hcom
                     }
                     catch (TimeoutException)
                     {
+                        Debug.WriteLine($"listen timeout");
                     }
                     catch (ThreadAbortException)
                     {
                         //ignoring for now until we wire cancellation ...
                         //this blocks the thread abort exception when the console app closes
+                        Debug.WriteLine($"listen abort");
                     }
                     catch (InvalidOperationException)
                     {
                         // common if the port is reset/closed (e.g. mono enable/disable) - don't spew confusing info
+                        Debug.WriteLine($"listen on closed port");
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogTrace(ex, "An error occurred while listening to the serial port.");
-                        await Task.Delay(100, _cts.Token);
+                        Debug.WriteLine($"listen error {ex.Message}");
+                        _logger?.LogTrace(ex, "An error occurred while listening to the serial port.");
+                        await Task.Delay(1000, _cts.Token);
                     }
                 }
                 else
