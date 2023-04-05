@@ -168,7 +168,7 @@ namespace Meadow.Hcom
                 Open();
 
                 // search for the device via HCOM
-                var command = CommandBuilder.Build<GetDeviceInfoCommand>();
+                var command = CommandBuilder.Build<GetDeviceInfoRequest>();
                 command.SequenceNumber = 42;
 
                 _pendingCommands.Enqueue(command);
@@ -195,24 +195,31 @@ namespace Meadow.Hcom
             {
                 while (_pendingCommands.Count > 0)
                 {
+                    Debug.WriteLine($"There are {_pendingCommands.Count} pending commands");
+
                     var command = _pendingCommands.Dequeue();
-                    SendCommand(command);
+
+                    var payload = command.Serialize();
+                    EncodeAndSendPacket(payload);
+
+                    // TODO: re-queue on fail?
                 }
 
                 Thread.Sleep(1000);
             }
         }
 
-        private void SendCommand(Request command)
+        internal void SendRequest(Request command)
         {
             // TODO: verify we're connected
 
-            var payload = command.Serialize();
-            EncodeAndSendPacket(payload);
+            _pendingCommands.Enqueue(command);
         }
 
         private void EncodeAndSendPacket(byte[] messageBytes)
         {
+            Debug.WriteLine($"+EncodeAndSendPacket({messageBytes.Length} bytes)");
+
             try
             {
                 int encodedToSend;
@@ -354,6 +361,8 @@ namespace Meadow.Hcom
                     {
                         var receivedLength = await _port.BaseStream.ReadAsync(readBuffer, 0, readBuffer.Length);
 
+                        Debug.WriteLine($"Received {receivedLength} bytes");
+
                         if (receivedLength > 0)
                         {
                             messageBytes.Append(readBuffer, 0, receivedLength);
@@ -395,6 +404,10 @@ namespace Meadow.Hcom
                                         {
                                             listener.OnInformationMessageReceived(tir.Text);
                                         }
+                                    }
+                                    else
+                                    {
+                                        // try to match responses with the requests
                                     }
                                 }
                             }

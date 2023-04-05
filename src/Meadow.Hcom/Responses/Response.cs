@@ -1,16 +1,4 @@
-﻿using System.Text;
-
-namespace Meadow.Hcom;
-
-internal class TextInformationResponse : Response
-{
-    public string Text => Encoding.UTF8.GetString(_data, RESPONSE_PAYLOAD_OFFSET, PayloadLength);
-
-    internal TextInformationResponse(byte[] data, int length)
-        : base(data, length)
-    {
-    }
-}
+﻿namespace Meadow.Hcom;
 
 internal class Response
 {
@@ -38,6 +26,10 @@ internal class Response
         {
             case ResponseType.HCOM_HOST_REQUEST_TEXT_INFORMATION:
                 return new TextInformationResponse(data, length);
+            case ResponseType.HCOM_HOST_REQUEST_TEXT_ACCEPTED:
+                return new TextRequestResponse(data, length);
+            case ResponseType.HCOM_HOST_REQUEST_TEXT_DEVICE_INFO:
+                return new DeviceInfoResponse(data, length);
             default:
                 return new Response(data, length);
         }
