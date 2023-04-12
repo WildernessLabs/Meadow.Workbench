@@ -23,6 +23,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Meadow.Logging", "..\..\Mea
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Web.Maple.MapleServer", "..\..\Maple\Source\Web.Maple.MapleServer\Driver\Web.Maple.MapleServer.csproj", "{122E14A6-7FDD-4B0A-ADF0-9DF274666F35}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Meadow.Hcom", "..\..\Meadow.CLI\Meadow.Hcom\Meadow.Hcom.csproj", "{AEFE595B-35F3-4158-9FB2-1C5C8220A2AB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -171,6 +173,18 @@ Global
 		{122E14A6-7FDD-4B0A-ADF0-9DF274666F35}.Release|x86.ActiveCfg = Release|Any CPU
 		{122E14A6-7FDD-4B0A-ADF0-9DF274666F35}.Release|x86.Build.0 = Release|Any CPU
 		{122E14A6-7FDD-4B0A-ADF0-9DF274666F35}.Release|x86.Deploy.0 = Release|Any CPU
+		{AEFE595B-35F3-4158-9FB2-1C5C8220A2AB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AEFE595B-35F3-4158-9FB2-1C5C8220A2AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AEFE595B-35F3-4158-9FB2-1C5C8220A2AB}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{AEFE595B-35F3-4158-9FB2-1C5C8220A2AB}.Debug|x64.Build.0 = Debug|Any CPU
+		{AEFE595B-35F3-4158-9FB2-1C5C8220A2AB}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{AEFE595B-35F3-4158-9FB2-1C5C8220A2AB}.Debug|x86.Build.0 = Debug|Any CPU
+		{AEFE595B-35F3-4158-9FB2-1C5C8220A2AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AEFE595B-35F3-4158-9FB2-1C5C8220A2AB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AEFE595B-35F3-4158-9FB2-1C5C8220A2AB}.Release|x64.ActiveCfg = Release|Any CPU
+		{AEFE595B-35F3-4158-9FB2-1C5C8220A2AB}.Release|x64.Build.0 = Release|Any CPU
+		{AEFE595B-35F3-4158-9FB2-1C5C8220A2AB}.Release|x86.ActiveCfg = Release|Any CPU
+		{AEFE595B-35F3-4158-9FB2-1C5C8220A2AB}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -183,6 +197,7 @@ Global
 		{0FA8F4B8-28F1-4408-98EA-CC2425E28005} = {53997D2A-7C6B-4678-A44B-84A416263D7A}
 		{7D853DF1-308A-42FD-B7B4-9A1FD09BC26B} = {53997D2A-7C6B-4678-A44B-84A416263D7A}
 		{122E14A6-7FDD-4B0A-ADF0-9DF274666F35} = {53997D2A-7C6B-4678-A44B-84A416263D7A}
+		{AEFE595B-35F3-4158-9FB2-1C5C8220A2AB} = {53997D2A-7C6B-4678-A44B-84A416263D7A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {61F7FB11-1E47-470C-91E2-47F8143E1572}
