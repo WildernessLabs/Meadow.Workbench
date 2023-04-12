@@ -3,6 +3,7 @@ using Meadow.Update;
 using ReactiveUI;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Net.NetworkInformation;
 using System.Windows.Input;
 
 namespace Meadow.Workbench.ViewModels;
@@ -10,21 +11,62 @@ namespace Meadow.Workbench.ViewModels;
 public class UpdateServerModel : ViewModelBase
 {
     private UpdateServer _updateServer;
+    private ContentServer _contentServer;
     private UpdatePublisher _publisher;
     private ObservableCollection<string> _availableUpdates = new();
     private string? _selectedUpdate;
+    private string _serverAddress;
+    private int _updatePort;
+    private string[] _addressList;
 
     public UpdateServerModel()
     {
         _updateServer = new UpdateServer();
+        _contentServer = new ContentServer();
         _publisher = new UpdatePublisher();
+
+        UpdateServerPort = 1883;
 
         _updateServer.StateChanged += (s, e) =>
         {
             this.RaisePropertyChanged(nameof(ServerIsRunning));
         };
 
+        AvailableAddresses = NetworkInterface.GetAllNetworkInterfaces()
+            .SelectMany(i => i.GetIPProperties().UnicastAddresses
+            .Where(a => a.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork && a.IsDnsEligible))
+            .Select(a2 => a2.Address.ToString())
+            .ToArray();
+
         RefreshAvailableUpdatesCommand.Execute(null);
+    }
+
+    public int UpdateServerPort
+    {
+        get => _updatePort;
+        set => this.RaiseAndSetIfChanged(ref _updatePort, value);
+    }
+
+    public int ContentServerPort
+    {
+        get => _contentServer.ServerPort;
+        set
+        {
+            _contentServer.ServerPort = value;
+            this.RaisePropertyChanged();
+        }
+    }
+
+    public string[] AvailableAddresses
+    {
+        get => _addressList;
+        set => this.RaiseAndSetIfChanged(ref _addressList, value);
+    }
+
+    public string SelectedServerAddress
+    {
+        get => _serverAddress;
+        set => this.RaiseAndSetIfChanged(ref _serverAddress, value);
     }
 
     public ICommand StartServerCommand
@@ -49,7 +91,16 @@ public class UpdateServerModel : ViewModelBase
     {
         get => new Command(async () =>
         {
-            await _publisher.MakeUpdateAvailable(SelectedUpdate);
+            if (SelectedUpdate == null) return;
+
+            var fi = new FileInfo(Path.Combine(UpdateBinaryFolder, SelectedUpdate));
+
+            await _publisher.PublishPackage(
+                fi,
+                SelectedServerAddress,
+                _updateServer.ServerPort,
+                SelectedServerAddress,
+                _contentServer.ServerPort);
         });
     }
 
