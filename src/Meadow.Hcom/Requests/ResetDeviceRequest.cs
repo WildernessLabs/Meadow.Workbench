@@ -1,11 +1,10 @@
 ﻿namespace Meadow.Hcom
 {
-
-    internal class GetDeviceInfoRequest : Request
+    internal class ResetDeviceRequest : Request
     {
-        public override RequestType RequestType => RequestType.HCOM_MDOW_REQUEST_GET_DEVICE_INFORMATION;
+        public override RequestType RequestType => RequestType.HCOM_MDOW_REQUEST_RESTART_PRIMARY_MCU;
 
-        public GetDeviceInfoRequest()
+        public ResetDeviceRequest()
         {
         }
         // Serialized example:
