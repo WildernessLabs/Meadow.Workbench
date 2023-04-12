@@ -24,7 +24,7 @@ namespace Meadow.Update
             get => _port;
             set
             {
-                if (value == _maple.Port) return;
+                if (value == _port) return;
 
                 var wasRunning = IsRunning;
 

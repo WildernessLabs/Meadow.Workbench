@@ -15,6 +15,8 @@ namespace Meadow.Update
 
         private MqttServer _broker;
 
+        public int ServerPort { get; set; } = 1883;
+
         public UpdateServer()
         {
             var factory = new MqttFactory();
@@ -26,9 +28,14 @@ namespace Meadow.Update
             _broker.ClientConnectedAsync += OnClientConnectedAsync;
             _broker.ClientSubscribedTopicAsync += OnClientSubscribedTopicAsync;
             _broker.ClientDisconnectedAsync += OnClientDisconnectedAsync;
+            _broker.InterceptingPublishAsync += OnMessagePublished;
         }
 
-        public int ServerPort { get; set; } = 1883;
+        private Task OnMessagePublished(InterceptingPublishEventArgs arg)
+        {
+            Debug.WriteLine($"Update Message Has been published by '{arg.ClientId}' to '{arg.ApplicationMessage.Topic}'");
+            return Task.CompletedTask;
+        }
 
         private Task OnClientDisconnectedAsync(ClientDisconnectedEventArgs arg)
         {

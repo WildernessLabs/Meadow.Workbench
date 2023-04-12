@@ -85,7 +85,8 @@
                         Grid.Row="1"
                         VerticalOptions="Center"
                         Margin="10,10"
-                        Text="Start" />
+                        Command="{Binding UpdateServerActionCommand}"
+                        Text="{Binding UpdateServerActionText}" />
 
                     <Label
                         Grid.Column="0"
@@ -110,7 +111,8 @@
                         Grid.Row="2"
                         VerticalOptions="Center"
                         Margin="10,10"
-                        Text="Start" />
+                        Command="{Binding ContentServerActionCommand}"
+                        Text="{Binding ContentServerActionText}" />
 
                     <Button
                         Grid.Column="0"

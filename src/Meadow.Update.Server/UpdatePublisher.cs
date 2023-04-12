@@ -69,7 +69,7 @@ namespace Meadow.Update
             await _client.ConnectAsync(options);
 
             // the "name" passed to the content server is the folder containing the package
-            var packageName = Path.GetFileName(packageSource.DirectoryName);
+            var packageName = packageSource.Name;
 
             var update = GenerateMessageForUpdate(contentServerAddress, contentServerPort, packageName);
 

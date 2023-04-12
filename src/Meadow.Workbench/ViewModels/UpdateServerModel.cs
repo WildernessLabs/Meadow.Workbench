@@ -18,14 +18,14 @@ public class UpdateServerModel : ViewModelBase
     private string _serverAddress;
     private int _updatePort;
     private string[] _addressList;
+    private string _updateActionText;
+    private string _contentActionText;
 
     public UpdateServerModel()
     {
         _updateServer = new UpdateServer();
         _contentServer = new ContentServer();
         _publisher = new UpdatePublisher();
-
-        UpdateServerPort = 1883;
 
         _updateServer.StateChanged += (s, e) =>
         {
@@ -38,13 +38,20 @@ public class UpdateServerModel : ViewModelBase
             .Select(a2 => a2.Address.ToString())
             .ToArray();
 
+        UpdateServerActionText = "Start";
+        ContentServerActionText = "Start";
+
         RefreshAvailableUpdatesCommand.Execute(null);
     }
 
     public int UpdateServerPort
     {
-        get => _updatePort;
-        set => this.RaiseAndSetIfChanged(ref _updatePort, value);
+        get => _updateServer.ServerPort;
+        set
+        {
+            _updateServer.ServerPort = value;
+            this.RaisePropertyChanged();
+        }
     }
 
     public int ContentServerPort
@@ -69,21 +76,49 @@ public class UpdateServerModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _serverAddress, value);
     }
 
-    public ICommand StartServerCommand
+    public string UpdateServerActionText
+    {
+        get => _updateActionText;
+        set => this.RaiseAndSetIfChanged(ref _updateActionText, value);
+    }
+
+    public string ContentServerActionText
+    {
+        get => _contentActionText;
+        set => this.RaiseAndSetIfChanged(ref _contentActionText, value);
+    }
+
+    public ICommand UpdateServerActionCommand
     {
         get => new Command(async () =>
         {
-            await _updateServer.Start();
-            this.RaisePropertyChanged(nameof(ServerIsRunning));
+            if (!_updateServer.IsRunning)
+            {
+                await _updateServer.Start();
+                UpdateServerActionText = "Stop";
+            }
+            else
+            {
+                await _updateServer.Stop();
+                UpdateServerActionText = "Start";
+            }
         });
     }
 
-    public ICommand StopServerCommand
+    public ICommand ContentServerActionCommand
     {
-        get => new Command(async () =>
+        get => new Command(() =>
         {
-            await _updateServer.Stop();
-            this.RaisePropertyChanged(nameof(ServerIsRunning));
+            if (!_contentServer.IsRunning)
+            {
+                _contentServer.Start();
+                ContentServerActionText = "Stop";
+            }
+            else
+            {
+                _contentServer.Stop();
+                ContentServerActionText = "Start";
+            }
         });
     }
 
