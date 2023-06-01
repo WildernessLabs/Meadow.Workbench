@@ -3,6 +3,7 @@ using Meadow.Update;
 using ReactiveUI;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Net.NetworkInformation;
 using System.Windows.Input;
 
 namespace Meadow.Workbench.ViewModels;
@@ -10,13 +11,20 @@ namespace Meadow.Workbench.ViewModels;
 public class UpdateServerModel : ViewModelBase
 {
     private UpdateServer _updateServer;
+    private ContentServer _contentServer;
     private UpdatePublisher _publisher;
     private ObservableCollection<string> _availableUpdates = new();
     private string? _selectedUpdate;
+    private string _serverAddress;
+    private int _updatePort;
+    private string[] _addressList;
+    private string _updateActionText;
+    private string _contentActionText;
 
     public UpdateServerModel()
     {
         _updateServer = new UpdateServer();
+        _contentServer = new ContentServer();
         _publisher = new UpdatePublisher();
 
         _updateServer.StateChanged += (s, e) =>
@@ -24,24 +32,93 @@ public class UpdateServerModel : ViewModelBase
             this.RaisePropertyChanged(nameof(ServerIsRunning));
         };
 
+        AvailableAddresses = NetworkInterface.GetAllNetworkInterfaces()
+            .SelectMany(i => i.GetIPProperties().UnicastAddresses
+            .Where(a => a.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork && a.IsDnsEligible))
+            .Select(a2 => a2.Address.ToString())
+            .ToArray();
+
+        UpdateServerActionText = "Start";
+        ContentServerActionText = "Start";
+
         RefreshAvailableUpdatesCommand.Execute(null);
     }
 
-    public ICommand StartServerCommand
+    public int UpdateServerPort
+    {
+        get => _updateServer.ServerPort;
+        set
+        {
+            _updateServer.ServerPort = value;
+            this.RaisePropertyChanged();
+        }
+    }
+
+    public int ContentServerPort
+    {
+        get => _contentServer.ServerPort;
+        set
+        {
+            _contentServer.ServerPort = value;
+            this.RaisePropertyChanged();
+        }
+    }
+
+    public string[] AvailableAddresses
+    {
+        get => _addressList;
+        set => this.RaiseAndSetIfChanged(ref _addressList, value);
+    }
+
+    public string SelectedServerAddress
+    {
+        get => _serverAddress;
+        set => this.RaiseAndSetIfChanged(ref _serverAddress, value);
+    }
+
+    public string UpdateServerActionText
+    {
+        get => _updateActionText;
+        set => this.RaiseAndSetIfChanged(ref _updateActionText, value);
+    }
+
+    public string ContentServerActionText
+    {
+        get => _contentActionText;
+        set => this.RaiseAndSetIfChanged(ref _contentActionText, value);
+    }
+
+    public ICommand UpdateServerActionCommand
     {
         get => new Command(async () =>
         {
-            await _updateServer.Start();
-            this.RaisePropertyChanged(nameof(ServerIsRunning));
+            if (!_updateServer.IsRunning)
+            {
+                await _updateServer.Start();
+                UpdateServerActionText = "Stop";
+            }
+            else
+            {
+                await _updateServer.Stop();
+                UpdateServerActionText = "Start";
+            }
         });
     }
 
-    public ICommand StopServerCommand
+    public ICommand ContentServerActionCommand
     {
-        get => new Command(async () =>
+        get => new Command(() =>
         {
-            await _updateServer.Stop();
-            this.RaisePropertyChanged(nameof(ServerIsRunning));
+            if (!_contentServer.IsRunning)
+            {
+                _contentServer.Start();
+                ContentServerActionText = "Stop";
+            }
+            else
+            {
+                _contentServer.Stop();
+                ContentServerActionText = "Start";
+            }
         });
     }
 
@@ -49,7 +126,16 @@ public class UpdateServerModel : ViewModelBase
     {
         get => new Command(async () =>
         {
-            await _publisher.MakeUpdateAvailable();
+            if (SelectedUpdate == null) return;
+
+            var fi = new FileInfo(Path.Combine(UpdateBinaryFolder, SelectedUpdate));
+
+            await _publisher.PublishPackage(
+                fi,
+                SelectedServerAddress,
+                _updateServer.ServerPort,
+                SelectedServerAddress,
+                _contentServer.ServerPort);
         });
     }
 

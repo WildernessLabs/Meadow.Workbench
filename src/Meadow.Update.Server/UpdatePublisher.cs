@@ -11,11 +11,15 @@ using System.Threading.Tasks;
 
 namespace Meadow.Update
 {
+    /// <summary>
+    /// Provides access to the local set of update packages and can generate Publish notifications to the Update Server
+    /// </summary>
     public class UpdatePublisher
     {
         private IMqttClient _client;
 
         public string SourceFolder { get; }
+        public string UpdateServer { get; } = "http://192.168.1.133:5000";
 
         public UpdatePublisher()
         {
@@ -49,21 +53,30 @@ namespace Meadow.Update
             return list.ToArray();
         }
 
-        public async Task MakeUpdateAvailable()
+        public async Task PublishPackage(
+            FileInfo packageSource,
+            string updateServerAddress,
+            int updateServerPort,
+            string contentServerAddress,
+            int contentServerPort
+            )
         {
             var options = new MqttClientOptionsBuilder()
                 .WithClientId("workbench")
-                .WithTcpServer("localhost", 1883)
+                .WithTcpServer(updateServerAddress, updateServerPort)
                 .Build();
 
             await _client.ConnectAsync(options);
 
-            var update = GenerateMessageForUpdate("0.6.7.13");
+            // the "name" passed to the content server is the folder containing the package
+            var packageName = packageSource.Name;
+
+            var update = GenerateMessageForUpdate(contentServerAddress, contentServerPort, packageName);
 
             var json = JsonSerializer.Serialize(update);
 
             var message = new MqttApplicationMessageBuilder()
-                .WithTopic("Meadow.OtA")
+                .WithTopic("ota")
                 .WithPayload(json)
             .Build();
 
@@ -72,7 +85,10 @@ namespace Meadow.Update
             await _client.DisconnectAsync();
         }
 
-        private UpdateMessage GenerateMessageForUpdate(string updateName)
+        private UpdateMessage GenerateMessageForUpdate(
+            string contentServerAddress,
+            int contentServerPort,
+            string updateName)
         {
             var updateFolder = Path.Combine(SourceFolder, updateName);
 
@@ -87,10 +103,11 @@ namespace Meadow.Update
             // get the update info (hash, etc)
             var hash = GetFileHash(fi);
 
+
             var update = new UpdateMessage
             {
                 MpakID = updateName,
-                MpakDownloadUrl = $"http://192.168.1.133:5000/update/{updateName}",
+                MpakDownloadUrl = $"{contentServerAddress}:{contentServerPort}/update/{updateName}",
                 DownloadHash = hash,
                 DownloadSize = fi.Length,
                 PublishedOn = fi.CreationTimeUtc,

@@ -1,19 +1,21 @@
-﻿using Meadow.Foundation.Web.Maple;
-using MQTTnet;
+﻿using MQTTnet;
 using MQTTnet.Server;
 using System;
 using System.Diagnostics;
-using System.Net;
 using System.Threading.Tasks;
 
 namespace Meadow.Update
 {
+    /// <summary>
+    /// This server provides an MQTT endpoint to notify a Meadow device of available packages
+    /// </summary>
     public class UpdateServer
     {
         public event EventHandler StateChanged = delegate { };
 
         private MqttServer _broker;
-        private MapleServer _maple;
+
+        public int ServerPort { get; set; } = 1883;
 
         public UpdateServer()
         {
@@ -26,9 +28,13 @@ namespace Meadow.Update
             _broker.ClientConnectedAsync += OnClientConnectedAsync;
             _broker.ClientSubscribedTopicAsync += OnClientSubscribedTopicAsync;
             _broker.ClientDisconnectedAsync += OnClientDisconnectedAsync;
+            _broker.InterceptingPublishAsync += OnMessagePublished;
+        }
 
-            _maple = new MapleServer(IPAddress.Any, 5000);
-
+        private Task OnMessagePublished(InterceptingPublishEventArgs arg)
+        {
+            Debug.WriteLine($"Update Message Has been published by '{arg.ClientId}' to '{arg.ApplicationMessage.Topic}'");
+            return Task.CompletedTask;
         }
 
         private Task OnClientDisconnectedAsync(ClientDisconnectedEventArgs arg)
@@ -62,13 +68,6 @@ namespace Meadow.Update
                 Debug.WriteLine("Update broker started");
             }
 
-            if (!_maple.Running)
-            {
-                _maple.Start();
-
-                Debug.WriteLine("Maple started");
-            }
-
             StateChanged?.Invoke(this, EventArgs.Empty);
         }
 
@@ -81,18 +80,12 @@ namespace Meadow.Update
                 Debug.WriteLine("Update broker stopped");
             }
 
-            if (_maple.Running)
-            {
-                _maple.Stop();
-                Debug.WriteLine("Maple stopped");
-            }
-
             StateChanged?.Invoke(this, EventArgs.Empty);
         }
 
         public bool IsRunning
         {
-            get => _broker.IsStarted && _maple.Running;
+            get => _broker.IsStarted;
         }
     }
 }

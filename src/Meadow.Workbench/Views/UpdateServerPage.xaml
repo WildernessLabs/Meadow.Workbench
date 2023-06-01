@@ -5,7 +5,8 @@
              xmlns:converters="clr-namespace:Meadow.Workbench.Converters"
              xmlns:viewmodels="clr-namespace:Meadow.Workbench.ViewModels"
              x:Class="Meadow.Workbench.Views.UpdateServerPage"
-             Title="Local Update Server">
+             Title="Local Update Server"
+             BackgroundColor="{AppThemeBinding Light=White, Dark=#0B3749}">
 
     <ContentPage.BindingContext>
         <viewmodels:UpdateServerModel/>
@@ -16,30 +17,124 @@
         <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter" />
     </ContentPage.Resources>
     
-    <VerticalStackLayout
-        Margin="10,10">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
         
-        <AbsoluteLayout>
-            <Border 
-                WidthRequest="500"
-                Margin="0,10"
-                Stroke="Blue"
-                StrokeThickness="2"            
-                Padding="5">
+        <AbsoluteLayout
+            Grid.Row="0"
+            >
+            <Border                 
+                Style="{StaticResource BorderStyle}">
                 <Border.StrokeShape>
-                    <RoundRectangle CornerRadius="10,10,10,10" />
+                    <RoundRectangle CornerRadius="10" />
                 </Border.StrokeShape>
 
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition />
+                        <RowDefinition />
+                        <RowDefinition />
+                        <RowDefinition />
+                    </Grid.RowDefinitions>
+                    <Label
+                        VerticalOptions="End"
+                        HorizontalOptions="Center"
+                        Grid.Column="1"
+                        Grid.Row="0"
+                        Text="Address" />
+                    <Label
+                        VerticalOptions="End"
+                        HorizontalOptions="Center"
+                        Grid.Column="2"
+                        Grid.Row="0"
+                        Text="Port" />
+
+                    <Label
+                        Grid.Column="0"
+                        Grid.Row="1"
+                        VerticalOptions="Center"
+                        Margin="0,0,10,0"
+                        Text="Update Server:" />
+                    <Picker
+                        Grid.Column="1"
+                        Grid.Row="1"
+                        VerticalOptions="Center"
+                        Margin="10,0"
+                        ItemsSource="{Binding AvailableAddresses}"
+                        SelectedItem="{Binding SelectedServerAddress}" />
+                    <Entry
+                        Grid.Column="2"
+                        Grid.Row="1"
+                        VerticalOptions="Center"
+                        Margin="10,0"
+                        Text="{Binding UpdateServerPort}" />
+                    <Button
+                        Grid.Column="3"
+                        Grid.Row="1"
+                        VerticalOptions="Center"
+                        Margin="10,10"
+                        Command="{Binding UpdateServerActionCommand}"
+                        Text="{Binding UpdateServerActionText}" />
+
+                    <Label
+                        Grid.Column="0"
+                        Grid.Row="2"
+                        VerticalOptions="Center"
+                        Margin="0,0,10,0"
+                        Text="Content Server:" />
+                    <Label
+                        Grid.Column="1"
+                        Grid.Row="2"
+                        VerticalOptions="Center"
+                        Margin="10,0"
+                        Text="{Binding SelectedServerAddress}" />
+                    <Entry
+                        Grid.Column="2"
+                        Grid.Row="2"
+                        VerticalOptions="Center"
+                        Margin="10,0"
+                        Text="{Binding ContentServerPort}" />
+                    <Button
+                        Grid.Column="3"
+                        Grid.Row="2"
+                        VerticalOptions="Center"
+                        Margin="10,10"
+                        Command="{Binding ContentServerActionCommand}"
+                        Text="{Binding ContentServerActionText}" />
+
+                    <Button
+                        Grid.Column="0"
+                        Grid.ColumnSpan="4"
+                        Grid.Row="3"
+                        VerticalOptions="Center"
+                        Margin="10"
+                        Text="Copy App Config" />
+                </Grid>
+                <!--
                 <VerticalStackLayout>
                     <HorizontalStackLayout
                         Margin="5,5">
                         <Button
+                            Style="{StaticResource ButtonStyle}"
                             Text="Start Server"
                             IsVisible="{Binding ServerIsRunning,
                                                 Converter={StaticResource InvertedBoolConverter}}"
                             Command="{Binding StartServerCommand}" />
                     
                         <Button
+                            Style="{StaticResource ButtonStyle}"
                             Text="Stop Server"
                             IsVisible="{Binding ServerIsRunning}"
                             Command="{Binding StopServerCommand}" />
@@ -74,23 +169,20 @@
                         
                     </Grid>
                 </VerticalStackLayout>
+                -->
             </Border>
             <Label
-                Margin="15,0"
-                Padding="5,0"
-                Background="White"
+                Style="{StaticResource TitleLabelStyle}" 
                 Text="Server" />
         </AbsoluteLayout>
 
-        <AbsoluteLayout>
+        <AbsoluteLayout
+            Margin="0,10"
+            Grid.Row="1">
             <Border 
-                WidthRequest="500"
-                Margin="0,10"
-                Stroke="Blue"
-                StrokeThickness="2"            
-                Padding="5">
+                Style="{StaticResource BorderStyle}">
                 <Border.StrokeShape>
-                    <RoundRectangle CornerRadius="10,10,10,10" />
+                    <RoundRectangle CornerRadius="10" />
                 </Border.StrokeShape>
 
                 <VerticalStackLayout>
@@ -111,6 +203,7 @@
                             SelectedItem="{Binding SelectedUpdate}"
                             />
                         <Button
+                            Style="{StaticResource ButtonStyle}"
                             WidthRequest="100"
                             Text="Publish"
                             Command="{Binding PublishUpdateCommand}"
@@ -121,10 +214,8 @@
                 </VerticalStackLayout>
             </Border>
             <Label
-                Margin="15,0"
-                Padding="5,0"
-                Background="White"
+                Style="{StaticResource TitleLabelStyle}" 
                 Text="Updates" />
         </AbsoluteLayout>
-    </VerticalStackLayout>
+    </Grid>
 </ContentPage>
