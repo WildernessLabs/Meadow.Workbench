@@ -31,7 +31,13 @@ internal class Response
             case ResponseType.HCOM_HOST_REQUEST_TEXT_DEVICE_INFO:
                 return new DeviceInfoResponse(data, length);
             case ResponseType.HCOM_HOST_REQUEST_TEXT_CONCLUDED:
-                return new TextConculdedResponse(data, length);
+                return new TextConcludedResponse(data, length);
+            case ResponseType.HCOM_HOST_REQUEST_TEXT_LIST_HEADER:
+                return new TextListHeaderResponse(data, length);
+            case ResponseType.HCOM_HOST_REQUEST_TEXT_LIST_MEMBER:
+                return new TextListMemberResponse(data, length);
+            case ResponseType.HCOM_HOST_REQUEST_TEXT_CRC_MEMBER:
+                return new TextCrcMemberResponse(data, length);
             default:
                 return new Response(data, length);
         }

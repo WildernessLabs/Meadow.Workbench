@@ -4,7 +4,7 @@
     {
         private static uint _sequenceNumber;
 
-        public static Request Build<T>(uint userData = 0, ushort extraData = 0, ushort protocol = Protocol.HCOM_PROTOCOL_HCOM_VERSION_NUMBER)
+        public static T Build<T>(uint userData = 0, ushort extraData = 0, ushort protocol = Protocol.HCOM_PROTOCOL_HCOM_VERSION_NUMBER)
             where T : Request, new()
         {
             var sequence = Interlocked.Increment(ref _sequenceNumber);

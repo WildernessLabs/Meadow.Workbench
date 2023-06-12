@@ -1,5 +1,5 @@
 ﻿using CommunityToolkit.Maui;
-using Meadow.CLI.Core;
+using Meadow.Hcom;
 using Meadow.Workbench.ViewModels;
 using Meadow.Workbench.Views;
 using Microsoft.Extensions.Logging;

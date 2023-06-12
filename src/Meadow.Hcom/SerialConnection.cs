@@ -22,8 +22,12 @@ namespace Meadow.Hcom
         private List<IConnectionListener> _listeners = new List<IConnectionListener>();
         private Queue<Request> _pendingCommands = new Queue<Request>();
         private bool _maintainConnection;
+        private Thread? _connectionManager = null;
+        private List<string> _textList = new List<string>();
+        private int _messageCount = 0;
 
         public IMeadowDevice? Device { get; private set; }
+        public string Name { get; }
 
         public SerialConnection(string port, ILogger? logger = default)
         {
@@ -34,14 +38,16 @@ namespace Meadow.Hcom
                 throw new ArgumentException($"Serial Port '{port}' not found.");
             }
 
+            Name = port;
             State = ConnectionState.Disconnected;
             _logger = logger;
             _port = new SerialPort(port);
             _port.ReadTimeout = _port.WriteTimeout = 5000;
 
-            new Thread(() => _ = ListenerProc())
+            new Thread(() => ListenerProc())
             {
                 IsBackground = true,
+                Priority = ThreadPriority.AboveNormal,
                 Name = "HCOM Listener"
             }
             .Start();
@@ -78,8 +84,6 @@ namespace Meadow.Hcom
                 }
             }
         }
-
-        private Thread? _connectionManager = null;
 
         private void ConnectionManagerProc()
         {
@@ -160,27 +164,55 @@ namespace Meadow.Hcom
             State = ConnectionState.Disconnected;
         }
 
-        public async Task<bool> TryAttach(TimeSpan timeout = default)
+        public async Task<bool> TryAttach(int timeoutSeconds = 30, CancellationToken? cancellationToken = null)
         {
             try
             {
                 // ensure the port is open
                 Open();
 
-                // search for the device via HCOM
+                // search for the device via HCOM - we'll use a simple command since we don't have a "ping"
                 var command = CommandBuilder.Build<GetDeviceInfoRequest>();
-                command.SequenceNumber = 42;
+
+                // sequence numbers are only for file retrieval.  Setting it to non-zero will cause it to hang
+
+                _port.DiscardInBuffer();
+
+                // wait for a response
+                var timeout = timeoutSeconds * 2;
+                var dataReceived = false;
+
+                // local function so we can unsubscribe
+                var count = _messageCount;
 
                 _pendingCommands.Enqueue(command);
 
-                // wait for sequence number
+                while (timeout-- > 0)
+                {
+                    if (cancellationToken?.IsCancellationRequested ?? false) return false;
+                    if (timeout <= 0) throw new TimeoutException();
 
-                // if HCOM fails, check for DFU/bootloader mode
+                    if (count != _messageCount)
+                    {
+                        dataReceived = true;
+                        break;
+                    }
+
+                    //Thread.Sleep(500);
+                    await Task.Delay(500);
+                }
+
+                // if HCOM fails, check for DFU/bootloader mode?  only if we're doing an OS thing, so maybe no
 
                 // create the device instance
+                if (dataReceived)
+                {
+                    Device = new MeadowDevice(this);
+                }
 
-                // start a keep-alive/heartbeat
-                return true;
+                // TODO: start a keep-alive/heartbeat
+
+                return Device != null;
             }
             catch (Exception e)
             {
@@ -209,7 +241,7 @@ namespace Meadow.Hcom
             }
         }
 
-        internal void SendRequest(Request command)
+        void IHcomConnection.SendRequest(Request command)
         {
             // TODO: verify we're connected
 
@@ -278,7 +310,9 @@ namespace Meadow.Hcom
                 try
                 {
                     // Send the data to Meadow
+                    Debug.WriteLine($"Sending {encodedToSend} bytes...");
                     _port.Write(encodedBytes, 0, encodedToSend);
+                    Debug.WriteLine($"sent");
                 }
                 catch (InvalidOperationException ioe)  // Port not opened
                 {
@@ -345,7 +379,7 @@ namespace Meadow.Hcom
             }
         }
 
-        private async Task ListenerProc()
+        private void ListenerProc()
         {
             var readBuffer = new byte[ReadBufferSizeBytes];
             var decodedBuffer = new byte[8192];
@@ -359,7 +393,9 @@ namespace Meadow.Hcom
                 {
                     try
                     {
-                        var receivedLength = await _port.BaseStream.ReadAsync(readBuffer, 0, readBuffer.Length);
+                        Debug.WriteLine($"listening...");
+
+                        var receivedLength = _port.BaseStream.Read(readBuffer, 0, readBuffer.Length);
 
                         Debug.WriteLine($"Received {receivedLength} bytes");
 
@@ -395,6 +431,11 @@ namespace Meadow.Hcom
                                     // now parse this per the HCOM protocol definition
                                     var response = Response.Parse(decodedBuffer, decodedSize);
 
+                                    if (response != null)
+                                    {
+                                        _messageCount++;
+                                    }
+
                                     if (response is TextInformationResponse tir)
                                     {
                                         // send the message to any listeners
@@ -405,8 +446,40 @@ namespace Meadow.Hcom
                                             listener.OnInformationMessageReceived(tir.Text);
                                         }
                                     }
+                                    else if (response is TextListHeaderResponse tlh)
+                                    {
+                                        // start of a list
+                                        _textList.Clear();
+                                    }
+                                    else if (response is TextListMemberResponse tlm)
+                                    {
+                                        _textList.Add(tlm.Text);
+                                    }
+                                    else if (response is TextCrcMemberResponse tcm)
+                                    {
+                                        _textList.Add(tcm.Text);
+                                    }
+                                    else if (response is TextConcludedResponse tcr)
+                                    {
+                                        foreach (var listener in _listeners)
+                                        {
+                                            listener.OnTextListReceived(_textList.ToArray());
+                                        }
+                                    }
+                                    else if (response is TextRequestResponse trr)
+                                    {
+
+                                    }
+                                    else if (response is DeviceInfoResponse dir)
+                                    {
+                                        foreach (var listener in _listeners)
+                                        {
+                                            listener.OnDeviceInformationMessageReceived(dir.Fields);
+                                        }
+                                    }
                                     else
                                     {
+                                        Debug.WriteLine($"{response.GetType().Name} for:{response.RequestType}");
                                         // try to match responses with the requests
                                     }
                                 }
@@ -432,12 +505,13 @@ namespace Meadow.Hcom
                     {
                         Debug.WriteLine($"listen error {ex.Message}");
                         _logger?.LogTrace(ex, "An error occurred while listening to the serial port.");
-                        await Task.Delay(1000, _cts.Token);
+                        Thread.Sleep(1000);
                     }
                 }
                 else
                 {
-                    await (Task.Delay(500));
+                    Debug.Write("z");
+                    Thread.Sleep(500);
                 }
             }
         }

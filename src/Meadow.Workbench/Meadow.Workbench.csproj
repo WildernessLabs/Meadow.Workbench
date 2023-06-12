@@ -59,10 +59,10 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\..\..\Maple\Source\Web.Maple.MapleServer\Driver\Web.Maple.MapleServer.csproj" />
-	  <ProjectReference Include="..\..\..\Meadow.CLI\Meadow.CLI.Core\Meadow.CLI.Core.csproj" />
 	  <ProjectReference Include="..\..\..\Meadow.Contracts\Source\Meadow.Contracts\Meadow.Contracts.csproj" />
 	  <ProjectReference Include="..\..\..\Meadow.TestSuite\src\TestSuite\Meadow.TestSuite.Core\Meadow.TestSuite.Core.csproj" />
 	  <ProjectReference Include="..\..\..\Meadow.TestSuite\src\TestSuite\Meadow.TestSuite.Director\Meadow.TestSuite.Director.csproj" />
+	  <ProjectReference Include="..\Meadow.Hcom\Meadow.Hcom.csproj" />
 	  <ProjectReference Include="..\Meadow.Update.Server\Meadow.Update.Server.csproj" />
 	</ItemGroup>
 

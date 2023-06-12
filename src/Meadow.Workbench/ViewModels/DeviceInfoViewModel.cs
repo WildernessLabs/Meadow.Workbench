@@ -1,6 +1,5 @@
 ﻿using DynamicData;
-using Meadow.CLI.Core;
-using Meadow.CLI.Core.Exceptions;
+using Meadow.Hcom;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using System.Collections.ObjectModel;
@@ -12,7 +11,7 @@ namespace Meadow.Workbench.ViewModels;
 public partial class DeviceInfoViewModel : ViewModelBase
 {
     private CaptureLogger _logger;
-    private MeadowConnectionManager _connectionManager;
+    private MeadowConnectionManager _deviceManager;
     private UserSettingsService _settingsService;
     private IFolderPicker _folderPicker;
 
@@ -58,7 +57,7 @@ public partial class DeviceInfoViewModel : ViewModelBase
         {
             this.RaiseAndSetIfChanged(ref _selectedPort, value);
 
-            SelectedConnection = _connectionManager[value];
+            SelectedConnection = _deviceManager[value];
         }
     }
 
@@ -449,8 +448,8 @@ public partial class DeviceInfoViewModel : ViewModelBase
         _folderPicker = folderPicker;
         _settingsService = settingsService;
 
-        _connectionManager = connectionManager;
-        _connectionManager.ConnectionAdded += OnConnectionAdded;
+        _deviceManager = connectionManager;
+        _deviceManager.ConnectionAdded += OnConnectionAdded;
 
         RefreshLocalFirmwareVersionsCommand.Execute(null);
         RefreshKnownApps();
@@ -469,7 +468,7 @@ public partial class DeviceInfoViewModel : ViewModelBase
         try
         {
             // TODO: tell user to power with boot button pressed?
-            var updater = FirmwareManager.GetFirmwareUpdater(_connectionManager);
+            var updater = FirmwareManager.GetFirmwareUpdater(_deviceManager);
             // TODO: watch the state to update the UI?
             await updater.Update(connection, version.Version);
         }
