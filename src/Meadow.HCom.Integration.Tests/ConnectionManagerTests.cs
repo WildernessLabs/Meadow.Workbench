@@ -13,8 +13,9 @@ namespace Meadow.HCom.Integration.Tests
             var c = ConnectionManager.GetConnection<SerialConnection>(ValidPortName);
             var deviceExists = await c.TryAttach();
             Debug.WriteLine($"Device exists? {deviceExists}");
-            await Task.Delay(1000);
-            var info = await c.Device?.GetDeviceInfo();
+            //            var info = await c.Device?.GetDeviceInfo();
+            var files = await c.Device?.GetFileList(false);
+            //var files2 = await c.Device?.GetFileList(true);
         }
     }
 }

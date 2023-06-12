@@ -3,9 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.4.33213.308
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Meadow.Hcom", "Meadow.Hcom.csproj", "{0CB726B4-B03B-45DB-BEF2-BB811BDAE8BA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Meadow.Hcom", "Meadow.Hcom.csproj", "{0CB726B4-B03B-45DB-BEF2-BB811BDAE8BA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Meadow.HCom.Integration.Tests", "..\Meadow.HCom.Integration.Tests\Meadow.HCom.Integration.Tests.csproj", "{F8830C1D-8343-4700-A849-B22537411E98}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Meadow.HCom.Integration.Tests", "..\Meadow.HCom.Integration.Tests\Meadow.HCom.Integration.Tests.csproj", "{F8830C1D-8343-4700-A849-B22537411E98}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HcomConsole", "..\HcomConsole\HcomConsole.csproj", "{D76DFD22-8B38-4BA1-8376-4A577870EE61}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{F8830C1D-8343-4700-A849-B22537411E98}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F8830C1D-8343-4700-A849-B22537411E98}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F8830C1D-8343-4700-A849-B22537411E98}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D76DFD22-8B38-4BA1-8376-4A577870EE61}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D76DFD22-8B38-4BA1-8376-4A577870EE61}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D76DFD22-8B38-4BA1-8376-4A577870EE61}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D76DFD22-8B38-4BA1-8376-4A577870EE61}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

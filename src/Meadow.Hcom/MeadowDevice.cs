@@ -28,7 +28,7 @@
         private IHcomConnection _connection;
         private ResponseListener _listener;
 
-        public int CommandTimeoutSeconds { get; set; } = 10;
+        public int CommandTimeoutSeconds { get; set; } = 30;
 
         internal MeadowDevice(IHcomConnection connection)
         {
@@ -54,7 +54,7 @@
                 if (cancellationToken?.IsCancellationRequested ?? false) return false;
                 if (timeout <= 0) throw new TimeoutException();
 
-                if (_listener.DeviceInfo.Count > 0)
+                if (checkAction())
                 {
                     break;
                 }
@@ -85,7 +85,8 @@
 
         public async Task<MeadowFileInfo[]?> GetFileList(bool includeCrcs, CancellationToken? cancellationToken = null)
         {
-            var command = CommandBuilder.Build<GetDeviceInfoRequest>();
+            var command = CommandBuilder.Build<GetFileListRequest>();
+            command.IncludeCrcs = includeCrcs;
 
             _listener.DeviceInfo.Clear();
 

@@ -44,12 +44,9 @@ namespace Meadow.Hcom
             _port = new SerialPort(port);
             _port.ReadTimeout = _port.WriteTimeout = 5000;
 
-            new Thread(() => ListenerProc())
-            {
-                IsBackground = true,
-                Priority = ThreadPriority.AboveNormal,
-                Name = "HCOM Listener"
-            }
+            new Task(
+                () => ListenerProc(),
+                TaskCreationOptions.LongRunning)
             .Start();
 
             new Thread(CommandManager)
@@ -89,7 +86,6 @@ namespace Meadow.Hcom
         {
             while (_maintainConnection)
             {
-                Debug.WriteLine("Checking COM port...");
                 if (!_port.IsOpen)
                 {
                     try
@@ -98,8 +94,9 @@ namespace Meadow.Hcom
                         _port.Open();
                         Debug.WriteLine("Opened COM port");
                     }
-                    catch
+                    catch (Exception ex)
                     {
+                        Debug.WriteLine($"{ex.Message}");
                         Thread.Sleep(1000);
                     }
                 }
@@ -198,7 +195,6 @@ namespace Meadow.Hcom
                         break;
                     }
 
-                    //Thread.Sleep(500);
                     await Task.Delay(500);
                 }
 
@@ -379,7 +375,7 @@ namespace Meadow.Hcom
             }
         }
 
-        private void ListenerProc()
+        private async Task ListenerProc()
         {
             var readBuffer = new byte[ReadBufferSizeBytes];
             var decodedBuffer = new byte[8192];
@@ -409,6 +405,7 @@ namespace Meadow.Hcom
 
                                 if (index < 0)
                                 {
+                                    Debug.WriteLine($"No delimiter");
                                     break;
                                 }
                                 var packetBytes = messageBytes.Remove(index + 1);
@@ -426,10 +423,14 @@ namespace Meadow.Hcom
                                 }
                                 else
                                 {
+                                    Debug.WriteLine($"Received a {packetBytes.Length} byte packet");
+
                                     var decodedSize = CobsTools.CobsDecoding(packetBytes, packetBytes.Length - delimiter.Length, ref decodedBuffer);
 
                                     // now parse this per the HCOM protocol definition
                                     var response = Response.Parse(decodedBuffer, decodedSize);
+
+                                    Debug.WriteLine($"{response.RequestType}");
 
                                     if (response != null)
                                     {
@@ -444,6 +445,26 @@ namespace Meadow.Hcom
                                         foreach (var listener in _listeners)
                                         {
                                             listener.OnInformationMessageReceived(tir.Text);
+                                        }
+                                    }
+                                    if (response is TextStdOutResponse tso)
+                                    {
+                                        // send the message to any listeners
+                                        Debug.WriteLine($"STDOUT> {tso.Text}");
+
+                                        foreach (var listener in _listeners)
+                                        {
+                                            listener.OnInformationMessageReceived(tso.Text);
+                                        }
+                                    }
+                                    if (response is TextStdErrResponse tse)
+                                    {
+                                        // send the message to any listeners
+                                        Debug.WriteLine($"STDERR> {tse.Text}");
+
+                                        foreach (var listener in _listeners)
+                                        {
+                                            listener.OnInformationMessageReceived(tse.Text);
                                         }
                                     }
                                     else if (response is TextListHeaderResponse tlh)
@@ -505,13 +526,12 @@ namespace Meadow.Hcom
                     {
                         Debug.WriteLine($"listen error {ex.Message}");
                         _logger?.LogTrace(ex, "An error occurred while listening to the serial port.");
-                        Thread.Sleep(1000);
+                        await Task.Delay(1000);
                     }
                 }
                 else
                 {
-                    Debug.Write("z");
-                    Thread.Sleep(500);
+                    await Task.Delay(500);
                 }
             }
         }

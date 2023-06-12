@@ -24,6 +24,10 @@ internal class Response
 
         switch (type)
         {
+            case ResponseType.HCOM_HOST_REQUEST_TEXT_MONO_STDERR:
+                return new TextStdErrResponse(data, length);
+            case ResponseType.HCOM_HOST_REQUEST_TEXT_MONO_STDOUT:
+                return new TextStdOutResponse(data, length);
             case ResponseType.HCOM_HOST_REQUEST_TEXT_INFORMATION:
                 return new TextInformationResponse(data, length);
             case ResponseType.HCOM_HOST_REQUEST_TEXT_ACCEPTED:
