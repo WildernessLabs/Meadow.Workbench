@@ -47,15 +47,6 @@
             _connection.AddListener(_listener = new ResponseListener());
         }
 
-        public async Task Reset()
-        {
-            var command = CommandBuilder.Build<ResetDeviceRequest>();
-
-            _connection.SendRequest(command);
-
-            // TODO: find a way to determine reset complete - specific text output?  Any text output?  TEst mono enabled, disabled, no OS, etc.
-        }
-
         private async Task<bool> CheckForResult(Func<bool> checkAction, CancellationToken? cancellationToken)
         {
             var timeout = CommandTimeoutSeconds * 2;
@@ -74,6 +65,47 @@
             }
 
             return true;
+        }
+
+        private async Task<bool> WaitForDeviceResponse(CancellationToken? cancellationToken)
+        {
+            while (!_connection.IsConnected)
+            {
+                await Task.Delay(1000);
+            }
+
+            var info = await GetDeviceInfo(cancellationToken);
+
+            if (info == null) return false;
+
+            return true;
+        }
+
+        public async Task Reset(CancellationToken? cancellationToken = null)
+        {
+            var command = CommandBuilder.Build<ResetDeviceRequest>();
+
+            _connection.SendRequest(command);
+
+            // we have to give time for the device to actually reset
+            await Task.Delay(3000);
+
+            await WaitForDeviceResponse(cancellationToken);
+            // TODO: find a way to determine reset complete - specific text output?  Any text output?  TEst mono enabled, disabled, no OS, etc.
+        }
+
+        public async Task RuntimeDisable(CancellationToken? cancellationToken = null)
+        {
+            var command = CommandBuilder.Build<RuntimeDisableRequest>();
+
+            _connection.SendRequest(command);
+        }
+
+        public async Task RuntimeEnable(CancellationToken? cancellationToken = null)
+        {
+            var command = CommandBuilder.Build<RuntimeEnableRequest>();
+
+            _connection.SendRequest(command);
         }
 
         public async Task<Dictionary<string, string>?> GetDeviceInfo(CancellationToken? cancellationToken = null)

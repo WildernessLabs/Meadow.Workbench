@@ -4,6 +4,7 @@
     {
         event EventHandler<string> FileReadCompleted;
 
+        bool IsConnected { get; }
         string Name { get; }
         IMeadowDevice? Device { get; }
         Task<bool> TryAttach(int timeoutSeconds, CancellationToken? cancellationToken = null);

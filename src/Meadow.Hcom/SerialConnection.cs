@@ -31,6 +31,7 @@ namespace Meadow.Hcom
 
         public IMeadowDevice? Device { get; private set; }
         public string Name { get; }
+        public bool IsConnected => _state != ConnectionState.Disconnected;
 
         public SerialConnection(string port, ILogger? logger = default)
         {

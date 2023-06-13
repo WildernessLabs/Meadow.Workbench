@@ -1,4 +1,6 @@
-﻿namespace Meadow.Hcom;
+﻿using System.Diagnostics;
+
+namespace Meadow.Hcom;
 
 internal class Response
 {
@@ -51,6 +53,9 @@ internal class Response
             case ResponseType.HCOM_HOST_REQUEST_UPLOAD_FILE_COMPLETED:
                 return new UploadCompletedResponse(data, length);
             case ResponseType.HCOM_HOST_REQUEST_TEXT_ERROR:
+                return new RequestErrorTextResponse(data, length);
+            case ResponseType.HCOM_HOST_REQUEST_TEXT_RECONNECT:
+                Debug.WriteLine("RECONNECT");
                 return new RequestErrorTextResponse(data, length);
             default:
                 return new Response(data, length);
