@@ -2,6 +2,8 @@
 {
     public interface IHcomConnection
     {
+        event EventHandler<string> FileReadCompleted;
+
         string Name { get; }
         IMeadowDevice? Device { get; }
         Task<bool> TryAttach(int timeoutSeconds, CancellationToken? cancellationToken = null);

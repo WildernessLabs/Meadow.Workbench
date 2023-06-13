@@ -42,6 +42,16 @@ internal class Response
                 return new TextListMemberResponse(data, length);
             case ResponseType.HCOM_HOST_REQUEST_TEXT_CRC_MEMBER:
                 return new TextCrcMemberResponse(data, length);
+            case ResponseType.HCOM_HOST_REQUEST_INIT_UPLOAD_FAIL:
+                return new FileReadInitFailedResponse(data, length);
+            case ResponseType.HCOM_HOST_REQUEST_INIT_UPLOAD_OKAY:
+                return new FileReadInitOkResponse(data, length);
+            case ResponseType.HCOM_HOST_REQUEST_UPLOADING_FILE_DATA:
+                return new UploadDataPacketResponse(data, length);
+            case ResponseType.HCOM_HOST_REQUEST_UPLOAD_FILE_COMPLETED:
+                return new UploadCompletedResponse(data, length);
+            case ResponseType.HCOM_HOST_REQUEST_TEXT_ERROR:
+                return new RequestErrorTextResponse(data, length);
             default:
                 return new Response(data, length);
         }

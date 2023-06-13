@@ -5,6 +5,7 @@
         public List<string> Messages { get; } = new List<string>();
         public Dictionary<string, string> DeviceInfo { get; private set; } = new Dictionary<string, string>();
         public List<string> TextList { get; } = new List<string>();
+        public string? LastError { get; set; }
 
         public void OnInformationMessageReceived(string message)
         {
@@ -20,6 +21,16 @@
         {
             TextList.Clear();
             TextList.AddRange(list);
+        }
+
+        public void OnErrorTextReceived(string message)
+        {
+            LastError = message;
+        }
+
+        public void OnFileError()
+        {
+            throw new Exception(LastError);
         }
     }
 
@@ -113,6 +124,39 @@
 
             return list.ToArray();
 
+        }
+
+        public async Task<bool> ReadFile(string meadowFileName, string? localFileName = null, CancellationToken? cancellationToken = null)
+        {
+            var command = CommandBuilder.Build<InitFileReadRequest>();
+            command.MeadowFileName = meadowFileName;
+            command.LocalFileName = localFileName;
+
+            var completed = false;
+
+            void OnFileReadCompleted(object? sender, string filename)
+            {
+                completed = true;
+            }
+
+            try
+            {
+                _connection.FileReadCompleted += OnFileReadCompleted;
+                _connection.SendRequest(command);
+
+                if (!await CheckForResult(
+                    () => completed,
+                    cancellationToken))
+                {
+                    return false;
+                }
+
+                return true;
+            }
+            finally
+            {
+                _connection.FileReadCompleted -= OnFileReadCompleted;
+            }
         }
     }
 }

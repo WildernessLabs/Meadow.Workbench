@@ -7,11 +7,12 @@ namespace Meadow.Hcom
 {
     public delegate void ConnectionStateChangedHandler(SerialConnection connection, ConnectionState oldState, ConnectionState newState);
 
-    public class SerialConnection : IDisposable, IHcomConnection
+    public partial class SerialConnection : IDisposable, IHcomConnection
     {
         public const int DefaultBaudRate = 115200;
         public const int ReadBufferSizeBytes = 0x2000;
 
+        public event EventHandler<string> FileReadCompleted = delegate { };
         public event ConnectionStateChangedHandler ConnectionStateChanged = delegate { };
 
         private SerialPort _port;
@@ -25,6 +26,8 @@ namespace Meadow.Hcom
         private Thread? _connectionManager = null;
         private List<string> _textList = new List<string>();
         private int _messageCount = 0;
+        private ReadFileInfo? _readFileInfo = null;
+        private string? _lastError = null;
 
         public IMeadowDevice? Device { get; private set; }
         public string Name { get; }
@@ -237,9 +240,36 @@ namespace Meadow.Hcom
             }
         }
 
+        private class ReadFileInfo
+        {
+            private string? _localFileName;
+
+            public string MeadowFileName { get; set; }
+            public string LocalFileName
+            {
+                get
+                {
+                    if (_localFileName != null) return _localFileName;
+
+                    return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Path.GetFileName(MeadowFileName));
+                }
+                set => _localFileName = value;
+            }
+            public FileStream FileStream { get; set; }
+        }
+
         void IHcomConnection.SendRequest(Request command)
         {
             // TODO: verify we're connected
+
+            if (command is InitFileReadRequest sfr)
+            {
+                _readFileInfo = new ReadFileInfo
+                {
+                    MeadowFileName = sfr.MeadowFileName,
+                    LocalFileName = sfr.LocalFileName,
+                };
+            }
 
             _pendingCommands.Enqueue(command);
         }
@@ -372,167 +402,6 @@ namespace Meadow.Hcom
                     ArrayPool<byte>.Shared.Return(tmp);
                 }
                 return ms.ToArray();
-            }
-        }
-
-        private async Task ListenerProc()
-        {
-            var readBuffer = new byte[ReadBufferSizeBytes];
-            var decodedBuffer = new byte[8192];
-            var messageBytes = new CircularBuffer<byte>(8192 * 2);
-            var delimiter = new byte[] { 0x00 };
-            var index = 0;
-
-            while (!_isDisposed)
-            {
-                if (_port.IsOpen)
-                {
-                    try
-                    {
-                        Debug.WriteLine($"listening...");
-
-                        var receivedLength = _port.BaseStream.Read(readBuffer, 0, readBuffer.Length);
-
-                        Debug.WriteLine($"Received {receivedLength} bytes");
-
-                        if (receivedLength > 0)
-                        {
-                            messageBytes.Append(readBuffer, 0, receivedLength);
-
-                            while (messageBytes.Count > 0)
-                            {
-                                index = messageBytes.FirstIndexOf(delimiter);
-
-                                if (index < 0)
-                                {
-                                    Debug.WriteLine($"No delimiter");
-                                    break;
-                                }
-                                var packetBytes = messageBytes.Remove(index + 1);
-
-                                if (packetBytes.Length == 1)
-                                {
-                                    // It's possible that we may find a series of 0x00 values in the buffer.
-                                    // This is because when the sender is blocked (because this code isn't
-                                    // running) it will attempt to send a single 0x00 before the full message.
-                                    // This allows it to test for a connection. When the connection is
-                                    // unblocked this 0x00 is sent and gets put into the buffer along with
-                                    // any others that were queued along the usb serial pipe line.
-
-                                    // we discard this single 0x00 byte
-                                }
-                                else
-                                {
-                                    Debug.WriteLine($"Received a {packetBytes.Length} byte packet");
-
-                                    var decodedSize = CobsTools.CobsDecoding(packetBytes, packetBytes.Length - delimiter.Length, ref decodedBuffer);
-
-                                    // now parse this per the HCOM protocol definition
-                                    var response = Response.Parse(decodedBuffer, decodedSize);
-
-                                    Debug.WriteLine($"{response.RequestType}");
-
-                                    if (response != null)
-                                    {
-                                        _messageCount++;
-                                    }
-
-                                    if (response is TextInformationResponse tir)
-                                    {
-                                        // send the message to any listeners
-                                        Debug.WriteLine($"INFO> {tir.Text}");
-
-                                        foreach (var listener in _listeners)
-                                        {
-                                            listener.OnInformationMessageReceived(tir.Text);
-                                        }
-                                    }
-                                    if (response is TextStdOutResponse tso)
-                                    {
-                                        // send the message to any listeners
-                                        Debug.WriteLine($"STDOUT> {tso.Text}");
-
-                                        foreach (var listener in _listeners)
-                                        {
-                                            listener.OnInformationMessageReceived(tso.Text);
-                                        }
-                                    }
-                                    if (response is TextStdErrResponse tse)
-                                    {
-                                        // send the message to any listeners
-                                        Debug.WriteLine($"STDERR> {tse.Text}");
-
-                                        foreach (var listener in _listeners)
-                                        {
-                                            listener.OnInformationMessageReceived(tse.Text);
-                                        }
-                                    }
-                                    else if (response is TextListHeaderResponse tlh)
-                                    {
-                                        // start of a list
-                                        _textList.Clear();
-                                    }
-                                    else if (response is TextListMemberResponse tlm)
-                                    {
-                                        _textList.Add(tlm.Text);
-                                    }
-                                    else if (response is TextCrcMemberResponse tcm)
-                                    {
-                                        _textList.Add(tcm.Text);
-                                    }
-                                    else if (response is TextConcludedResponse tcr)
-                                    {
-                                        foreach (var listener in _listeners)
-                                        {
-                                            listener.OnTextListReceived(_textList.ToArray());
-                                        }
-                                    }
-                                    else if (response is TextRequestResponse trr)
-                                    {
-
-                                    }
-                                    else if (response is DeviceInfoResponse dir)
-                                    {
-                                        foreach (var listener in _listeners)
-                                        {
-                                            listener.OnDeviceInformationMessageReceived(dir.Fields);
-                                        }
-                                    }
-                                    else
-                                    {
-                                        Debug.WriteLine($"{response.GetType().Name} for:{response.RequestType}");
-                                        // try to match responses with the requests
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    catch (TimeoutException)
-                    {
-                        Debug.WriteLine($"listen timeout");
-                    }
-                    catch (ThreadAbortException)
-                    {
-                        //ignoring for now until we wire cancellation ...
-                        //this blocks the thread abort exception when the console app closes
-                        Debug.WriteLine($"listen abort");
-                    }
-                    catch (InvalidOperationException)
-                    {
-                        // common if the port is reset/closed (e.g. mono enable/disable) - don't spew confusing info
-                        Debug.WriteLine($"listen on closed port");
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine($"listen error {ex.Message}");
-                        _logger?.LogTrace(ex, "An error occurred while listening to the serial port.");
-                        await Task.Delay(1000);
-                    }
-                }
-                else
-                {
-                    await Task.Delay(500);
-                }
             }
         }
 

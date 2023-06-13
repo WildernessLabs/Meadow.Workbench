@@ -7,6 +7,7 @@ namespace Meadow.HCom.Integration.Tests
         public List<string> Messages { get; } = new List<string>();
         public Dictionary<string, string> DeviceInfo { get; private set; } = new Dictionary<string, string>();
         public List<string> TextList { get; } = new List<string>();
+        public string? LastError { get; set; }
 
         public void OnInformationMessageReceived(string message)
         {
@@ -24,5 +25,14 @@ namespace Meadow.HCom.Integration.Tests
             TextList.AddRange(list);
         }
 
+        public void OnErrorTextReceived(string message)
+        {
+            LastError = message;
+        }
+
+        public void OnFileError()
+        {
+            throw new Exception(LastError);
+        }
     }
 }

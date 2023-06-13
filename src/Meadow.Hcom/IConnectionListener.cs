@@ -5,5 +5,7 @@
         void OnInformationMessageReceived(string message);
         void OnDeviceInformationMessageReceived(Dictionary<string, string> deviceInfo);
         void OnTextListReceived(string[] list);
+        void OnErrorTextReceived(string message);
+        void OnFileError();
     }
 }
