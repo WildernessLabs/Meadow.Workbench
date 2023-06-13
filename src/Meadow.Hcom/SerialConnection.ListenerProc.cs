@@ -1,10 +1,31 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using LanguageExt;
+using LanguageExt.Common;
+using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 
 namespace Meadow.Hcom
 {
     public partial class SerialConnection
     {
+        private bool _reconnectInProgress = false;
+
+        public async Task<Result<Unit>> WaitForMeadowAttach(CancellationToken? cancellationToken)
+        {
+            var timeout = 20;
+
+            while (timeout-- > 0)
+            {
+                if (cancellationToken?.IsCancellationRequested ?? false) return new Result<Unit>(new TaskCanceledException());
+                if (timeout <= 0) return new Result<Unit>(new TimeoutException());
+
+                if (State == ConnectionState.MeadowAttached) return new Result<Unit>(Unit.Default);
+
+                await Task.Delay(500);
+            }
+
+            return new Result<Unit>(new TimeoutException());
+        }
+
         private async Task ListenerProc()
         {
             var readBuffer = new byte[ReadBufferSizeBytes];
@@ -60,6 +81,7 @@ namespace Meadow.Hcom
                                     var response = Response.Parse(decodedBuffer, decodedSize);
 
                                     Debug.WriteLine($"{response.RequestType}");
+                                    _state = ConnectionState.MeadowAttached;
 
                                     if (response != null)
                                     {
@@ -76,24 +98,24 @@ namespace Meadow.Hcom
                                             listener.OnInformationMessageReceived(tir.Text);
                                         }
                                     }
-                                    if (response is TextStdOutResponse tso)
+                                    else if (response is TextStdOutResponse tso)
                                     {
                                         // send the message to any listeners
                                         Debug.WriteLine($"STDOUT> {tso.Text}");
 
                                         foreach (var listener in _listeners)
                                         {
-                                            listener.OnInformationMessageReceived(tso.Text);
+                                            listener.OnStdOutReceived(tso.Text);
                                         }
                                     }
-                                    if (response is TextStdErrResponse tse)
+                                    else if (response is TextStdErrResponse tse)
                                     {
                                         // send the message to any listeners
                                         Debug.WriteLine($"STDERR> {tse.Text}");
 
                                         foreach (var listener in _listeners)
                                         {
-                                            listener.OnInformationMessageReceived(tse.Text);
+                                            listener.OnStdErrReceived(tse.Text);
                                         }
                                     }
                                     else if (response is TextListHeaderResponse tlh)
@@ -111,14 +133,23 @@ namespace Meadow.Hcom
                                     }
                                     else if (response is TextConcludedResponse tcr)
                                     {
-                                        foreach (var listener in _listeners)
+                                        if (_reconnectInProgress)
                                         {
-                                            listener.OnTextListReceived(_textList.ToArray());
+                                            _state = ConnectionState.MeadowAttached;
+                                            _reconnectInProgress = false;
+                                        }
+                                        else
+                                        {
+                                            foreach (var listener in _listeners)
+                                            {
+                                                listener.OnTextListReceived(_textList.ToArray());
+                                            }
                                         }
                                     }
                                     else if (response is TextRequestResponse trr)
                                     {
-
+                                        // this is a response to a text request - the exact request is cached
+                                        Debug.WriteLine($"RESPONSE> {trr.Text}");
                                     }
                                     else if (response is DeviceInfoResponse dir)
                                     {
@@ -126,6 +157,12 @@ namespace Meadow.Hcom
                                         {
                                             listener.OnDeviceInformationMessageReceived(dir.Fields);
                                         }
+                                    }
+                                    else if (response is ReconnectRequiredResponse rrr)
+                                    {
+                                        // the device is going to restart - we need to wait for a HCOM_HOST_REQUEST_TEXT_CONCLUDED to know it's back
+                                        _state = ConnectionState.Disconnected;
+                                        _reconnectInProgress = true;
                                     }
                                     else if (response is FileReadInitOkResponse fri)
                                     {

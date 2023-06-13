@@ -4,10 +4,22 @@ namespace Meadow.HCom.Integration.Tests
 {
     public class TestListener : IConnectionListener
     {
+        public List<string> StdOut { get; } = new List<string>();
+        public List<string> StdErr { get; } = new List<string>();
         public List<string> Messages { get; } = new List<string>();
         public Dictionary<string, string> DeviceInfo { get; private set; } = new Dictionary<string, string>();
         public List<string> TextList { get; } = new List<string>();
         public string? LastError { get; set; }
+
+        public void OnStdOutReceived(string message)
+        {
+            StdOut.Add(message);
+        }
+
+        public void OnStdErrReceived(string message)
+        {
+            StdErr.Add(message);
+        }
 
         public void OnInformationMessageReceived(string message)
         {

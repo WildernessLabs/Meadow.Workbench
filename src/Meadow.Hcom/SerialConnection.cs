@@ -279,6 +279,15 @@ namespace Meadow.Hcom
         {
             Debug.WriteLine($"+EncodeAndSendPacket({messageBytes.Length} bytes)");
 
+            while (!_port.IsOpen)
+            {
+                _state = ConnectionState.Disconnected;
+                Thread.Sleep(100);
+                // wait for the port to open
+            }
+
+            _state = ConnectionState.Connected;
+
             try
             {
                 int encodedToSend;

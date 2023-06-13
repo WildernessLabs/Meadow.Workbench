@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-
-namespace Meadow.Hcom;
+﻿namespace Meadow.Hcom;
 
 internal class Response
 {
@@ -55,8 +53,7 @@ internal class Response
             case ResponseType.HCOM_HOST_REQUEST_TEXT_ERROR:
                 return new RequestErrorTextResponse(data, length);
             case ResponseType.HCOM_HOST_REQUEST_TEXT_RECONNECT:
-                Debug.WriteLine("RECONNECT");
-                return new RequestErrorTextResponse(data, length);
+                return new ReconnectRequiredResponse(data, length);
             default:
                 return new Response(data, length);
         }

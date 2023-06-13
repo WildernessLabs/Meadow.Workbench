@@ -1,15 +1,30 @@
-﻿namespace Meadow.Hcom
+﻿using LanguageExt;
+using LanguageExt.Common;
+
+namespace Meadow.Hcom
 {
     internal class ResponseListener : IConnectionListener
     {
-        public List<string> Messages { get; } = new List<string>();
+        public List<string> StdOut { get; } = new List<string>();
+        public List<string> StdErr { get; } = new List<string>();
+        public List<string> Information { get; } = new List<string>();
         public Dictionary<string, string> DeviceInfo { get; private set; } = new Dictionary<string, string>();
         public List<string> TextList { get; } = new List<string>();
         public string? LastError { get; set; }
 
+        public void OnStdOutReceived(string message)
+        {
+            StdOut.Add(message);
+        }
+
+        public void OnStdErrReceived(string message)
+        {
+            StdErr.Add(message);
+        }
+
         public void OnInformationMessageReceived(string message)
         {
-            Messages.Add(message);
+            Information.Add(message);
         }
 
         public void OnDeviceInformationMessageReceived(Dictionary<string, string> deviceInfo)
@@ -67,45 +82,110 @@
             return true;
         }
 
-        private async Task<bool> WaitForDeviceResponse(CancellationToken? cancellationToken)
+        public async Task<Result<bool>> IsRuntimeEnabled(CancellationToken? cancellationToken = null)
         {
-            while (!_connection.IsConnected)
+            var command = CommandBuilder.Build<GetRuntimeStateRequest>();
+
+            _listener.Information.Clear();
+
+            _connection.SendRequest(command);
+
+            // wait for an information response
+
+            var timeout = 20; // CommandTimeoutSeconds * 2;
+
+            while (timeout-- > 0)
             {
-                await Task.Delay(1000);
+                if (cancellationToken?.IsCancellationRequested ?? false) return false;
+                if (timeout <= 0) return new Result<bool>(new TimeoutException());
+
+                if (_listener.Information.Count > 0)
+                {
+                    var m = _listener.Information.FirstOrDefault(i => i.Contains("Mono is"));
+                    if (m != null)
+                    {
+                        return m == "Mono is enabled";
+                    }
+                }
+
+                await Task.Delay(500);
             }
 
-            var info = await GetDeviceInfo(cancellationToken);
-
-            if (info == null) return false;
-
-            return true;
+            return false;
         }
 
-        public async Task Reset(CancellationToken? cancellationToken = null)
+        public async Task<Result<Unit>> Reset(CancellationToken? cancellationToken = null)
         {
             var command = CommandBuilder.Build<ResetDeviceRequest>();
 
             _connection.SendRequest(command);
 
             // we have to give time for the device to actually reset
-            await Task.Delay(3000);
+            await Task.Delay(500);
 
-            await WaitForDeviceResponse(cancellationToken);
-            // TODO: find a way to determine reset complete - specific text output?  Any text output?  TEst mono enabled, disabled, no OS, etc.
+            return await _connection.WaitForMeadowAttach(cancellationToken);
         }
 
-        public async Task RuntimeDisable(CancellationToken? cancellationToken = null)
+        public async Task<Result<Unit>> RuntimeDisable(CancellationToken? cancellationToken = null)
         {
             var command = CommandBuilder.Build<RuntimeDisableRequest>();
 
+            _listener.Information.Clear();
+
             _connection.SendRequest(command);
+
+            // we have to give time for the device to actually reset
+            await Task.Delay(500);
+
+            var timeout = 20; // CommandTimeoutSeconds * 2;
+
+            while (timeout-- > 0)
+            {
+                if (cancellationToken?.IsCancellationRequested ?? false) return new Result<Unit>(Unit.Default);
+
+                if (_listener.Information.Count > 0)
+                {
+                    var m = _listener.Information.FirstOrDefault(i => i.Contains("Mono is disabled"));
+                    if (m != null)
+                    {
+                        return new Result<Unit>(Unit.Default);
+                    }
+                }
+
+                await Task.Delay(500);
+            }
+            return new Result<Unit>(new TimeoutException());
         }
 
-        public async Task RuntimeEnable(CancellationToken? cancellationToken = null)
+        public async Task<Result<Unit>> RuntimeEnable(CancellationToken? cancellationToken = null)
         {
             var command = CommandBuilder.Build<RuntimeEnableRequest>();
 
+            _listener.Information.Clear();
+
             _connection.SendRequest(command);
+
+            // we have to give time for the device to actually reset
+            await Task.Delay(500);
+
+            var timeout = 20; // CommandTimeoutSeconds * 2;
+
+            while (timeout-- > 0)
+            {
+                if (cancellationToken?.IsCancellationRequested ?? false) return new Result<Unit>(Unit.Default);
+
+                if (_listener.Information.Count > 0)
+                {
+                    var m = _listener.Information.FirstOrDefault(i => i.Contains("Meadow successfully started MONO"));
+                    if (m != null)
+                    {
+                        return new Result<Unit>(Unit.Default);
+                    }
+                }
+
+                await Task.Delay(500);
+            }
+            return new Result<Unit>(new TimeoutException());
         }
 
         public async Task<Dictionary<string, string>?> GetDeviceInfo(CancellationToken? cancellationToken = null)
