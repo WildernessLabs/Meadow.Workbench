@@ -25,6 +25,23 @@ public class ConnectionManagerTests
     }
 
     [Fact]
+    public async Task TestDeviceReset()
+    {
+        var c = GetConnection(ValidPortName);
+        var device = await c.Attach();
+
+        if (device == null)
+        {
+            Assert.Fail("no device");
+            return;
+        }
+
+        await device.Reset();
+
+        // just getting here with no exception means success
+    }
+
+    [Fact]
     public async Task TestReadFileBadLocalPath()
     {
         var c = GetConnection(ValidPortName);
