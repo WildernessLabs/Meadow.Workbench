@@ -6,7 +6,7 @@ internal class InitFileReadRequest : Request
 {
     public override RequestType RequestType => RequestType.HCOM_MDOW_REQUEST_UPLOAD_FILE_INIT;
 
-    public string LocalFileName { get; set; } = default!;
+    public string? LocalFileName { get; set; } = default!;
     public string MeadowFileName
     {
         get

@@ -1,7 +1,4 @@
-﻿using LanguageExt;
-using LanguageExt.Common;
-
-namespace Meadow.Hcom
+﻿namespace Meadow.Hcom
 {
     internal class ResponseListener : IConnectionListener
     {
@@ -62,7 +59,7 @@ namespace Meadow.Hcom
             _connection.AddListener(_listener = new ResponseListener());
         }
 
-        private async Task<bool> CheckForResult(Func<bool> checkAction, CancellationToken? cancellationToken)
+        private async Task<bool> WaitForResult(Func<bool> checkAction, CancellationToken? cancellationToken)
         {
             var timeout = CommandTimeoutSeconds * 2;
 
@@ -82,7 +79,7 @@ namespace Meadow.Hcom
             return true;
         }
 
-        public async Task<Result<bool>> IsRuntimeEnabled(CancellationToken? cancellationToken = null)
+        public async Task<bool> IsRuntimeEnabled(CancellationToken? cancellationToken = null)
         {
             var command = CommandBuilder.Build<GetRuntimeStateRequest>();
 
@@ -91,13 +88,11 @@ namespace Meadow.Hcom
             _connection.SendRequest(command);
 
             // wait for an information response
-
-            var timeout = 20; // CommandTimeoutSeconds * 2;
-
+            var timeout = CommandTimeoutSeconds * 2;
             while (timeout-- > 0)
             {
                 if (cancellationToken?.IsCancellationRequested ?? false) return false;
-                if (timeout <= 0) return new Result<bool>(new TimeoutException());
+                if (timeout <= 0) throw new TimeoutException();
 
                 if (_listener.Information.Count > 0)
                 {
@@ -110,11 +105,10 @@ namespace Meadow.Hcom
 
                 await Task.Delay(500);
             }
-
             return false;
         }
 
-        public async Task<Result<Unit>> Reset(CancellationToken? cancellationToken = null)
+        public async Task Reset(CancellationToken? cancellationToken = null)
         {
             var command = CommandBuilder.Build<ResetDeviceRequest>();
 
@@ -123,10 +117,10 @@ namespace Meadow.Hcom
             // we have to give time for the device to actually reset
             await Task.Delay(500);
 
-            return await _connection.WaitForMeadowAttach(cancellationToken);
+            await _connection.WaitForMeadowAttach(cancellationToken);
         }
 
-        public async Task<Result<Unit>> RuntimeDisable(CancellationToken? cancellationToken = null)
+        public async Task RuntimeDisable(CancellationToken? cancellationToken = null)
         {
             var command = CommandBuilder.Build<RuntimeDisableRequest>();
 
@@ -137,27 +131,24 @@ namespace Meadow.Hcom
             // we have to give time for the device to actually reset
             await Task.Delay(500);
 
-            var timeout = 20; // CommandTimeoutSeconds * 2;
-
-            while (timeout-- > 0)
+            var success = await WaitForResult(() =>
             {
-                if (cancellationToken?.IsCancellationRequested ?? false) return new Result<Unit>(Unit.Default);
-
                 if (_listener.Information.Count > 0)
                 {
                     var m = _listener.Information.FirstOrDefault(i => i.Contains("Mono is disabled"));
                     if (m != null)
                     {
-                        return new Result<Unit>(Unit.Default);
+                        return true;
                     }
                 }
 
-                await Task.Delay(500);
-            }
-            return new Result<Unit>(new TimeoutException());
+                return false;
+            }, cancellationToken);
+
+            if (!success) throw new Exception("Unable to disable runtime");
         }
 
-        public async Task<Result<Unit>> RuntimeEnable(CancellationToken? cancellationToken = null)
+        public async Task RuntimeEnable(CancellationToken? cancellationToken = null)
         {
             var command = CommandBuilder.Build<RuntimeEnableRequest>();
 
@@ -168,24 +159,21 @@ namespace Meadow.Hcom
             // we have to give time for the device to actually reset
             await Task.Delay(500);
 
-            var timeout = 20; // CommandTimeoutSeconds * 2;
-
-            while (timeout-- > 0)
+            var success = await WaitForResult(() =>
             {
-                if (cancellationToken?.IsCancellationRequested ?? false) return new Result<Unit>(Unit.Default);
-
                 if (_listener.Information.Count > 0)
                 {
                     var m = _listener.Information.FirstOrDefault(i => i.Contains("Meadow successfully started MONO"));
                     if (m != null)
                     {
-                        return new Result<Unit>(Unit.Default);
+                        return true;
                     }
                 }
 
-                await Task.Delay(500);
-            }
-            return new Result<Unit>(new TimeoutException());
+                return false;
+            }, cancellationToken);
+
+            if (!success) throw new Exception("Unable to enable runtime");
         }
 
         public async Task<Dictionary<string, string>?> GetDeviceInfo(CancellationToken? cancellationToken = null)
@@ -196,7 +184,7 @@ namespace Meadow.Hcom
 
             _connection.SendRequest(command);
 
-            if (!await CheckForResult(
+            if (!await WaitForResult(
                 () => _listener.DeviceInfo.Count > 0,
                 cancellationToken))
             {
@@ -215,7 +203,7 @@ namespace Meadow.Hcom
 
             _connection.SendRequest(command);
 
-            if (!await CheckForResult(
+            if (!await WaitForResult(
                 () => _listener.TextList.Count > 0,
                 cancellationToken))
             {
@@ -245,19 +233,30 @@ namespace Meadow.Hcom
             command.LocalFileName = localFileName;
 
             var completed = false;
+            Exception? ex = null;
 
             void OnFileReadCompleted(object? sender, string filename)
             {
                 completed = true;
             }
+            void OnFileError(object? sender, Exception exception)
+            {
+                ex = exception;
+            }
 
             try
             {
                 _connection.FileReadCompleted += OnFileReadCompleted;
+                _connection.FileException += OnFileError;
+
                 _connection.SendRequest(command);
 
-                if (!await CheckForResult(
-                    () => completed,
+                if (!await WaitForResult(
+                    () =>
+                    {
+                        if (ex != null) throw ex;
+                        return completed;
+                    },
                     cancellationToken))
                 {
                     return false;
@@ -268,6 +267,7 @@ namespace Meadow.Hcom
             finally
             {
                 _connection.FileReadCompleted -= OnFileReadCompleted;
+                _connection.FileException -= OnFileError;
             }
         }
     }

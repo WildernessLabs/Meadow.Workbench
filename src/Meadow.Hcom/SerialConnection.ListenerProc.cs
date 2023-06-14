@@ -1,6 +1,4 @@
-﻿using LanguageExt;
-using LanguageExt.Common;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 
 namespace Meadow.Hcom
@@ -9,21 +7,23 @@ namespace Meadow.Hcom
     {
         private bool _reconnectInProgress = false;
 
-        public async Task<Result<Unit>> WaitForMeadowAttach(CancellationToken? cancellationToken)
+        public event EventHandler<Exception> FileException = delegate { };
+
+        public async Task WaitForMeadowAttach(CancellationToken? cancellationToken)
         {
             var timeout = 20;
 
             while (timeout-- > 0)
             {
-                if (cancellationToken?.IsCancellationRequested ?? false) return new Result<Unit>(new TaskCanceledException());
-                if (timeout <= 0) return new Result<Unit>(new TimeoutException());
+                if (cancellationToken?.IsCancellationRequested ?? false) throw new TaskCanceledException();
+                if (timeout <= 0) throw new TimeoutException();
 
-                if (State == ConnectionState.MeadowAttached) return new Result<Unit>(Unit.Default);
+                if (State == ConnectionState.MeadowAttached) return;
 
                 await Task.Delay(500);
             }
 
-            return new Result<Unit>(new TimeoutException());
+            throw new TimeoutException();
         }
 
         private async Task ListenerProc()
@@ -179,6 +179,9 @@ namespace Meadow.Hcom
                                         // When the F7 has finished sending the data it will send a
                                         // HCOM_HOST_REQUEST_UPLOAD_FILE_COMPLETED message. When it is received
                                         // we then close the open file and the process is completed.
+                                        var folder = Path.GetDirectoryName(_readFileInfo.LocalFileName);
+                                        if (!Directory.Exists(folder)) throw new DirectoryNotFoundException(folder);
+
                                         _readFileInfo.FileStream = File.Create(_readFileInfo.LocalFileName);
 
                                         var uploadRequest = CommandBuilder.Build<StartFileDataRequest>();
@@ -241,6 +244,10 @@ namespace Meadow.Hcom
                     {
                         // common if the port is reset/closed (e.g. mono enable/disable) - don't spew confusing info
                         Debug.WriteLine($"listen on closed port");
+                    }
+                    catch (DirectoryNotFoundException dnf)
+                    {
+                        FileException?.Invoke(this, dnf);
                     }
                     catch (Exception ex)
                     {

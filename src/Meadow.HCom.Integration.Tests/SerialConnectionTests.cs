@@ -50,7 +50,7 @@ namespace Meadow.HCom.Integration.Tests
             using (var connection = new SerialConnection(ValidPortName))
             {
                 Assert.Equal(ConnectionState.Disconnected, connection.State);
-                var connected = await connection.TryAttach(2);
+                var connected = await connection.Attach(2);
                 Assert.Equal(ConnectionState.Connected, connection.State);
 
                 while (true)

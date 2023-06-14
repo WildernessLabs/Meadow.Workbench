@@ -165,7 +165,7 @@ namespace Meadow.Hcom
             State = ConnectionState.Disconnected;
         }
 
-        public async Task<bool> TryAttach(int timeoutSeconds = 30, CancellationToken? cancellationToken = null)
+        public async Task<IMeadowDevice?> Attach(int timeoutSeconds = 30, CancellationToken? cancellationToken = null)
         {
             try
             {
@@ -190,7 +190,7 @@ namespace Meadow.Hcom
 
                 while (timeout-- > 0)
                 {
-                    if (cancellationToken?.IsCancellationRequested ?? false) return false;
+                    if (cancellationToken?.IsCancellationRequested ?? false) return null;
                     if (timeout <= 0) throw new TimeoutException();
 
                     if (count != _messageCount)
@@ -210,14 +210,12 @@ namespace Meadow.Hcom
                     Device = new MeadowDevice(this);
                 }
 
-                // TODO: start a keep-alive/heartbeat
-
-                return Device != null;
+                return Device;
             }
             catch (Exception e)
             {
                 _logger?.LogError(e, "Failed to connect");
-                return false;
+                throw;
             }
         }
 
@@ -245,8 +243,8 @@ namespace Meadow.Hcom
         {
             private string? _localFileName;
 
-            public string MeadowFileName { get; set; }
-            public string LocalFileName
+            public string MeadowFileName { get; set; } = default!;
+            public string? LocalFileName
             {
                 get
                 {
@@ -256,7 +254,7 @@ namespace Meadow.Hcom
                 }
                 set => _localFileName = value;
             }
-            public FileStream FileStream { get; set; }
+            public FileStream FileStream { get; set; } = default!;
         }
 
         void IHcomConnection.SendRequest(Request command)

@@ -1,17 +1,15 @@
-﻿using LanguageExt;
-using LanguageExt.Common;
-
-namespace Meadow.Hcom
+﻿namespace Meadow.Hcom
 {
     public interface IHcomConnection
     {
         event EventHandler<string> FileReadCompleted;
+        event EventHandler<Exception> FileException;
 
         bool IsConnected { get; }
         string Name { get; }
         IMeadowDevice? Device { get; }
-        Task<bool> TryAttach(int timeoutSeconds, CancellationToken? cancellationToken = null);
-        Task<Result<Unit>> WaitForMeadowAttach(CancellationToken? cancellationToken = null);
+        Task<IMeadowDevice?> Attach(int timeoutSeconds = 30, CancellationToken? cancellationToken = null);
+        Task WaitForMeadowAttach(CancellationToken? cancellationToken = null);
 
         // internal stuff that probably needs to get moved to anotehr interface
         void AddListener(IConnectionListener listener);

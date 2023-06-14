@@ -1,81 +1,173 @@
 ﻿using Meadow.Hcom;
 using System.Diagnostics;
 
-namespace Meadow.HCom.Integration.Tests
+namespace Meadow.HCom.Integration.Tests;
+
+public class ConnectionManagerTests
 {
-    public class ConnectionManagerTests
+    public string ValidPortName { get; } = "COM3";
+
+    private SerialConnection GetConnection(string port)
     {
-        public string ValidPortName { get; } = "COM3";
+        // windows sucks and doesn't release the port, even after Dispose,
+        // so this is a workaround
+        return ConnectionManager
+            .GetConnection<SerialConnection>(port);
+    }
 
-        [Fact]
-        public async Task TestInvalidPortName()
+    [Fact]
+    public void TestInvalidPortName()
+    {
+        Assert.Throws<ArgumentException>(() =>
         {
-            var c = ConnectionManager.GetConnection<SerialConnection>(ValidPortName);
-            var deviceExists = await c.TryAttach();
+            GetConnection("InvalidPortName");
+        });
+    }
 
-            if (deviceExists)
-            {
-                Debug.WriteLine($"Device exists? {deviceExists}");
+    [Fact]
+    public async Task TestReadFileBadLocalPath()
+    {
+        var c = GetConnection(ValidPortName);
+        var device = await c.Attach();
 
-                //                var result = await c.Device.Reset();
-                //                var didReset = result.IsSuccess;
-
-                //                var en = await c.Device.RuntimeEnable();
-                //                var didEnable = en.IsSuccess;
-
-                var t = await c.Device.IsRuntimeEnabled();
-                Debug.WriteLine(
-                    t.Match(
-                        en => $"Runtime is {(en ? "enabled" : "disabled")}",
-                        err => $"failed to connect: {err.Message}"
-                    )
-                    );
-
-                var info = await c.Device?.GetDeviceInfo();
-            }
-
-            //var files = await c.Device?.GetFileList(false);
-            //var files2 = await c.Device?.GetFileList(true);
-            //var result = await c.Device?.ReadFile("app.config.yaml", "c:\\temp\\app.comfig.yml");
+        if (device == null)
+        {
+            Assert.Fail("no device");
+            return;
         }
 
-        [Fact]
-        public async Task TestRuntimeEnableAndDisable()
+        var enabled = await device.IsRuntimeEnabled();
+
+        if (enabled)
         {
-            var c = ConnectionManager.GetConnection<SerialConnection>(ValidPortName);
-            var deviceExists = await c.TryAttach();
+            await device.RuntimeDisable();
+        }
 
-            if (deviceExists)
-            {
-                // get the current runtime state
-                var state = await c.Device?.IsRuntimeEnabled();
+        var dest = "c:\\invalid_local_path\\app.config.yaml";
 
-                var start = state.Match(
-                    en => en,
-                    err =>
-                    {
-                        Assert.Fail($"Unable to query state: {err}");
-                        throw new Exception();
-                    });
+        await Assert.ThrowsAsync<DirectoryNotFoundException>(async () =>
+        {
+            await device.ReadFile("app.config.yaml", dest);
+        });
+    }
 
-                if (start)
-                {
-                    Debug.WriteLine("*** Runtime started enabled.");
-                    Debug.WriteLine("*** Disabling...");
-                    Assert.True((await c.Device.RuntimeDisable()).IsSuccess);
-                    Debug.WriteLine("*** Enabling...");
-                    Assert.True((await c.Device.RuntimeEnable()).IsSuccess);
-                }
-                else
-                {
-                    Debug.WriteLine("*** Runtime started disabled.");
-                    Debug.WriteLine("*** Enabling...");
-                    Assert.True((await c.Device.RuntimeEnable()).IsSuccess);
-                    Debug.WriteLine("*** Disabling...");
-                    Assert.True((await c.Device.RuntimeDisable()).IsSuccess);
-                }
+    [Fact]
+    public async Task TestReadFilePositive()
+    {
+        var c = GetConnection(ValidPortName);
+        var device = await c.Attach();
 
-            }
+        if (device == null)
+        {
+            Assert.Fail("no device");
+            return;
+        }
+
+        var enabled = await device.IsRuntimeEnabled();
+
+        if (enabled)
+        {
+            await device.RuntimeDisable();
+        }
+
+        var dest = "f:\\temp\\app.config.yaml"; // <-- this need to be valid on the test machine
+        if (File.Exists(dest)) File.Delete(dest);
+        Assert.False(File.Exists(dest));
+
+        var result = await device.ReadFile("app.config.yaml", dest);
+        Assert.True(result);
+        Assert.True(File.Exists(dest));
+    }
+
+    [Fact]
+    public async Task TestGetDeviceInfo()
+    {
+        var c = GetConnection(ValidPortName);
+        var device = await c.Attach();
+
+        if (device == null)
+        {
+            Assert.Fail("no device");
+            return;
+        }
+
+        var info = await device.GetDeviceInfo();
+        Assert.NotNull(info);
+        Assert.True(info.Any());
+    }
+
+    [Fact]
+    public async Task TestGetFileListWithoutCrcs()
+    {
+        var c = GetConnection(ValidPortName);
+        var device = await c.Attach();
+
+        if (device == null)
+        {
+            Assert.Fail("no device");
+            return;
+        }
+        var files = await device.GetFileList(false);
+        Assert.NotNull(files);
+        Assert.True(files.Any());
+        Assert.True(files.All(f => f.Name != null));
+        Assert.True(files.All(f => f.Crc == null));
+        Assert.True(files.All(f => f.Size == null));
+    }
+
+    [Fact]
+    public async Task TestGetFileListWithCrcs()
+    {
+        var c = GetConnection(ValidPortName);
+        var device = await c.Attach();
+
+        if (device == null)
+        {
+            Assert.Fail("no device");
+            return;
+        }
+        var files = await device.GetFileList(true);
+        Assert.NotNull(files);
+        Assert.True(files.Any());
+        Assert.True(files.All(f => f.Name != null));
+        Assert.True(files.All(f => f.Crc != null));
+        Assert.True(files.All(f => f.Size != null));
+    }
+
+    [Fact]
+    public async Task TestRuntimeEnableAndDisable()
+    {
+        var c = GetConnection(ValidPortName);
+        var device = await c.Attach();
+
+        if (device == null)
+        {
+            Assert.Fail("no device");
+            return;
+        }
+        // get the current runtime state
+        var start = await device.IsRuntimeEnabled();
+
+        if (start)
+        {
+            Debug.WriteLine("*** Runtime started enabled.");
+            Debug.WriteLine("*** Disabling...");
+            await device.RuntimeDisable();
+            Debug.WriteLine("*** Enabling...");
+            await device.RuntimeEnable();
+
+            Assert.True(await device.IsRuntimeEnabled());
+        }
+        else
+        {
+            Debug.WriteLine("*** Runtime started disabled.");
+            Debug.WriteLine("*** Enabling...");
+            await device.RuntimeEnable();
+            Debug.WriteLine("*** Disabling...");
+            await device.RuntimeDisable();
+
+            Assert.False(await device.IsRuntimeEnabled());
         }
     }
 }
+

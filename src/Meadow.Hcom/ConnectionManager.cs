@@ -15,9 +15,13 @@
             switch (typeof(TConnection))
             {
                 case Type t when t == typeof(SerialConnection):
-                    return new SerialConnection(connectionName) as TConnection;
+                    var c = new SerialConnection(connectionName);
+                    _connections.Add(c);
+#pragma warning disable 8603
+                    return c as TConnection;
+#pragma warning restore
                 default:
-                    throw new NotImplementedException();
+                    throw new NotSupportedException();
             };
 
         }
