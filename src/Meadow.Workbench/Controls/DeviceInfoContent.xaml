@@ -34,6 +34,7 @@
                         <RowDefinition Height="21"/>
                         <RowDefinition Height="21"/>
                         <RowDefinition Height="21"/>
+                        <RowDefinition Height="21"/>
                     </Grid.RowDefinitions>
 
                     <Label
@@ -105,11 +106,22 @@
                     <Label
                         Grid.Row="6"
                         Grid.Column="0"
-                        Text="Clock:"
+                        Text="Runtime Enabled:"
                         FontAttributes="Bold"
                         HorizontalTextAlignment="End" />
                     <Label
                         Grid.Row="6"
+                        Grid.Column="1"
+                        Text="{Binding RuntimeState}" />
+
+                    <Label
+                        Grid.Row="7"
+                        Grid.Column="0"
+                        Text="Clock:"
+                        FontAttributes="Bold"
+                        HorizontalTextAlignment="End" />
+                    <Label
+                        Grid.Row="7"
                         Grid.Column="1"
                         Text="{Binding LastRtc}" />
                 </Grid>
@@ -132,6 +144,14 @@
                         Text="Reset"
                         Style="{StaticResource ButtonStyle}"
                         Command="{Binding ResetDeviceCommand}" />
+                    <Button
+                        Text="Disable Runtime"
+                        Style="{StaticResource ButtonStyle}"
+                        Command="{Binding DisableRuntimeCommand}" />
+                    <Button
+                        Text="Enable Runtime"
+                        Style="{StaticResource ButtonStyle}"
+                        Command="{Binding EnableRuntimeCommand}" />
                     <Button
                         Text="Refresh" 
                         Style="{StaticResource ButtonStyle}"

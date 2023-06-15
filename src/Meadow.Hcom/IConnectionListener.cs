@@ -9,5 +9,6 @@
         void OnTextListReceived(string[] list);
         void OnErrorTextReceived(string message);
         void OnFileError();
+        void OnTextMessageConcluded(int requestType);
     }
 }

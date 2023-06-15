@@ -13,7 +13,7 @@
         Task FlashOS(string requestedversion, CancellationToken? cancellationToken = null);
         Task FlashCoprocessor(string requestedversion, CancellationToken? cancellationToken = null);
         Task FlashRuntime(string requestedversion, CancellationToken? cancellationToken = null);
-        Task<DateTimeOffset> GetRtcTime(CancellationToken? cancellationToken = null);
+        Task<DateTimeOffset?> GetRtcTime(CancellationToken? cancellationToken = null);
         Task SetRtcTime(DateTimeOffset dateTime, CancellationToken? cancellationToken = null);
     }
 }

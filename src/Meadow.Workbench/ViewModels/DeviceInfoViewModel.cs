@@ -193,6 +193,16 @@ public partial class DeviceInfoViewModel : ViewModelBase
         }
     }
 
+    private bool _runtimeState;
+    public bool RuntimeState
+    {
+        get => _runtimeState;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _runtimeState, value);
+        }
+    }
+
     private ObservableCollection<AppInfo> _knownApps = new();
     public ObservableCollection<AppInfo> KnownApps
     {
@@ -277,6 +287,27 @@ public partial class DeviceInfoViewModel : ViewModelBase
 
             DeviceInfo = await SelectedConnection.Device.GetDeviceInfo();
             this.RaisePropertyChanged(nameof(SelectedConnection));
+
+            _ = Task.Run(RefreshRuntimeState);
+
+        });
+    }
+
+    public ICommand EnableRuntimeCommand
+    {
+        get => new Command(async () =>
+        {
+            await SelectedConnection.Device.RuntimeEnable();
+            await RefreshRuntimeState();
+        });
+    }
+
+    public ICommand DisableRuntimeCommand
+    {
+        get => new Command(async () =>
+        {
+            await SelectedConnection.Device.RuntimeDisable();
+            await RefreshRuntimeState();
         });
     }
 
@@ -548,6 +579,11 @@ public partial class DeviceInfoViewModel : ViewModelBase
 
             await Task.Delay(TimeSpan.FromSeconds(5));
         }
+    }
+
+    private async Task RefreshRuntimeState()
+    {
+        RuntimeState = await SelectedConnection?.Device?.IsRuntimeEnabled();
     }
 
     private void RefreshKnownApps()

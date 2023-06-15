@@ -10,6 +10,12 @@
             public Dictionary<string, string> DeviceInfo { get; private set; } = new Dictionary<string, string>();
             public List<string> TextList { get; } = new List<string>();
             public string? LastError { get; set; }
+            public int? LastRequestConcluded { get; set; }
+
+            public void OnTextMessageConcluded(int requestType)
+            {
+                LastRequestConcluded = requestType;
+            }
 
             public void OnStdOutReceived(string message)
             {

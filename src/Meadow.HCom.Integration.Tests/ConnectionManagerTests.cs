@@ -186,5 +186,30 @@ public class ConnectionManagerTests
             Assert.False(await device.IsRuntimeEnabled());
         }
     }
+
+    [Fact]
+    public async Task TestRtcFunctions()
+    {
+        var c = GetConnection(ValidPortName);
+        var device = await c.Attach();
+
+        if (device == null)
+        {
+            Assert.Fail("no device");
+            return;
+        }
+        // get the current runtime state
+        var time = await device.GetRtcTime();
+
+        var newTime = time.Value.AddMinutes(17);
+        await device.SetRtcTime(newTime);
+
+        time = await device.GetRtcTime();
+
+        // should be withing a few seconds of newTime
+        var delta = Math.Abs(time.Value.Ticks - newTime.Ticks);
+        var deltaOffset = new TimeSpan(delta);
+        Assert.True(deltaOffset.TotalSeconds < 5);
+    }
 }
 

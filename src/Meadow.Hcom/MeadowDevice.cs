@@ -250,16 +250,55 @@
             throw new NotImplementedException();
         }
 
-        public Task<DateTimeOffset> GetRtcTime(CancellationToken? cancellationToken = null)
+        public async Task<DateTimeOffset?> GetRtcTime(CancellationToken? cancellationToken = null)
         {
-            return Task.FromResult(DateTimeOffset.UtcNow);
-            //            throw new NotImplementedException();
+            var command = RequestBuilder.Build<GetRtcTimeRequest>();
+
+            _listener.Information.Clear();
+
+            _connection.SendRequest(command);
+
+            DateTimeOffset? now = null;
+
+            var success = await WaitForResult(() =>
+            {
+                var token = "UTC time:";
+
+                if (_listener.Information.Count > 0)
+                {
+                    var m = _listener.Information.FirstOrDefault(i => i.Contains(token));
+                    if (m != null)
+                    {
+                        var timeString = m.Substring(m.IndexOf(token) + token.Length);
+                        now = DateTimeOffset.Parse(timeString);
+                        return true;
+                    }
+                }
+
+                return false;
+            }, cancellationToken);
+
+            return now;
         }
 
-        public Task SetRtcTime(DateTimeOffset dateTime, CancellationToken? cancellationToken = null)
+        public async Task SetRtcTime(DateTimeOffset dateTime, CancellationToken? cancellationToken = null)
         {
-            throw new NotImplementedException();
-        }
+            var command = RequestBuilder.Build<SetRtcTimeRequest>();
+            command.Time = dateTime;
 
+            _listener.LastRequestConcluded = null;
+
+            _connection.SendRequest(command);
+
+            var success = await WaitForResult(() =>
+            {
+                if (_listener.LastRequestConcluded != null && _listener.LastRequestConcluded == 0x303)
+                {
+                    return true;
+                }
+
+                return false;
+            }, cancellationToken);
+        }
     }
 }

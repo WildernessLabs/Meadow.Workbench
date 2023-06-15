@@ -133,6 +133,11 @@ namespace Meadow.Hcom
                                     }
                                     else if (response is TextConcludedResponse tcr)
                                     {
+                                        foreach (var listener in _listeners)
+                                        {
+                                            listener.OnTextMessageConcluded((int)tcr.RequestType);
+                                        }
+
                                         if (_reconnectInProgress)
                                         {
                                             _state = ConnectionState.MeadowAttached;
@@ -230,6 +235,15 @@ namespace Meadow.Hcom
                             }
                         }
                     }
+                    catch (DirectoryNotFoundException dnf)
+                    {
+                        FileException?.Invoke(this, dnf);
+                    }
+                    catch (IOException)
+                    {
+                        // attempt to read timed out (i.e. there's just no data)
+                        // NOP
+                    }
                     catch (TimeoutException)
                     {
                         Debug.WriteLine($"listen timeout");
@@ -244,10 +258,6 @@ namespace Meadow.Hcom
                     {
                         // common if the port is reset/closed (e.g. mono enable/disable) - don't spew confusing info
                         Debug.WriteLine($"listen on closed port");
-                    }
-                    catch (DirectoryNotFoundException dnf)
-                    {
-                        FileException?.Invoke(this, dnf);
                     }
                     catch (Exception ex)
                     {
