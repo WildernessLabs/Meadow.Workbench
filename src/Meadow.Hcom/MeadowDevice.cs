@@ -250,5 +250,16 @@
             throw new NotImplementedException();
         }
 
+        public Task<DateTimeOffset> GetRtcTime(CancellationToken? cancellationToken = null)
+        {
+            return Task.FromResult(DateTimeOffset.UtcNow);
+            //            throw new NotImplementedException();
+        }
+
+        public Task SetRtcTime(DateTimeOffset dateTime, CancellationToken? cancellationToken = null)
+        {
+            throw new NotImplementedException();
+        }
+
     }
 }

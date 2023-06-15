@@ -1,10 +1,10 @@
 ﻿using DynamicData;
-using Meadow.CLI.Core;
 using Meadow.Hcom;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.IO.Ports;
 using System.Windows.Input;
 
 namespace Meadow.Workbench.ViewModels;
@@ -12,7 +12,6 @@ namespace Meadow.Workbench.ViewModels;
 public partial class DeviceInfoViewModel : ViewModelBase
 {
     private CaptureLogger _logger;
-    private MeadowConnectionManager _deviceManager;
     private UserSettingsService _settingsService;
     private IFolderPicker _folderPicker;
 
@@ -58,7 +57,13 @@ public partial class DeviceInfoViewModel : ViewModelBase
         {
             this.RaiseAndSetIfChanged(ref _selectedPort, value);
 
-            SelectedConnection = _deviceManager[value];
+            SelectedConnection = ConnectionManager.GetConnection<SerialConnection>(_selectedPort);
+
+            Task.Run(async () =>
+            {
+                var device = await SelectedConnection.Attach();
+                RefreshDeviceInfo.Execute(null);
+            });
         }
     }
 
@@ -128,6 +133,17 @@ public partial class DeviceInfoViewModel : ViewModelBase
         }
     }
 
+    private Hcom.DeviceInfo _info;
+    public Hcom.DeviceInfo DeviceInfo
+    {
+        get => _info;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _info, value);
+            this.RaisePropertyChanged(nameof(DeviceInfo));
+        }
+    }
+
     private ObservableCollection<FirmwareInfo> _localFirmwareVersions = new();
     public ObservableCollection<FirmwareInfo> LocalFirmwareVersions
     {
@@ -145,12 +161,12 @@ public partial class DeviceInfoViewModel : ViewModelBase
                 MeadowConnected = value.IsConnected;
 
                 // TODO: when we change connections, remove old handlers
+                /*
                 value.ConnectionStateChanged += (connection, newState) =>
                 {
                     MeadowConnected = newState;
                 };
-
-                value.AutoReconnect = true;
+                */
             }
 
             this.RaiseAndSetIfChanged(ref _selectedConnection, value);
@@ -259,7 +275,7 @@ public partial class DeviceInfoViewModel : ViewModelBase
         {
             if (SelectedConnection == null || SelectedConnection.Device == null) return;
 
-            await SelectedConnection.Device.GetDeviceInfo(TimeSpan.FromSeconds(5));
+            DeviceInfo = await SelectedConnection.Device.GetDeviceInfo();
             this.RaisePropertyChanged(nameof(SelectedConnection));
         });
     }
@@ -281,7 +297,7 @@ public partial class DeviceInfoViewModel : ViewModelBase
     {
         get => new Command(() =>
         {
-            SelectedConnection?.Device?.ResetMeadow();
+            SelectedConnection?.Device?.Reset();
         });
     }
 
@@ -365,16 +381,16 @@ public partial class DeviceInfoViewModel : ViewModelBase
     {
         get => new Command(async () =>
         {
-            if (SelectedConnection == null || SelectedConnection.Device == null || SelectedConnection.Device.DeviceInfo == null) return;
+            if (SelectedConnection == null || SelectedConnection.Device == null || DeviceInfo == null) return;
 
             try
             {
-                var info = $"Name: {SelectedConnection.Device.DeviceInfo.DeviceName}\r\n" +
-                           $"Serial #: {SelectedConnection.Device.DeviceInfo.SerialNumber}\r\n" +
-                           $"Hardware: {SelectedConnection.Device.DeviceInfo.HardwareVersion}\r\n" +
-                           $"OS: {SelectedConnection.Device.DeviceInfo.MeadowOsVersion}\r\n" +
-                           $"Runtime: {SelectedConnection.Device.DeviceInfo.RuntimeVersion}\r\n" +
-                           $"Coprocessor: {SelectedConnection.Device.DeviceInfo.CoProcessorOsVersion}\r\n";
+                var info = $"Name: {DeviceInfo.DeviceName}\r\n" +
+                           $"Serial #: {DeviceInfo.SerialNumber}\r\n" +
+                           $"Hardware: {DeviceInfo.HardwareVersion}\r\n" +
+                           $"OS: {DeviceInfo.OsVersion}\r\n" +
+                           $"Runtime: {DeviceInfo.RuntimeVersion}\r\n" +
+                           $"Coprocessor: {DeviceInfo.CoprocessorOsVersion}\r\n";
 
                 await Clipboard.SetTextAsync(info);
             }
@@ -414,7 +430,6 @@ public partial class DeviceInfoViewModel : ViewModelBase
 
     public DeviceInfoViewModel(
         ILogger logger,
-        MeadowConnectionManager connectionManager,
         UserSettingsService settingsService,
         IFolderPicker folderPicker)
     {
@@ -449,8 +464,10 @@ public partial class DeviceInfoViewModel : ViewModelBase
         _folderPicker = folderPicker;
         _settingsService = settingsService;
 
-        _deviceManager = connectionManager;
-        _deviceManager.ConnectionAdded += OnConnectionAdded;
+        //_deviceManager = connectionManager;
+        //_deviceManager.ConnectionAdded += OnConnectionAdded;
+
+        RefreshAvailablePorts();
 
         RefreshLocalFirmwareVersionsCommand.Execute(null);
         RefreshKnownApps();
@@ -469,14 +486,9 @@ public partial class DeviceInfoViewModel : ViewModelBase
         try
         {
             // TODO: tell user to power with boot button pressed?
-            var updater = FirmwareManager.GetFirmwareUpdater(_deviceManager);
+            var updater = FirmwareManager.GetFirmwareUpdater(_selectedConnection);
             // TODO: watch the state to update the UI?
             await updater.Update(connection, version.Version);
-        }
-        catch (DeviceNotFoundException)
-        {
-            await App.Current.MainPage.DisplayAlert("Device Not Found", $"No connected Meadow device found", "OK");
-            return;
         }
         catch (Exception ex)
         {
@@ -484,10 +496,6 @@ public partial class DeviceInfoViewModel : ViewModelBase
         }
         finally
         {
-            if (connection != null)
-            {
-                connection.AutoReconnect = true;
-            }
             FirmwareUpdateInProgress = false;
         }
 
@@ -496,9 +504,9 @@ public partial class DeviceInfoViewModel : ViewModelBase
             // refresh the device info
             try
             {
-                await connection.WaitForConnection(TimeSpan.FromSeconds(5));
+                await connection.WaitForMeadowAttach();
 
-                await connection.Device.GetDeviceInfo(TimeSpan.FromSeconds(60));
+                DeviceInfo = await connection.Device.GetDeviceInfo();
             }
             catch (Exception ex)
             {
@@ -565,6 +573,13 @@ public partial class DeviceInfoViewModel : ViewModelBase
         {
             _settingsService.SaveCurrentSettings();
         }
+    }
+
+    private void RefreshAvailablePorts()
+    {
+        _ports.Clear();
+
+        _ports.AddRange(SerialPort.GetPortNames());
     }
 
     private void CheckForNewFirmware()

@@ -45,7 +45,7 @@
                     <Label
                         Grid.Row="0"
                         Grid.Column="1"
-                        Text="{Binding SelectedConnection.Device.DeviceInfo.DeviceName}" />
+                        Text="{Binding DeviceInfo.DeviceName}" />
 
                     <Label
                         Grid.Row="1"
@@ -56,7 +56,7 @@
                     <Label
                         Grid.Row="1"
                         Grid.Column="1"
-                        Text="{Binding SelectedConnection.Device.DeviceInfo.SerialNumber}" />
+                        Text="{Binding DeviceInfo.SerialNumber}" />
 
                     <Label
                         Grid.Row="2"
@@ -67,7 +67,7 @@
                     <Label
                         Grid.Row="2"
                         Grid.Column="1"
-                        Text="{Binding SelectedConnection.Device.DeviceInfo.HardwareVersion}" />
+                        Text="{Binding DeviceInfo.HardwareVersion}" />
 
                     <Label
                         Grid.Row="3"
@@ -78,7 +78,7 @@
                     <Label
                         Grid.Row="3"
                         Grid.Column="1"
-                        Text="{Binding SelectedConnection.Device.DeviceInfo.MeadowOsVersion}" />
+                        Text="{Binding DeviceInfo.OsVersion}" />
 
                     <Label
                         Grid.Row="4"
@@ -89,7 +89,7 @@
                     <Label
                         Grid.Row="4"
                         Grid.Column="1"
-                        Text="{Binding SelectedConnection.Device.DeviceInfo.RuntimeVersion}" />
+                        Text="{Binding DeviceInfo.RuntimeVersion}" />
 
                     <Label
                         Grid.Row="5"
@@ -100,7 +100,7 @@
                     <Label
                         Grid.Row="5"
                         Grid.Column="1"
-                        Text="{Binding SelectedConnection.Device.DeviceInfo.CoProcessorOsVersion}" />
+                        Text="{Binding DeviceInfo.CoprocessorOsVersion}" />
 
                     <Label
                         Grid.Row="6"

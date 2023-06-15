@@ -1,5 +1,4 @@
 ﻿using CommunityToolkit.Maui;
-using Meadow.Hcom;
 using Meadow.Workbench.ViewModels;
 using Meadow.Workbench.Views;
 using Microsoft.Extensions.Logging;
@@ -30,11 +29,10 @@ public static partial class MauiProgram
             .AddTransient<AppShell>()
             .AddSingleton<ILogger, CaptureLogger>()
             .AddSingleton<UserSettingsService>(_settingsService)
-            .AddSingleton<MeadowConnectionManager>()
             .AddTransient<DeviceInfoViewModel>()
             .AddTransient<DeviceInfoPage>()
 #if WINDOWS
-			.AddTransient<IFolderPicker, Platforms.Windows.FolderPicker>();
+            .AddTransient<IFolderPicker, Platforms.Windows.FolderPicker>();
 #elif MACCATALYST
             .AddTransient<IFolderPicker, Platforms.MacCatalyst.FolderPicker>();
 #endif
