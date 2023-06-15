@@ -7,7 +7,11 @@
         Task RuntimeEnable(CancellationToken? cancellationToken = null);
         Task<bool> IsRuntimeEnabled(CancellationToken? cancellationToken = null);
 
-        Task<Dictionary<string, string>?> GetDeviceInfo(CancellationToken? cancellationToken = null);
+        Task FlashOS(string requestedversion, CancellationToken? cancellationToken = null);
+        Task FlashCoprocessor(string requestedversion, CancellationToken? cancellationToken = null);
+        Task FlashRuntime(string requestedversion, CancellationToken? cancellationToken = null);
+
+        Task<DeviceInfo?> GetDeviceInfo(CancellationToken? cancellationToken = null);
         Task<MeadowFileInfo[]?> GetFileList(bool includeCrcs, CancellationToken? cancellationToken = null);
         Task<bool> ReadFile(string meadowFileName, string? localFileName = null, CancellationToken? cancellationToken = null);
     }

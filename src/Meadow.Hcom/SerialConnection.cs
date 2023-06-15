@@ -7,7 +7,7 @@ namespace Meadow.Hcom
 {
     public delegate void ConnectionStateChangedHandler(SerialConnection connection, ConnectionState oldState, ConnectionState newState);
 
-    public partial class SerialConnection : IDisposable, IHcomConnection
+    public partial class SerialConnection : IDisposable, IMeadowConnection
     {
         public const int DefaultBaudRate = 115200;
         public const int ReadBufferSizeBytes = 0x2000;
@@ -173,7 +173,7 @@ namespace Meadow.Hcom
                 Open();
 
                 // search for the device via HCOM - we'll use a simple command since we don't have a "ping"
-                var command = CommandBuilder.Build<GetDeviceInfoRequest>();
+                var command = RequestBuilder.Build<GetDeviceInfoRequest>();
 
                 // sequence numbers are only for file retrieval.  Setting it to non-zero will cause it to hang
 
@@ -257,7 +257,7 @@ namespace Meadow.Hcom
             public FileStream FileStream { get; set; } = default!;
         }
 
-        void IHcomConnection.SendRequest(Request command)
+        void IMeadowConnection.SendRequest(Request command)
         {
             // TODO: verify we're connected
 

@@ -1,6 +1,6 @@
 ﻿namespace Meadow.Hcom
 {
-    public interface IHcomConnection
+    public interface IMeadowConnection
     {
         event EventHandler<string> FileReadCompleted;
         event EventHandler<Exception> FileException;

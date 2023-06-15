@@ -1,6 +1,6 @@
 ﻿namespace Meadow.Hcom
 {
-    internal static class CommandBuilder
+    internal static class RequestBuilder
     {
         private static uint _sequenceNumber;
 

@@ -1,4 +1,5 @@
 ﻿using DynamicData;
+using Meadow.CLI.Core;
 using Meadow.Hcom;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
@@ -204,7 +205,7 @@ public partial class DeviceInfoViewModel : ViewModelBase
                 return;
             }
 
-            var fi = await FirmwareManager.GetRemoteFirmwareInfo(version, _logger);
+            var fi = await FirmwareManager.GetRemoteFirmwareInfo(version, null);
             if (fi == null)
             {
                 await App.Current.MainPage.DisplayAlert("Firmware Download", $"Version {version} does not exist.", "OK");
@@ -212,7 +213,7 @@ public partial class DeviceInfoViewModel : ViewModelBase
             else
             {
                 // download
-                await FirmwareManager.GetRemoteFirmware(version, _logger);
+                await FirmwareManager.GetRemoteFirmware(version, null);
                 RefreshLocalFirmwareVersionsCommand.Execute(null);
             }
         });

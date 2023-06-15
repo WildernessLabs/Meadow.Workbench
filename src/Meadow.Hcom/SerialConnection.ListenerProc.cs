@@ -184,9 +184,9 @@ namespace Meadow.Hcom
 
                                         _readFileInfo.FileStream = File.Create(_readFileInfo.LocalFileName);
 
-                                        var uploadRequest = CommandBuilder.Build<StartFileDataRequest>();
+                                        var uploadRequest = RequestBuilder.Build<StartFileDataRequest>();
 
-                                        (this as IHcomConnection).SendRequest(uploadRequest);
+                                        (this as IMeadowConnection).SendRequest(uploadRequest);
                                     }
                                     else if (response is UploadDataPacketResponse udp)
                                     {

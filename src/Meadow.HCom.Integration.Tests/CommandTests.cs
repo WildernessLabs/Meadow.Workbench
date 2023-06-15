@@ -16,13 +16,13 @@ namespace Meadow.HCom.Integration.Tests
                 var listener = new TestListener();
                 connection.AddListener(listener);
 
-                var command = CommandBuilder.Build<ResetDeviceRequest>();
+                var command = RequestBuilder.Build<ResetDeviceRequest>();
                 command.SequenceNumber = 0;
 
                 // dev note: something has to happen to generate messages - right now a manual reset is the action
                 // in the future, we'll implement a Reset() command
 
-                ((IHcomConnection)connection).SendRequest(command);
+                ((IMeadowConnection)connection).SendRequest(command);
 
                 var timeoutSecs = 10;
 
@@ -50,13 +50,13 @@ namespace Meadow.HCom.Integration.Tests
                 var listener = new TestListener();
                 connection.AddListener(listener);
 
-                var command = CommandBuilder.Build<GetDeviceInfoRequest>();
+                var command = RequestBuilder.Build<GetDeviceInfoRequest>();
                 command.SequenceNumber = 0;
 
                 // dev note: something has to happen to generate messages - right now a manual reset is the action
                 // in the future, we'll implement a Reset() command
 
-                ((IHcomConnection)connection).SendRequest(command);
+                ((IMeadowConnection)connection).SendRequest(command);
 
                 var timeoutSecs = 10;
 
@@ -84,13 +84,13 @@ namespace Meadow.HCom.Integration.Tests
                 var listener = new TestListener();
                 connection.AddListener(listener);
 
-                var command = CommandBuilder.Build<GetFileListRequest>();
+                var command = RequestBuilder.Build<GetFileListRequest>();
                 command.SequenceNumber = 0;
 
                 // dev note: something has to happen to generate messages - right now a manual reset is the action
                 // in the future, we'll implement a Reset() command
 
-                ((IHcomConnection)connection).SendRequest(command);
+                ((IMeadowConnection)connection).SendRequest(command);
 
                 var timeoutSecs = 10;
 
@@ -118,7 +118,7 @@ namespace Meadow.HCom.Integration.Tests
                 var listener = new TestListener();
                 connection.AddListener(listener);
 
-                var command = CommandBuilder.Build<GetFileListRequest>();
+                var command = RequestBuilder.Build<GetFileListRequest>();
                 command.IncludeCrcs = true;
 
                 command.SequenceNumber = 0;
@@ -126,7 +126,7 @@ namespace Meadow.HCom.Integration.Tests
                 // dev note: something has to happen to generate messages - right now a manual reset is the action
                 // in the future, we'll implement a Reset() command
 
-                ((IHcomConnection)connection).SendRequest(command);
+                ((IMeadowConnection)connection).SendRequest(command);
 
                 var timeoutSecs = 10;
 

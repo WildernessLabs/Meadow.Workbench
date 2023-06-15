@@ -2,10 +2,10 @@
 {
     public class ConnectionManager
     {
-        private static List<IHcomConnection> _connections = new List<IHcomConnection>();
+        private static List<IMeadowConnection> _connections = new List<IMeadowConnection>();
 
         public static TConnection GetConnection<TConnection>(string connectionName)
-            where TConnection : class, IHcomConnection
+            where TConnection : class, IMeadowConnection
         {
             // see if it already is known
             var existing = _connections.FirstOrDefault(c => c.Name == connectionName) as TConnection;

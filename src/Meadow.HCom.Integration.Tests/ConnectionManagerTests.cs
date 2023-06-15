@@ -110,7 +110,7 @@ public class ConnectionManagerTests
 
         var info = await device.GetDeviceInfo();
         Assert.NotNull(info);
-        Assert.True(info.Any());
+        Assert.True(info.Properties.Any());
     }
 
     [Fact]

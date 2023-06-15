@@ -2,12 +2,12 @@
 {
     public partial class MeadowDevice : IMeadowDevice
     {
-        private IHcomConnection _connection;
+        private IMeadowConnection _connection;
         private ResponseListener _listener;
 
         public int CommandTimeoutSeconds { get; set; } = 30;
 
-        internal MeadowDevice(IHcomConnection connection)
+        internal MeadowDevice(IMeadowConnection connection)
         {
             _connection = connection;
             _connection.AddListener(_listener = new ResponseListener());
@@ -35,7 +35,7 @@
 
         public async Task<bool> IsRuntimeEnabled(CancellationToken? cancellationToken = null)
         {
-            var command = CommandBuilder.Build<GetRuntimeStateRequest>();
+            var command = RequestBuilder.Build<GetRuntimeStateRequest>();
 
             _listener.Information.Clear();
 
@@ -64,7 +64,7 @@
 
         public async Task Reset(CancellationToken? cancellationToken = null)
         {
-            var command = CommandBuilder.Build<ResetDeviceRequest>();
+            var command = RequestBuilder.Build<ResetDeviceRequest>();
 
             _connection.SendRequest(command);
 
@@ -76,7 +76,7 @@
 
         public async Task RuntimeDisable(CancellationToken? cancellationToken = null)
         {
-            var command = CommandBuilder.Build<RuntimeDisableRequest>();
+            var command = RequestBuilder.Build<RuntimeDisableRequest>();
 
             _listener.Information.Clear();
 
@@ -104,7 +104,7 @@
 
         public async Task RuntimeEnable(CancellationToken? cancellationToken = null)
         {
-            var command = CommandBuilder.Build<RuntimeEnableRequest>();
+            var command = RequestBuilder.Build<RuntimeEnableRequest>();
 
             _listener.Information.Clear();
 
@@ -130,9 +130,9 @@
             if (!success) throw new Exception("Unable to enable runtime");
         }
 
-        public async Task<Dictionary<string, string>?> GetDeviceInfo(CancellationToken? cancellationToken = null)
+        public async Task<DeviceInfo?> GetDeviceInfo(CancellationToken? cancellationToken = null)
         {
-            var command = CommandBuilder.Build<GetDeviceInfoRequest>();
+            var command = RequestBuilder.Build<GetDeviceInfoRequest>();
 
             _listener.DeviceInfo.Clear();
 
@@ -145,12 +145,12 @@
                 return null;
             }
 
-            return _listener.DeviceInfo;
+            return new DeviceInfo(_listener.DeviceInfo);
         }
 
         public async Task<MeadowFileInfo[]?> GetFileList(bool includeCrcs, CancellationToken? cancellationToken = null)
         {
-            var command = CommandBuilder.Build<GetFileListRequest>();
+            var command = RequestBuilder.Build<GetFileListRequest>();
             command.IncludeCrcs = includeCrcs;
 
             _listener.DeviceInfo.Clear();
@@ -182,7 +182,7 @@
 
         public async Task<bool> ReadFile(string meadowFileName, string? localFileName = null, CancellationToken? cancellationToken = null)
         {
-            var command = CommandBuilder.Build<InitFileReadRequest>();
+            var command = RequestBuilder.Build<InitFileReadRequest>();
             command.MeadowFileName = meadowFileName;
             command.LocalFileName = localFileName;
 
@@ -224,5 +224,31 @@
                 _connection.FileException -= OnFileError;
             }
         }
+
+        public async Task<bool> WriteFile(string localFileName, string? meadowFileName = null, CancellationToken? cancellationToken = null)
+        {
+            var command = RequestBuilder.Build<InitFileWriteRequest>();
+            command.LocalFileName = localFileName;
+            command.MeadowFileName = meadowFileName;
+
+            _connection.SendRequest(command);
+            return false;
+        }
+
+        public Task FlashOS(string requestedversion, CancellationToken? cancellationToken = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task FlashCoprocessor(string requestedversion, CancellationToken? cancellationToken = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task FlashRuntime(string requestedversion, CancellationToken? cancellationToken = null)
+        {
+            throw new NotImplementedException();
+        }
+
     }
 }
