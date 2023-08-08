@@ -1,4 +1,6 @@
-﻿namespace Meadow.Hcom
+﻿using System.Text;
+
+namespace Meadow.Hcom
 {
     public class DeviceInfo
     {
@@ -21,5 +23,17 @@
         public string SerialNumber => this["SerialNo"];
         public string CoprocessorType => this["CoprocessorType"];
         public string MacAddress => this["WiFiMAC"];
+
+        public override string ToString()
+        {
+            var info = new StringBuilder();
+
+            foreach (var prop in Properties)
+            {
+                info.AppendLine($"{prop.Key}: {prop.Value}");
+            }
+
+            return info.ToString();
+        }
     }
 }

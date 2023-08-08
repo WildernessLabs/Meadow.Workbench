@@ -4,6 +4,7 @@
     {
         private IMeadowConnection _connection;
         private ResponseListener _listener;
+        private Exception? _lastException;
 
         public int CommandTimeoutSeconds { get; set; } = 30;
 
@@ -11,6 +12,7 @@
         {
             _connection = connection;
             _connection.AddListener(_listener = new ResponseListener());
+            _connection.ConnectionError += (s, e) => _lastException = e;
         }
 
         private async Task<bool> WaitForResult(Func<bool> checkAction, CancellationToken? cancellationToken)
@@ -20,6 +22,8 @@
             while (timeout-- > 0)
             {
                 if (cancellationToken?.IsCancellationRequested ?? false) return false;
+                if (_lastException != null) return false;
+
                 if (timeout <= 0) throw new TimeoutException();
 
                 if (checkAction())
@@ -39,7 +43,7 @@
 
             _listener.Information.Clear();
 
-            _connection.SendRequest(command);
+            _connection.EnqueueRequest(command);
 
             // wait for an information response
             var timeout = CommandTimeoutSeconds * 2;
@@ -66,7 +70,7 @@
         {
             var command = RequestBuilder.Build<ResetDeviceRequest>();
 
-            _connection.SendRequest(command);
+            _connection.EnqueueRequest(command);
 
             // we have to give time for the device to actually reset
             await Task.Delay(500);
@@ -80,7 +84,7 @@
 
             _listener.Information.Clear();
 
-            _connection.SendRequest(command);
+            _connection.EnqueueRequest(command);
 
             // we have to give time for the device to actually reset
             await Task.Delay(500);
@@ -108,7 +112,7 @@
 
             _listener.Information.Clear();
 
-            _connection.SendRequest(command);
+            _connection.EnqueueRequest(command);
 
             // we have to give time for the device to actually reset
             await Task.Delay(500);
@@ -136,7 +140,8 @@
 
             _listener.DeviceInfo.Clear();
 
-            _connection.SendRequest(command);
+            _lastException = null;
+            _connection.EnqueueRequest(command);
 
             if (!await WaitForResult(
                 () => _listener.DeviceInfo.Count > 0,
@@ -155,7 +160,7 @@
 
             _listener.DeviceInfo.Clear();
 
-            _connection.SendRequest(command);
+            _connection.EnqueueRequest(command);
 
             if (!await WaitForResult(
                 () => _listener.TextList.Count > 0,
@@ -203,7 +208,7 @@
                 _connection.FileReadCompleted += OnFileReadCompleted;
                 _connection.FileException += OnFileError;
 
-                _connection.SendRequest(command);
+                _connection.EnqueueRequest(command);
 
                 if (!await WaitForResult(
                     () =>
@@ -231,7 +236,7 @@
             command.LocalFileName = localFileName;
             command.MeadowFileName = meadowFileName;
 
-            _connection.SendRequest(command);
+            _connection.EnqueueRequest(command);
             return false;
         }
 
@@ -256,7 +261,7 @@
 
             _listener.Information.Clear();
 
-            _connection.SendRequest(command);
+            _connection.EnqueueRequest(command);
 
             DateTimeOffset? now = null;
 
@@ -288,7 +293,7 @@
 
             _listener.LastRequestConcluded = null;
 
-            _connection.SendRequest(command);
+            _connection.EnqueueRequest(command);
 
             var success = await WaitForResult(() =>
             {

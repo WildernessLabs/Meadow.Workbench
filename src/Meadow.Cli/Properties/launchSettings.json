@@ -1,0 +1,27 @@
+{
+  "profiles": {
+    "Meadow.Cli": {
+      "commandName": "Project"
+    },
+    "Device Info": {
+      "commandName": "Project",
+      "commandLineArgs": "device info"
+    },
+    "Config: Set Route Serial": {
+      "commandName": "Project",
+      "commandLineArgs": "config route COM8"
+    },
+    "Config: Set Route TCP": {
+      "commandName": "Project",
+      "commandLineArgs": "config route 172.26.8.20"
+    },
+    "Config: List": {
+      "commandName": "Project",
+      "commandLineArgs": "config --list"
+    },
+    "Config: Help": {
+      "commandName": "Project",
+      "commandLineArgs": "config --help"
+    }
+  }
+}

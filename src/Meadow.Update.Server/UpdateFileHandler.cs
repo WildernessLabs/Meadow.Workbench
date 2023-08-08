@@ -1,6 +1,7 @@
 ﻿using Meadow.Foundation.Web.Maple;
 using Meadow.Foundation.Web.Maple.Routing;
 using System;
+using System.Diagnostics;
 using System.IO;
 
 namespace Meadow.Update
@@ -25,6 +26,8 @@ namespace Meadow.Update
             {
                 return new NotFoundResult();
             }
+
+            Debug.WriteLine($"Client is downloading update from '{file}'.");
 
             return new FileStreamResult(File.OpenRead(file), "application/binary");
         }

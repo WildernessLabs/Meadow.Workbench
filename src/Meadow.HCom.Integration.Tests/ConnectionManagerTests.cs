@@ -87,7 +87,7 @@ public class ConnectionManagerTests
             await device.RuntimeDisable();
         }
 
-        var dest = "f:\\temp\\app.config.yaml"; // <-- this need to be valid on the test machine
+        var dest = "f:\\temp\\app.config.yaml"; // <-- this needs to be valid on the test machine
         if (File.Exists(dest)) File.Delete(dest);
         Assert.False(File.Exists(dest));
 
