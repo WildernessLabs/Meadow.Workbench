@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34316.72
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Meadow.Workbench", "Meadow.Workbench\Meadow.Workbench.csproj", "{976F9D65-1E58-4017-8484-2288FDBA06B6}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Meadow.Workbench.Desktop", "Meadow.Workbench.Desktop\Meadow.Workbench.Desktop.csproj", "{ADD9C3A9-0BCB-4CDF-A306-303553E6B060}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{976F9D65-1E58-4017-8484-2288FDBA06B6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{976F9D65-1E58-4017-8484-2288FDBA06B6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{976F9D65-1E58-4017-8484-2288FDBA06B6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{976F9D65-1E58-4017-8484-2288FDBA06B6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ADD9C3A9-0BCB-4CDF-A306-303553E6B060}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ADD9C3A9-0BCB-4CDF-A306-303553E6B060}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ADD9C3A9-0BCB-4CDF-A306-303553E6B060}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ADD9C3A9-0BCB-4CDF-A306-303553E6B060}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {4B0F6E78-491A-455C-ABF6-C48E3FBE046E}
+	EndGlobalSection
+EndGlobal
