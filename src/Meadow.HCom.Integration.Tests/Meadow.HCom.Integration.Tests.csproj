@@ -22,6 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Meadow.Cli\Meadow.Cli.csproj" />
     <ProjectReference Include="..\Meadow.Hcom\Meadow.Hcom.csproj" />
   </ItemGroup>
 

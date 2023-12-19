@@ -3,7 +3,7 @@ using System.Text.Json;
 
 namespace Meadow.Cli;
 
-public class SettingsManager
+public class SettingsManager : ISettingsManager
 {
     private class Settings
     {

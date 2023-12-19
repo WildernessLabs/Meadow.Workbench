@@ -22,6 +22,14 @@
     "Config: Help": {
       "commandName": "Project",
       "commandLineArgs": "config --help"
+    },
+    "Runtime Enable": {
+      "commandName": "Project",
+      "commandLineArgs": "runtime enable"
+    },
+    "Runtime Disable": {
+      "commandName": "Project",
+      "commandLineArgs": "runtime disable"
     }
   }
 }

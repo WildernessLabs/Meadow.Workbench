@@ -42,7 +42,7 @@ public class Program
             });
 
         services.AddSingleton<MeadowConnectionManager>();
-        services.AddSingleton<SettingsManager>();
+        services.AddSingleton<ISettingsManager, SettingsManager>();
         /*
         services.AddSingleton<MeadowDeviceManager>();
         services.AddSingleton<DownloadManager>();
