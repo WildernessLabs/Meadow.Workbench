@@ -4,5 +4,55 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Meadow.Workbench.CodeView">
-  Show Git status, etc here
+    <StackPanel>
+        <StackPanel Orientation="Horizontal">
+        <Label
+            Content="Local Meadow Root:"
+            VerticalAlignment="Center"            
+            />
+        <TextBox
+            Text="f:\repos\wilderness"
+            />
+            <Button
+                Content="..."
+            />
+        </StackPanel>
+
+        <StackPanel>
+            <Label
+                Content="Meadow Libraries"
+                />
+            <ItemsControl               
+                ItemsSource="{Binding MeadowRepos}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Grid
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Stretch"
+                            ShowGridLines="True">
+                            <Grid.RowDefinitions>
+                                <RowDefinition />
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="200" />
+                                <ColumnDefinition Width="200" />
+                                <ColumnDefinition />
+                                <ColumnDefinition />
+                            </Grid.ColumnDefinitions>
+                            <Label
+                                Grid.Row="0"
+                                Grid.Column="0"
+                                Content="{Binding Name}"
+                                />
+                            <Label
+                                Grid.Row="0"
+                                Grid.Column="1"
+                                Content="{Binding CurrentBranch}"
+                                />
+                        </Grid>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>                
+            </ItemsControl>
+        </StackPanel>
+    </StackPanel>
 </UserControl>

@@ -37,6 +37,10 @@ public partial class App : Application
         {
             Title = "Code"
         });
+        fs.Features.Add(new Feature<SimulationView, SimulationModel>
+        {
+            Title = "Simulation"
+        });
         Locator.CurrentMutable.RegisterConstant(fs);
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)

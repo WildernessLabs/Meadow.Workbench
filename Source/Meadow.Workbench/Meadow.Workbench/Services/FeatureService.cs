@@ -5,6 +5,10 @@ using System.Collections.ObjectModel;
 
 namespace Meadow.Workbench.Services;
 
+internal class DeviceService
+{
+}
+
 public interface IFeature
 {
     public string Title { get; }
