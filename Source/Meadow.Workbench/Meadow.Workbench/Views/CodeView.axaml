@@ -22,7 +22,7 @@
             <Label
                 Content="Meadow Libraries"
                 />
-            <ItemsControl               
+            <HeaderedItemsControl               
                 ItemsSource="{Binding MeadowRepos}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
@@ -52,7 +52,7 @@
                         </Grid>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>                
-            </ItemsControl>
+            </HeaderedItemsControl>
         </StackPanel>
     </StackPanel>
 </UserControl>

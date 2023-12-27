@@ -7,8 +7,15 @@
     <DockPanel>
         <Border DockPanel.Dock="Left" Margin="5">
             <StackPanel Orientation="Vertical" Width="200">
-                <Label
-                    Content="Devices" />
+                <StackPanel Orientation="Horizontal">
+                    <Label
+                        VerticalAlignment="Center"
+                        Content="Devices" />
+                    <Button
+                        Content="+"
+                        Command="{Binding AddDeviceCommand}"
+                        />
+                </StackPanel>
                 <ListBox>
 
                 </ListBox>
