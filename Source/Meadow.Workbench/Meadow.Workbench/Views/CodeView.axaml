@@ -15,6 +15,7 @@
             />
             <Button
                 Content="..."
+                Command="{Binding SelectRootFolderCommand}"
             />
         </StackPanel>
 

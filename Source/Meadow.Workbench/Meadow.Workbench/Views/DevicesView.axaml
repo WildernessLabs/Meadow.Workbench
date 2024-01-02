@@ -6,7 +6,7 @@
              x:Class="Meadow.Workbench.DevicesView">
     <DockPanel>
         <Border DockPanel.Dock="Left" Margin="5">
-            <StackPanel Orientation="Vertical" Width="200">
+            <StackPanel Orientation="Vertical" Width="400">
                 <StackPanel Orientation="Horizontal">
                     <Label
                         VerticalAlignment="Center"
@@ -16,8 +16,74 @@
                         Command="{Binding AddDeviceCommand}"
                         />
                 </StackPanel>
-                <ListBox>
+                <ListBox 
+                    ItemsSource="{Binding Devices}"
+                    >
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Border Margin="0,5,0,0" CornerRadius="5" BorderBrush="Gray" BorderThickness="1" Padding="5">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition />
+                                        <RowDefinition />
+                                        <RowDefinition />
+                                        <RowDefinition />
+                                    </Grid.RowDefinitions>
 
+                                    <Label
+                                        Grid.Row="0"
+                                        Grid.ColumnSpan="2"
+                                        HorizontalAlignment="Center"
+                                        IsVisible="{Binding HasFriendlyName}"
+                                        Content="{Binding FriendlyName}"
+                                        />
+                                    <Button
+                                        Grid.Row="0"
+                                        Grid.ColumnSpan="2"
+                                        HorizontalAlignment="Center"                                        
+                                        IsVisible="{Binding !HasFriendlyName}"
+                                        Command="{Binding SetFriendlyNameCommand}"
+                                        Content="Set Friendly Name"
+                                        />
+
+                                    <Label
+                                        Grid.Row="1"
+                                        Grid.Column="0"
+                                        Content="ID:"
+                                        />
+                                    <Label
+                                        Grid.Row="1"
+                                        Grid.Column="1"
+                                        Content="{Binding DeviceID}"
+                                        />
+                                    <Label
+                                        Grid.Row="2"
+                                        Grid.Column="0"
+                                        Content="Version:"
+                                        />
+                                    <Label
+                                        Grid.Row="2"
+                                        Grid.Column="1"
+                                        Content="{Binding Version}"
+                                        />
+                                    <Label
+                                        Grid.Row="3"
+                                        Grid.Column="0"
+                                        Content="Last seen:"
+                                        />
+                                    <Label
+                                        Grid.Row="3"
+                                        Grid.Column="1"
+                                        Content="{Binding LastSeen}"
+                                        />
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
                 </ListBox>
             </StackPanel>
         </Border>

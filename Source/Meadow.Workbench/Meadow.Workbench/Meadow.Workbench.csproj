@@ -18,6 +18,7 @@
     <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
     <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="$(AvaloniaVersion)" />
     <PackageReference Include="DialogHost.Avalonia" Version="0.7.7" />
+    <PackageReference Include="opennetcf-orm-sqlite" Version="1.0.23048.1" />
   </ItemGroup>
 
   <ItemGroup>
