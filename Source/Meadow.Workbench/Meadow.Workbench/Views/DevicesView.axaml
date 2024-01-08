@@ -1,0 +1,151 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:svg="clr-namespace:Avalonia.Svg.Skia;assembly=Avalonia.Svg.Skia"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Meadow.Workbench.DevicesView">
+    <DockPanel>
+        <Border DockPanel.Dock="Left" Margin="5">
+            <StackPanel Orientation="Vertical" Width="400">
+                <StackPanel Orientation="Horizontal">
+                    <Label
+                        VerticalAlignment="Center"
+                        Content="Devices" />
+                    <Button
+                        Content="+"
+                        Command="{Binding AddDeviceCommand}"
+                        />
+                </StackPanel>
+                <ListBox 
+                    ItemsSource="{Binding Devices}"
+                    SelectedItem="{Binding SelectedDevice}"
+                    >
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Border Margin="0,5,0,0" CornerRadius="5" BorderBrush="Gray" BorderThickness="1" Padding="5">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="40" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition />
+                                        <RowDefinition />
+                                        <RowDefinition />
+                                        <RowDefinition />
+                                    </Grid.RowDefinitions>
+
+                                    <Label
+                                        Grid.Row="0"
+                                        Grid.Column="1"
+                                        Grid.ColumnSpan="2"
+                                        HorizontalAlignment="Center"
+                                        IsVisible="{Binding HasFriendlyName}"
+                                        Content="{Binding FriendlyName}"
+                                        />
+                                    <Button
+                                        Grid.Row="0"
+                                        Grid.Column="1"
+                                        Grid.ColumnSpan="2"
+                                        HorizontalAlignment="Center"                                        
+                                        IsVisible="{Binding !HasFriendlyName}"
+                                        Command="{Binding SetFriendlyNameCommand}"
+                                        Content="Set Friendly Name"
+                                        />
+                                    
+                                    <Image
+                                        Grid.Row="0"
+                                        Grid.Column="0"
+                                        Grid.RowSpan="4"
+                                        Width="40"
+                                        IsVisible="{Binding IsConnected}"
+                                        Source="{SvgImage /Assets/connected.svg}" />
+                                    <Image
+                                        Grid.Row="0"
+                                        Grid.Column="0"
+                                        Grid.RowSpan="4"
+                                        Width="40"
+                                        IsVisible="{Binding !IsConnected}"
+                                        Source="{SvgImage /Assets/disconnected.svg}" />                                    
+                                    <Label
+                                        Grid.Row="1"
+                                        Grid.Column="1"
+                                        Content="ID:"
+                                        />
+                                    <Label
+                                        Grid.Row="1"
+                                        Grid.Column="2"
+                                        Content="{Binding DeviceID}"
+                                        />
+                                    <Label
+                                        Grid.Row="2"
+                                        Grid.Column="1"
+                                        Content="Version:"
+                                        />
+                                    <Label
+                                        Grid.Row="2"
+                                        Grid.Column="2"
+                                        Content="{Binding Version}"
+                                        />
+                                    <Label
+                                        Grid.Row="3"
+                                        Grid.Column="1"
+                                        Content="Last seen:"
+                                        />
+                                    <Label
+                                        Grid.Row="3"
+                                        Grid.Column="2"
+                                        Content="{Binding LastSeen}"
+                                        />
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </StackPanel>
+        </Border>
+        <Border Margin="5">
+            <StackPanel>
+                <Label
+                    Content="Device Info" />
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>                    
+                    <Grid.RowDefinitions>
+                        <RowDefinition />
+                        <RowDefinition />
+                        <RowDefinition />
+                    </Grid.RowDefinitions>
+
+                    <Label
+                        Grid.Row="0"
+                        Grid.Column="0"
+                        Content="Device ID:"
+                        />
+                    <Label
+                        Grid.Row="0"
+                        Grid.Column="1"
+                        Content="{Binding SelectedDevice.RootInfo.DeviceID}"
+                        />
+                    
+                    <Label
+                        Grid.Row="1"
+                        Grid.Column="0"
+                        Content="Last route:"
+                        />                    
+                    <Label
+                        Grid.Row="1"
+                        Grid.Column="1"
+                        Content="{Binding SelectedDevice.RootInfo.LastRoute}"
+                        />
+                        
+                </Grid>
+            </StackPanel>
+        </Border>
+    </DockPanel>
+</UserControl>

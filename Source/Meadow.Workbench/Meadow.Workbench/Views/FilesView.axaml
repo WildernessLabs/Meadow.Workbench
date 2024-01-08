@@ -1,0 +1,103 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:iac="clr-namespace:Avalonia.Xaml.Interactions.Custom;assembly=Avalonia.Xaml.Interactions.Custom"             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Meadow.Workbench.FilesView">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition />
+            <ColumnDefinition />
+        </Grid.ColumnDefinitions>
+        <Border 
+            Grid.Row="0" 
+            Grid.Column="0" 
+            Margin="5">
+            <StackPanel>
+                <DockPanel 
+                    HorizontalAlignment="Stretch"
+                    Margin="3">
+                    <TextBox
+                        Text="{Binding LocalDirectory}"
+                        Width="340"
+                        DockPanel.Dock="Left"
+                        />
+                    <Button
+                        HorizontalAlignment="Right"
+                        Content="..."
+                        />
+                </DockPanel>
+                <Label
+                    Content="Local Files"
+                    />
+                <ListBox
+                    Margin="1"                    
+                    ItemsSource="{Binding LocalFiles}"                    
+                    SelectedItem="{Binding SelectedLocalFile}"
+                    SelectionMode="Single">
+                    <ListBox.Styles>
+                        <Style Selector="ListBoxItem">
+                            <Setter Property="Padding" Value="1"/>
+                        </Style>
+                    </ListBox.Styles>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal" Height="20">
+                                <Svg Path="{Binding Icon}" Height="20" />
+                                <Label Content="{Binding Name}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </StackPanel>
+        </Border>
+
+        <Border
+            Grid.Row="0"
+            Grid.Column="1"
+            Margin="5">
+            <StackPanel>
+                <ComboBox
+                    ItemsSource="{Binding AvailableRemoteRoutes}"
+                    SelectedItem="{Binding SelectedRemoteRoute}"
+                    Width="300"
+                    />
+                <DockPanel
+                    HorizontalAlignment="Stretch"
+                    Margin="3">
+                    <TextBox
+                        Text="{Binding RemoteDirectory}"
+                        DockPanel.Dock="Left"
+                        />
+                </DockPanel>
+                <Label
+                    Content="Remote Files"
+                    />
+                <ScrollViewer
+                    VerticalScrollBarVisibility="Auto">                    
+                    <ListBox
+                        Margin="1"
+                        ItemsSource="{Binding RemoteFiles}"
+                        SelectedItem="{Binding SelectedRemoteFile}"
+                        SelectionMode="Single">
+                        <ListBox.Styles>
+                            <Style Selector="ListBoxItem">
+                                <Setter Property="Padding" Value="1"/>
+                            </Style>
+                        </ListBox.Styles>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal" Height="22" DoubleTapped="RemoteFolderDoubleTapped">
+                                    <Svg Path="{Binding Icon}" Height="18" />
+                                    <Label Content="{Binding Name}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </ScrollViewer>
+            </StackPanel>
+
+        </Border>
+    </Grid>
+</UserControl>

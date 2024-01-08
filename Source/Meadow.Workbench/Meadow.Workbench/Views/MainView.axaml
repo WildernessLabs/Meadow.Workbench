@@ -1,0 +1,52 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Meadow.Workbench.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Meadow.Workbench.Views.MainView"
+             x:DataType="vm:MainViewModel">
+  <Design.DataContext>
+    <!-- This only sets the DataContext for the previewer in an IDE,
+         to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+    <vm:MainViewModel />
+  </Design.DataContext>
+
+    <DockPanel>
+        <Label DockPanel.Dock="Top"
+			   Background="Black"
+			   Foreground="AntiqueWhite"
+			   FontFamily="Courier"
+			   FontSize="20"
+			   Padding="20,10">
+            Meadow Workbench
+        </Label>
+
+        <StackPanel Background="#303030" Width="200" DockPanel.Dock="Left">
+            <ItemsControl ItemsSource="{Binding FeatureService.Features}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel>
+                            <Button
+								Command="{Binding Path=DataContext.FeatureSelectedCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}"
+								CommandParameter="{Binding .}"
+								HorizontalAlignment="Center"
+								Width="200">
+                                <Label
+									HorizontalAlignment="Center"
+									FontSize="20"
+									Foreground="AntiqueWhite"
+									Content="{Binding Title}" />
+                            </Button>
+                        </StackPanel>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+
+            </ItemsControl>
+        </StackPanel>
+
+        <ContentControl IsEnabled="True" DockPanel.Dock="Right" x:Name="contentPanel" Content="{Binding Content}">
+        </ContentControl>
+    </DockPanel>
+    
+</UserControl>
