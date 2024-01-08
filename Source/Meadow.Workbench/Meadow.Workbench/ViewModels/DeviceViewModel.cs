@@ -10,14 +10,15 @@ internal class DeviceViewModel : ViewModelBase
 {
     private bool _isConnected;
 
-    private DeviceInformation _info;
+    public DeviceInformation RootInfo { get; private set; }
+
     private StorageService _storageService;
 
     public IReactiveCommand SetFriendlyNameCommand { get; }
 
     public DeviceViewModel(DeviceInformation info, StorageService storageService)
     {
-        _info = info;
+        RootInfo = info;
         _storageService = storageService;
 
         IsConnected = false;
@@ -33,7 +34,7 @@ internal class DeviceViewModel : ViewModelBase
             if (!dialog.IsCancelled && dialog.Text != null)
             {
                 FriendlyName = dialog.Text;
-                _storageService.UpdateDeviceInfo(_info);
+                _storageService.UpdateDeviceInfo(RootInfo);
                 this.RaisePropertyChanged(nameof(FriendlyName));
             }
         });
@@ -52,10 +53,10 @@ internal class DeviceViewModel : ViewModelBase
 
     public string? FriendlyName
     {
-        get => _info.FriendlyName;
+        get => RootInfo.FriendlyName;
         set
         {
-            _info.FriendlyName = value;
+            RootInfo.FriendlyName = value;
             this.RaisePropertyChanged(nameof(HasFriendlyName));
             this.RaisePropertyChanged(nameof(FriendlyName));
         }
@@ -63,30 +64,30 @@ internal class DeviceViewModel : ViewModelBase
 
     public string DeviceID
     {
-        get => _info.DeviceID;
+        get => RootInfo.DeviceID;
         set
         {
-            _info.DeviceID = value;
+            RootInfo.DeviceID = value;
             this.RaisePropertyChanged(nameof(DeviceID));
         }
     }
 
     public string? Version
     {
-        get => _info.Version;
+        get => RootInfo.Version;
         set
         {
-            _info.Version = value;
+            RootInfo.Version = value;
             this.RaisePropertyChanged(nameof(Version));
         }
     }
 
     public DateTime LastSeen
     {
-        get => _info.LastSeen;
+        get => RootInfo.LastSeen;
         set
         {
-            _info.LastSeen = value;
+            RootInfo.LastSeen = value;
             this.RaisePropertyChanged(nameof(LastSeen));
         }
     }

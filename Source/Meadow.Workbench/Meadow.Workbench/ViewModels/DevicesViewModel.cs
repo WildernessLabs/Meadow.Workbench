@@ -3,6 +3,7 @@ using Meadow.Workbench.Services;
 using ReactiveUI;
 using Splat;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Meadow.Workbench.ViewModels;
@@ -11,6 +12,7 @@ internal class DevicesViewModel : FeatureViewModel
 {
     private DeviceService _deviceService;
     private StorageService _storageService;
+    private DeviceViewModel? _selectedDevice;
 
     public IReactiveCommand AddDeviceCommand { get; }
 
@@ -19,7 +21,8 @@ internal class DevicesViewModel : FeatureViewModel
     public DevicesViewModel()
     {
         _deviceService = Locator.Current.GetService<DeviceService>();
-        _deviceService!.DeviceAdded += OnDeviceAppeared;
+        _deviceService!.DeviceConnected += OnDeviceConnected;
+        _deviceService!.DeviceDisconnected += OnDeviceDisconnected;
 
         _storageService = Locator.Current.GetService<StorageService>();
 
@@ -31,8 +34,31 @@ internal class DevicesViewModel : FeatureViewModel
         AddDeviceCommand = ReactiveCommand.CreateFromTask(OnAddDevice);
     }
 
-    private void OnDeviceAppeared(object? sender, DeviceInformation e)
+    public DeviceViewModel? SelectedDevice
     {
+        get => _selectedDevice;
+        set => this.RaiseAndSetIfChanged(ref _selectedDevice, value);
+    }
+
+    private void OnDeviceConnected(object? sender, DeviceInformation e)
+    {
+        var dvm = Devices.FirstOrDefault(d => d.DeviceID == e.DeviceID);
+        if (dvm == null)
+        {
+            dvm = new DeviceViewModel(e, _storageService);
+            Devices.Add(dvm);
+        }
+
+        dvm.IsConnected = true;
+    }
+
+    private void OnDeviceDisconnected(object? sender, DeviceInformation e)
+    {
+        var dvm = Devices.FirstOrDefault(d => d.DeviceID == e.DeviceID);
+        if (dvm != null)
+        {
+            dvm.IsConnected = false;
+        }
     }
 
     private async Task OnAddDevice()

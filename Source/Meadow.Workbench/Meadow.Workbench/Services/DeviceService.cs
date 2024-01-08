@@ -1,5 +1,5 @@
-﻿using DynamicData;
-using Meadow.Hcom;
+﻿using Meadow.Hcom;
+using Meadow.Workbench.ViewModels;
 using Splat;
 using System;
 using System.Collections.Generic;
@@ -10,54 +10,11 @@ using System.Threading.Tasks;
 
 namespace Meadow.Workbench.Services;
 
-internal class SerialPortMonitor
-{
-    public event EventHandler<string> NewPortDetected;
-
-    private List<string> _knownSerialPorts = new();
-
-    public SerialPortMonitor()
-    {
-        foreach (var p in System.IO.Ports.SerialPort.GetPortNames().Distinct())
-        {
-            _knownSerialPorts.Add(p);
-        }
-
-        _ = Task.Run(MonitorProc);
-    }
-
-    public IEnumerable<string> KnownPorts
-    {
-        get
-        {
-            lock (_knownSerialPorts)
-            {
-                return _knownSerialPorts.ToArray();
-            }
-        }
-    }
-
-    private async void MonitorProc()
-    {
-        while (true)
-        {
-            lock (_knownSerialPorts)
-            {
-                foreach (var p in System.IO.Ports.SerialPort.GetPortNames().Distinct().Except(_knownSerialPorts))
-                {
-                    _knownSerialPorts.Add(p);
-                    NewPortDetected?.Invoke(this, p);
-                }
-            }
-
-            await Task.Delay(2000);
-        }
-    }
-}
-
 internal class DeviceService
 {
     public event EventHandler<DeviceInformation> DeviceAdded;
+    public event EventHandler<DeviceInformation> DeviceConnected;
+    public event EventHandler<DeviceInformation> DeviceDisconnected;
 
     private SerialPortMonitor? _portMonitor;
     private StorageService _storageService;
@@ -84,16 +41,28 @@ internal class DeviceService
             _ = CheckForDeviceAtLocation(port);
         }
 
-        _portMonitor.NewPortDetected += OnNewSerialPortDetected;
+        _portMonitor.PortConnected += OnSerialPortConnected;
+        _portMonitor.PortDisconnected += OnSerialPortDisconnected;
     }
 
-    private async void OnNewSerialPortDetected(object? sender, string e)
+    private void OnSerialPortDisconnected(object? sender, string e)
+    {
+        var existing = KnownDevices.FirstOrDefault(d => d.LastRoute == e);
+
+        if (existing != null)
+        {
+            DeviceDisconnected?.Invoke(this, existing);
+        }
+    }
+
+    private async void OnSerialPortConnected(object? sender, string e)
     {
         await CheckForDeviceAtLocation(e);
     }
 
     private async Task CheckForDeviceAtLocation(string route)
     {
+        return;
         using var connection = new Hcom.SerialConnection(route);
         await connection.Attach();
         try
@@ -106,11 +75,22 @@ internal class DeviceService
                 var device = _storageService.UpdateDeviceInfo(info, route);
                 KnownDevices.Add(device);
                 DeviceAdded?.Invoke(this, device);
+                DeviceConnected?.Invoke(this, device);
             }
+            //            connection.Detach();
         }
         catch (Exception ex)
         {
         }
+    }
+
+    public async Task<MeadowDirectory> GetFiles(string route, string directory)
+    {
+        using var connection = new SerialConnection(route);
+        await connection.Attach();
+        var list = await connection.GetFileList(directory, false);
+        connection.Detach();
+        return new MeadowDirectory(directory, list);
     }
 
     public async Task<IMeadowConnection?> AddConnection(string route)
