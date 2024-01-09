@@ -26,6 +26,7 @@
                     <Button
                         HorizontalAlignment="Right"
                         Content="..."
+                        Command="{Binding SelectLocalFolderCommand}"
                         />
                 </DockPanel>
                 <Label

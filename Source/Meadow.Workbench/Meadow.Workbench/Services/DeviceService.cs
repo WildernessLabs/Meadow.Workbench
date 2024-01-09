@@ -79,7 +79,7 @@ internal class DeviceService
             }
             //            connection.Detach();
         }
-        catch (Exception ex)
+        catch (Exception)
         {
         }
     }

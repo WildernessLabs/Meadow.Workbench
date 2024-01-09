@@ -1,4 +1,6 @@
-﻿using DynamicData;
+﻿using Avalonia.Controls;
+using Avalonia.Platform.Storage;
+using DynamicData;
 using Meadow.Hcom;
 using Meadow.Workbench.Services;
 using ReactiveUI;
@@ -19,29 +21,48 @@ public class FilesViewModel : FeatureViewModel
     private MeadowFolderEntry? _selectedRemoteItem;
     private string? _selectedRoute;
     private DeviceService? _deviceService;
+    private SettingsService? _settingsService;
     private IMeadowConnection? _activeConnection;
     private DeviceInformation? _activeDevice;
 
     public ObservableCollection<string> AvailableRemoteRoutes { get; } = new();
 
-    public IReactiveCommand RemoteDirTapped { get; }
+    public IReactiveCommand SelectLocalFolderCommand { get; }
 
     public FilesViewModel()
     {
         _deviceService = Locator.Current.GetService<DeviceService>();
+        _settingsService = Locator.Current.GetService<SettingsService>();
 
-        LocalDirectory = "c:\\SomeFolder";
+        _localDirectory = _settingsService!.LocalFilesFolder;
+
         RemoteDirectory = "/meadow0/";
         _localFiles = new MeadowDirectory(LocalDirectory);
         _remoteFiles = new MeadowDirectory(RemoteDirectory);
 
-        RemoteDirTapped = ReactiveCommand.CreateFromTask(Foo);
         AvailableRemoteRoutes.AddRange(_deviceService.KnownDevices.Select(d => d.LastRoute));
+        SelectLocalFolderCommand = ReactiveCommand.CreateFromTask(OnSelectLocalFolder);
     }
 
-    private Task Foo()
+    private async Task OnSelectLocalFolder()
     {
-        return Task.CompletedTask;
+        var result = await TopLevel
+            .GetTopLevel(this.FeatureView)
+            !.StorageProvider
+            .OpenFolderPickerAsync(
+            new FolderPickerOpenOptions
+            {
+                AllowMultiple = false,
+                Title = "Select Meadow Root"
+            });
+
+        if (result != null)
+        {
+            if (result.Count > 0)
+            {
+                LocalDirectory = result[0].Path.LocalPath;
+            }
+        }
     }
 
     public string? SelectedRemoteRoute
@@ -58,7 +79,11 @@ public class FilesViewModel : FeatureViewModel
     public string LocalDirectory
     {
         get => _localDirectory;
-        set => this.RaiseAndSetIfChanged(ref _localDirectory, value);
+        set
+        {
+            _settingsService.LocalFilesFolder = value;
+            this.RaiseAndSetIfChanged(ref _localDirectory, value);
+        }
     }
 
     public string RemoteDirectory

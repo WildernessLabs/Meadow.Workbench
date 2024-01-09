@@ -18,6 +18,8 @@ public partial class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
+        Locator.CurrentMutable.Register(() => new SettingsService());
+
         // TODO: load configuration for what features to show
 
         var fs = new FeatureService();
