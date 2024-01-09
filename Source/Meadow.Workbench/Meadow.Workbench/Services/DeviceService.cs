@@ -51,6 +51,7 @@ internal class DeviceService
 
         if (existing != null)
         {
+            existing.IsConnected = false;
             DeviceDisconnected?.Invoke(this, existing);
         }
     }
@@ -62,8 +63,7 @@ internal class DeviceService
 
     private async Task CheckForDeviceAtLocation(string route)
     {
-        return;
-        using var connection = new Hcom.SerialConnection(route);
+        var connection = new Hcom.SerialConnection(route);
         await connection.Attach();
         try
         {
@@ -72,12 +72,26 @@ internal class DeviceService
 
             if (info != null)
             {
-                var device = _storageService.UpdateDeviceInfo(info, route);
-                KnownDevices.Add(device);
+                var device = KnownDevices.FirstOrDefault(d => d.DeviceID == info.ProcessorId);
+                var d = _storageService.UpdateDeviceInfo(info, route);
+
+                if (device == null)
+                {
+                    device = d;
+                    KnownDevices.Add(device);
+                }
+
+                device.Connection = connection;
+                device.IsConnected = true;
+
                 DeviceAdded?.Invoke(this, device);
                 DeviceConnected?.Invoke(this, device);
+
             }
-            //            connection.Detach();
+            else
+            {
+                connection.Detach();
+            }
         }
         catch (Exception)
         {
@@ -86,11 +100,26 @@ internal class DeviceService
 
     public async Task<MeadowDirectory> GetFiles(string route, string directory)
     {
-        using var connection = new SerialConnection(route);
-        await connection.Attach();
-        var list = await connection.GetFileList(directory, false);
-        connection.Detach();
-        return new MeadowDirectory(directory, list);
+        var d = KnownDevices.FirstOrDefault(d => d.LastRoute == route);
+        if (d == null)
+        {
+            // TODO: need to do:
+            // CheckForDeviceAtLocation(route);
+            throw new NotImplementedException();
+        }
+        else
+        {
+            if (d.Connection == null)
+            {
+                // TODO: need to implement creating connection
+                //var connection = new SerialConnection(route);
+                //await connection.Attach();
+                //d.Connection = connection;
+                throw new NotImplementedException();
+            }
+            var list = await d.Connection.GetFileList(directory, false);
+            return new MeadowDirectory(directory, list);
+        }
     }
 
     public async Task<IMeadowConnection?> AddConnection(string route)

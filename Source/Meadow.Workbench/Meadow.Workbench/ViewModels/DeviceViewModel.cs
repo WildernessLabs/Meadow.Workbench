@@ -21,7 +21,7 @@ internal class DeviceViewModel : ViewModelBase
         RootInfo = info;
         _storageService = storageService;
 
-        IsConnected = false;
+        IsConnected = info.IsConnected;
 
         SetFriendlyNameCommand = ReactiveCommand.CreateFromTask(OnSetFriendlyName);
     }

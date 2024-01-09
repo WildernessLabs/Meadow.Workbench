@@ -6,21 +6,6 @@ using System.IO;
 
 namespace Meadow.Workbench.Services;
 
-[Entity]
-internal class DeviceInformation
-{
-    [Field(IsPrimaryKey = true)]
-    public string DeviceID { get; set; }
-    [Field]
-    public string? FriendlyName { get; set; }
-    [Field]
-    public string? Version { get; set; }
-    [Field]
-    public string? LastRoute { get; set; }
-    [Field]
-    public DateTime LastSeen { get; set; } = DateTime.UtcNow;
-}
-
 internal class StorageService
 {
     private IDataStore _store;
