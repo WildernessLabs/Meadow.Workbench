@@ -81,6 +81,23 @@
                     SelectedItem="{Binding SelectedRemoteRoute}"
                     Width="300"
                     />
+                <StackPanel
+                    Orientation="Horizontal">
+                    <Button
+                        Command="{Binding DownloadRemoteFileCommand}">
+                        <Image
+                            Height="30"
+                            Source="avares://Meadow.Workbench/Assets/download-file.png"
+                            />
+                    </Button>
+                    <Button
+                        Command="{Binding DeleteRemoteFileCommand}">
+                        <Image
+                            Height="30"
+                            Source="avares://Meadow.Workbench/Assets/delete-file.png"
+                            />
+                    </Button>
+                </StackPanel>
                 <DockPanel
                     HorizontalAlignment="Stretch"
                     Margin="3">
@@ -94,7 +111,7 @@
                     <ListBox
                         Margin="1"
                         ItemsSource="{Binding RemoteFiles}"
-                        SelectedItem="{Binding SelectedRemoteFile}"
+                        SelectedItem="{Binding SelectedRemoteItem}"
                         SelectionMode="Single">
                         <ListBox.Styles>
                             <Style Selector="ListBoxItem">

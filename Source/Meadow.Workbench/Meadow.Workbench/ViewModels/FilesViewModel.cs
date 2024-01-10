@@ -18,7 +18,7 @@ public class FilesViewModel : FeatureViewModel
     private MeadowDirectory _localFiles;
     private MeadowDirectory _remoteFiles;
     private MeadowFolderEntry? _selectedLocalItem;
-    private MeadowFolderEntry? _selectedRemoteItem;
+    private MeadowFileSystemEntry? _selectedRemoteItem;
     private string? _selectedRoute;
     private DeviceService? _deviceService;
     private SettingsService? _settingsService;
@@ -29,6 +29,8 @@ public class FilesViewModel : FeatureViewModel
     public ObservableCollection<string> AvailableRemoteRoutes { get; } = new();
 
     public IReactiveCommand SelectLocalFolderCommand { get; }
+    public IReactiveCommand DownloadRemoteFileCommand { get; }
+    public IReactiveCommand DeleteRemoteFileCommand { get; }
 
     public FilesViewModel()
     {
@@ -43,6 +45,26 @@ public class FilesViewModel : FeatureViewModel
 
         AvailableRemoteRoutes.AddRange(_deviceService.KnownDevices.Select(d => d.LastRoute));
         SelectLocalFolderCommand = ReactiveCommand.CreateFromTask(OnSelectLocalFolder);
+        DownloadRemoteFileCommand = ReactiveCommand.CreateFromTask(OnDowloadRemoteFile);
+        DeleteRemoteFileCommand = ReactiveCommand.CreateFromTask(OnDeleteRemoteFile);
+    }
+
+    private Task OnDowloadRemoteFile()
+    {
+        if (SelectedRemoteItem != null)
+        {
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private Task OnDeleteRemoteFile()
+    {
+        if (SelectedRemoteItem != null)
+        {
+        }
+
+        return Task.CompletedTask;
     }
 
     private async Task OnSelectLocalFolder()
@@ -112,7 +134,7 @@ public class FilesViewModel : FeatureViewModel
         set => this.RaiseAndSetIfChanged(ref _selectedLocalItem, value);
     }
 
-    public MeadowFolderEntry? SelectedRemoteItem
+    public MeadowFileSystemEntry? SelectedRemoteItem
     {
         get => _selectedRemoteItem;
         set => this.RaiseAndSetIfChanged(ref _selectedRemoteItem, value);

@@ -4,9 +4,9 @@ using System.Linq;
 
 namespace Meadow.Workbench.ViewModels;
 
-public class MeadowDirectory : IEnumerable<MeadowDirEntry>
+public class MeadowDirectory : IEnumerable<MeadowFileSystemEntry>
 {
-    public class DirEntryEnumerator : IEnumerator<MeadowDirEntry>
+    public class DirEntryEnumerator : IEnumerator<MeadowFileSystemEntry>
     {
         private MeadowDirectory _parent;
         private int _index;
@@ -17,7 +17,7 @@ public class MeadowDirectory : IEnumerable<MeadowDirEntry>
             _index = -1;
         }
 
-        public MeadowDirEntry Current
+        public MeadowFileSystemEntry Current
         {
             get
             {
@@ -61,8 +61,8 @@ public class MeadowDirectory : IEnumerable<MeadowDirEntry>
     private DirEntryEnumerator _enumerator;
 
     public string Name { get; set; }
-    public List<MeadowDirEntry> Directories { get; set; } = new();
-    public List<MeadowDirEntry> Files { get; set; } = new();
+    public List<MeadowFileSystemEntry> Directories { get; set; } = new();
+    public List<MeadowFileSystemEntry> Files { get; set; } = new();
 
     public MeadowDirectory(string name)
     {
@@ -82,7 +82,7 @@ public class MeadowDirectory : IEnumerable<MeadowDirEntry>
         Name = name;
     }
 
-    public IEnumerator<MeadowDirEntry> GetEnumerator()
+    public IEnumerator<MeadowFileSystemEntry> GetEnumerator()
     {
         return _enumerator;
     }

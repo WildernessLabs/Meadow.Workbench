@@ -1,24 +1,6 @@
 ﻿namespace Meadow.Workbench.ViewModels;
 
-public abstract class MeadowDirEntry
-{
-    public string Name { get; set; }
-    public string? Icon { get; set; }
-}
-
-public class MeadowFileEntry : MeadowDirEntry
-{
-    public MeadowFileEntry()
-    {
-    }
-
-    public MeadowFileEntry(string name)
-    {
-        Name = name;
-    }
-}
-
-public class MeadowFolderEntry : MeadowDirEntry
+public class MeadowFolderEntry : MeadowFileSystemEntry
 {
     private static MeadowFolderEntry? _previous;
 
