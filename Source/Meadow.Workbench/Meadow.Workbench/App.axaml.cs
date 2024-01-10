@@ -45,8 +45,8 @@ public partial class App : Application
         });
         Locator.CurrentMutable.RegisterConstant(fs);
 
-        Locator.CurrentMutable.Register(() => new StorageService());
-        Locator.CurrentMutable.Register(() => new DeviceService());
+        Locator.CurrentMutable.RegisterConstant(new StorageService());
+        Locator.CurrentMutable.RegisterConstant(new DeviceService());
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {

@@ -5,6 +5,14 @@ using System.Text.Json.Nodes;
 
 namespace Meadow.Workbench.Services;
 
+public class WindowSettings
+{
+    public int Left { get; set; }
+    public int Top { get; set; }
+    public double Width { get; set; }
+    public double Height { get; set; }
+}
+
 public class SettingsService
 {
     public string SettingsFile { get; set; } = "workbench.settings";
@@ -38,6 +46,30 @@ public class SettingsService
     {
         get => GetString(nameof(LocalFilesFolder)) ?? Environment.GetFolderPath(Environment.SpecialFolder.Personal);
         set => SetString(nameof(LocalFilesFolder), value);
+    }
+
+    public WindowSettings? StartupWindowInfo
+    {
+        get => GetObject<WindowSettings>(nameof(StartupWindowInfo));
+        set => SetString(nameof(StartupWindowInfo), JsonSerializer.Serialize(value));
+    }
+
+    private T? GetObject<T>(string key)
+        where T : new()
+    {
+        var json = GetString(key);
+        if (json != null)
+        {
+            try
+            {
+                return JsonSerializer.Deserialize<T>(json);
+            }
+            catch
+            {
+                return default;
+            }
+        }
+        return default;
     }
 
     public string? GetString(string key)

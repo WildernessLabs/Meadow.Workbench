@@ -63,20 +63,34 @@ internal class DeviceService
 
     private async Task CheckForDeviceAtLocation(string route)
     {
+        // do we already know about this device?
+        var existing = KnownDevices.FirstOrDefault(d => d.LastRoute == route && d.IsConnected);
+        if (existing != null)
+        {
+            Debug.WriteLine($"Already known device at {route}");
+            // TODO: should we pull info and verify ID?
+            return;
+        }
+
+        Debug.WriteLine($"Looking for a device at {route}");
+
         var connection = new Hcom.SerialConnection(route);
         await connection.Attach();
         try
         {
             var info = await connection.GetDeviceInfo();
-            Debug.WriteLine($"Device detected at {route}");
 
             if (info != null)
             {
+                Debug.WriteLine($"Device detected at {route}");
+
                 var device = KnownDevices.FirstOrDefault(d => d.DeviceID == info.ProcessorId);
                 var d = _storageService.UpdateDeviceInfo(info, route);
 
                 if (device == null)
                 {
+                    Debug.WriteLine($"Device at {route} is a new device");
+
                     device = d;
                     KnownDevices.Add(device);
                 }
@@ -90,6 +104,7 @@ internal class DeviceService
             }
             else
             {
+                Debug.WriteLine($"No device detected at {route} (no info returned)");
                 connection.Detach();
             }
         }
