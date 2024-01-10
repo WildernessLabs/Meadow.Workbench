@@ -113,7 +113,7 @@ internal class DeviceService
         }
     }
 
-    public async Task<MeadowDirectory> GetFiles(string route, string directory)
+    public async Task<MeadowDirectory> GetFileList(string route, string directory)
     {
         var d = KnownDevices.FirstOrDefault(d => d.LastRoute == route);
         if (d == null)
@@ -134,6 +134,29 @@ internal class DeviceService
             }
             var list = await d.Connection.GetFileList(directory, false);
             return new MeadowDirectory(directory, list);
+        }
+    }
+
+    public async Task<bool> DownloadFile(string route, string remoteSource, string localDestination)
+    {
+        var d = KnownDevices.FirstOrDefault(d => d.LastRoute == route);
+        if (d == null)
+        {
+            // TODO: need to do:
+            // CheckForDeviceAtLocation(route);
+            throw new NotImplementedException();
+        }
+        else
+        {
+            if (d.Connection == null)
+            {
+                // TODO: need to implement creating connection
+                //var connection = new SerialConnection(route);
+                //await connection.Attach();
+                //d.Connection = connection;
+                throw new NotImplementedException();
+            }
+            return await d.Connection.ReadFile(remoteSource, localDestination);
         }
     }
 

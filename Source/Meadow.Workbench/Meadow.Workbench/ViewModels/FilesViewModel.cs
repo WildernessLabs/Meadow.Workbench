@@ -6,6 +6,7 @@ using Meadow.Workbench.Services;
 using ReactiveUI;
 using Splat;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -49,13 +50,30 @@ public class FilesViewModel : FeatureViewModel
         DeleteRemoteFileCommand = ReactiveCommand.CreateFromTask(OnDeleteRemoteFile);
     }
 
-    private Task OnDowloadRemoteFile()
+    private async Task OnDowloadRemoteFile()
     {
         if (SelectedRemoteItem != null)
         {
-        }
+            if (SelectedRemoteItem is MeadowFileEntry)
+            {
+                IsLoadingRemoteFiles = true;
+                var result = await _deviceService.DownloadFile(
+                    SelectedRemoteRoute,
+                    $"{RemoteDirectory}{SelectedRemoteItem.Name}",
+                    Path.Combine(LocalDirectory, SelectedRemoteItem.Name));
+                IsLoadingRemoteFiles = false;
 
-        return Task.CompletedTask;
+                if (result)
+                {
+                    RefreshLocalSource();
+                }
+
+            }
+            else if (SelectedRemoteItem is MeadowFolderEntry)
+            {
+                // todo: allow folder pulls
+            }
+        }
     }
 
     private Task OnDeleteRemoteFile()
@@ -100,7 +118,6 @@ public class FilesViewModel : FeatureViewModel
             }
         }
     }
-
 
     public string LocalDirectory
     {
@@ -147,10 +164,15 @@ public class FilesViewModel : FeatureViewModel
         set => this.RaiseAndSetIfChanged(ref _isLoadingRemoteFiles, value);
     }
 
+    public void RefreshLocalSource()
+    {
+        LocalFiles = MeadowDirectory.LoadFrom(LocalDirectory);
+    }
+
     public void UpdateLocalSource(string folder)
     {
         LocalDirectory = System.IO.Path.GetFullPath(folder);
-        LocalFiles = MeadowDirectory.LoadFrom(LocalDirectory);
+        RefreshLocalSource();
     }
 
     public void UpdateRemoteSource(string route, string? folder = null)
@@ -164,7 +186,7 @@ public class FilesViewModel : FeatureViewModel
         {
             IsLoadingRemoteFiles = true;
             _remoteDirectory = folder;
-            _remoteFiles = await _deviceService.GetFiles(route, folder);
+            _remoteFiles = await _deviceService.GetFileList(route, folder);
             this.RaisePropertyChanged(nameof(RemoteDirectory));
             this.RaisePropertyChanged(nameof(RemoteFiles));
             IsLoadingRemoteFiles = false;
