@@ -51,6 +51,7 @@ internal class DeviceService
 
         if (existing != null)
         {
+            existing.IsConnected = false;
             DeviceDisconnected?.Invoke(this, existing);
         }
     }
@@ -62,35 +63,78 @@ internal class DeviceService
 
     private async Task CheckForDeviceAtLocation(string route)
     {
-        return;
-        using var connection = new Hcom.SerialConnection(route);
+        // do we already know about this device?
+        var existing = KnownDevices.FirstOrDefault(d => d.LastRoute == route && d.IsConnected);
+        if (existing != null)
+        {
+            Debug.WriteLine($"Already known device at {route}");
+            // TODO: should we pull info and verify ID?
+            return;
+        }
+
+        Debug.WriteLine($"Looking for a device at {route}");
+
+        var connection = new Hcom.SerialConnection(route);
         await connection.Attach();
         try
         {
             var info = await connection.GetDeviceInfo();
-            Debug.WriteLine($"Device detected at {route}");
 
             if (info != null)
             {
-                var device = _storageService.UpdateDeviceInfo(info, route);
-                KnownDevices.Add(device);
+                Debug.WriteLine($"Device detected at {route}");
+
+                var device = KnownDevices.FirstOrDefault(d => d.DeviceID == info.ProcessorId);
+                var d = _storageService.UpdateDeviceInfo(info, route);
+
+                if (device == null)
+                {
+                    Debug.WriteLine($"Device at {route} is a new device");
+
+                    device = d;
+                    KnownDevices.Add(device);
+                }
+
+                device.Connection = connection;
+                device.IsConnected = true;
+
                 DeviceAdded?.Invoke(this, device);
                 DeviceConnected?.Invoke(this, device);
+
             }
-            //            connection.Detach();
+            else
+            {
+                Debug.WriteLine($"No device detected at {route} (no info returned)");
+                connection.Detach();
+            }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
         }
     }
 
     public async Task<MeadowDirectory> GetFiles(string route, string directory)
     {
-        using var connection = new SerialConnection(route);
-        await connection.Attach();
-        var list = await connection.GetFileList(directory, false);
-        connection.Detach();
-        return new MeadowDirectory(directory, list);
+        var d = KnownDevices.FirstOrDefault(d => d.LastRoute == route);
+        if (d == null)
+        {
+            // TODO: need to do:
+            // CheckForDeviceAtLocation(route);
+            throw new NotImplementedException();
+        }
+        else
+        {
+            if (d.Connection == null)
+            {
+                // TODO: need to implement creating connection
+                //var connection = new SerialConnection(route);
+                //await connection.Attach();
+                //d.Connection = connection;
+                throw new NotImplementedException();
+            }
+            var list = await d.Connection.GetFileList(directory, false);
+            return new MeadowDirectory(directory, list);
+        }
     }
 
     public async Task<IMeadowConnection?> AddConnection(string route)

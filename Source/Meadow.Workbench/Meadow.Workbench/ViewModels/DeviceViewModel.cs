@@ -21,7 +21,7 @@ internal class DeviceViewModel : ViewModelBase
         RootInfo = info;
         _storageService = storageService;
 
-        IsConnected = false;
+        IsConnected = info.IsConnected;
 
         SetFriendlyNameCommand = ReactiveCommand.CreateFromTask(OnSetFriendlyName);
     }
@@ -74,10 +74,10 @@ internal class DeviceViewModel : ViewModelBase
 
     public string? Version
     {
-        get => RootInfo.Version;
+        get => RootInfo.OsVersion;
         set
         {
-            RootInfo.Version = value;
+            RootInfo.OsVersion = value;
             this.RaisePropertyChanged(nameof(Version));
         }
     }

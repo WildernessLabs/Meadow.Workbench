@@ -7,7 +7,7 @@
         xmlns:dialogHost="clr-namespace:DialogHostAvalonia;assembly=DialogHost.Avalonia"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="Meadow.Workbench.Views.MainWindow"
-        Icon="/Assets/avalonia-logo.ico"
+        Icon="/Assets/wilderness-labs-logo.ico"
         Title="Meadow Workbench">
     
         <dialogHost:DialogHost CloseOnClickAway="True">

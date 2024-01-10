@@ -6,21 +6,6 @@ using System.IO;
 
 namespace Meadow.Workbench.Services;
 
-[Entity]
-internal class DeviceInformation
-{
-    [Field(IsPrimaryKey = true)]
-    public string DeviceID { get; set; }
-    [Field]
-    public string? FriendlyName { get; set; }
-    [Field]
-    public string? Version { get; set; }
-    [Field]
-    public string? LastRoute { get; set; }
-    [Field]
-    public DateTime LastSeen { get; set; } = DateTime.UtcNow;
-}
-
 internal class StorageService
 {
     private IDataStore _store;
@@ -74,9 +59,13 @@ internal class StorageService
             var di = new DeviceInformation
             {
                 DeviceID = info.ProcessorId,
-                Version = info.OsVersion,
+                OsVersion = info.OsVersion,
                 LastSeen = DateTime.UtcNow,
-                LastRoute = route
+                LastRoute = route,
+                Model = info.Model,
+                CoprocessorVersion = info.CoprocessorOsVersion,
+                RuntimeVersion = info.RuntimeVersion,
+                RawInfo = info.ToString()
             };
 
             _store.Insert(di);
@@ -86,6 +75,12 @@ internal class StorageService
 
         existing.LastSeen = DateTime.UtcNow;
         existing.LastRoute = route;
+        existing.OsVersion = info.OsVersion;
+        existing.Model = info.Model;
+        existing.CoprocessorVersion = info.CoprocessorOsVersion;
+        existing.RuntimeVersion = info.RuntimeVersion;
+        existing.RawInfo = info.ToString();
+
         _store.Update(existing);
         return existing;
     }
