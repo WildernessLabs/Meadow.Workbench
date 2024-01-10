@@ -1,63 +1,12 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace Meadow.Workbench.ViewModels;
 
-public class MeadowDirectory : IEnumerable<MeadowFileSystemEntry>
+public partial class MeadowDirectory : IEnumerable<MeadowFileSystemEntry>
 {
-    public class DirEntryEnumerator : IEnumerator<MeadowFileSystemEntry>
-    {
-        private MeadowDirectory _parent;
-        private int _index;
-
-        internal DirEntryEnumerator(MeadowDirectory parent)
-        {
-            _parent = parent;
-            _index = -1;
-        }
-
-        public MeadowFileSystemEntry Current
-        {
-            get
-            {
-                if (_index == 0)
-                {
-                    return MeadowFolderEntry.Previous;
-                }
-                else if (_index < _parent.Directories.Count + 1)
-                {
-                    return _parent.Directories[_index - 1];
-                }
-                else
-                {
-                    return _parent.Files[_index - _parent.Directories.Count - 1];
-                }
-            }
-        }
-
-        object IEnumerator.Current => Current;
-
-        public void Dispose()
-        {
-        }
-
-        public bool MoveNext()
-        {
-            if (_index < (_parent.Directories.Count + _parent.Files.Count))
-            {
-                _index++;
-                return true;
-            }
-            return false;
-        }
-
-        public void Reset()
-        {
-            _index = -1;
-        }
-    }
-
     private DirEntryEnumerator _enumerator;
 
     public string Name { get; set; }
@@ -68,6 +17,27 @@ public class MeadowDirectory : IEnumerable<MeadowFileSystemEntry>
     {
         _enumerator = new DirEntryEnumerator(this);
         Name = name;
+    }
+
+    public static MeadowDirectory LoadFrom(string localPath)
+    {
+        var md = new MeadowDirectory(localPath);
+
+        var di = new DirectoryInfo(localPath);
+
+        if (di.Exists)
+        {
+            foreach (var d in di.GetDirectories())
+            {
+                md.Directories.Add(new MeadowFolderEntry(d.Name));
+            }
+            foreach (var f in di.GetFiles())
+            {
+                md.Files.Add(new MeadowFileEntry(f.Name));
+            }
+        }
+
+        return md;
     }
 
     public MeadowDirectory(string name, MeadowFileInfo[] contents)

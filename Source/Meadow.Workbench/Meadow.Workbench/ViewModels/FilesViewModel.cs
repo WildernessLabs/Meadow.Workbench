@@ -40,7 +40,7 @@ public class FilesViewModel : FeatureViewModel
         _localDirectory = _settingsService!.LocalFilesFolder;
 
         RemoteDirectory = "/meadow0/";
-        _localFiles = new MeadowDirectory(LocalDirectory);
+        _localFiles = MeadowDirectory.LoadFrom(LocalDirectory);
         _remoteFiles = new MeadowDirectory(RemoteDirectory);
 
         AvailableRemoteRoutes.AddRange(_deviceService.KnownDevices.Select(d => d.LastRoute));
@@ -105,7 +105,7 @@ public class FilesViewModel : FeatureViewModel
     public string LocalDirectory
     {
         get => _localDirectory;
-        set
+        private set
         {
             _settingsService.LocalFilesFolder = value;
             this.RaiseAndSetIfChanged(ref _localDirectory, value);
@@ -121,6 +121,7 @@ public class FilesViewModel : FeatureViewModel
     public MeadowDirectory LocalFiles
     {
         get => _localFiles;
+        private set => this.RaiseAndSetIfChanged(ref _localFiles, value);
     }
 
     public MeadowDirectory RemoteFiles
@@ -144,6 +145,12 @@ public class FilesViewModel : FeatureViewModel
     {
         get => _isLoadingRemoteFiles;
         set => this.RaiseAndSetIfChanged(ref _isLoadingRemoteFiles, value);
+    }
+
+    public void UpdateLocalSource(string folder)
+    {
+        LocalDirectory = System.IO.Path.GetFullPath(folder);
+        LocalFiles = MeadowDirectory.LoadFrom(LocalDirectory);
     }
 
     public void UpdateRemoteSource(string route, string? folder = null)

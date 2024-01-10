@@ -61,7 +61,10 @@
                     </ListBox.Styles>
                     <ListBox.ItemTemplate>
                         <DataTemplate>
-                            <StackPanel Orientation="Horizontal" Height="20">
+                            <StackPanel 
+                                Orientation="Horizontal" 
+                                Height="20"
+                                DoubleTapped="LocalFolderDoubleTapped">
                                 <Svg Path="{Binding Icon}" Height="20" />
                                 <Label Content="{Binding Name}" VerticalAlignment="Center"/>
                             </StackPanel>
@@ -120,7 +123,10 @@
                         </ListBox.Styles>
                         <ListBox.ItemTemplate>
                             <DataTemplate>
-                                <StackPanel Orientation="Horizontal" Height="22" DoubleTapped="RemoteFolderDoubleTapped">
+                                <StackPanel 
+                                    Orientation="Horizontal" 
+                                    Height="22" 
+                                    DoubleTapped="RemoteFolderDoubleTapped">
                                     <Svg Path="{Binding Icon}" Height="18" />
                                     <Label Content="{Binding Name}" VerticalAlignment="Center"/>
                                 </StackPanel>
