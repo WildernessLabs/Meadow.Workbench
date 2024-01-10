@@ -108,9 +108,6 @@
         </Border>
         <Border Margin="5">
             <StackPanel>
-                <Label
-                    Content="Device Info" />
-
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
@@ -143,7 +140,13 @@
                         Grid.Column="1"
                         Content="{Binding SelectedDevice.RootInfo.LastRoute}"
                         />
-                        
+                    <Label
+                        Grid.Row="2"
+                        Grid.Column="0"
+                        Grid.ColumnSpan="2"
+                        Content="{Binding SelectedDevice.RootInfo.RawInfo}"
+                        />
+
                 </Grid>
             </StackPanel>
         </Border>

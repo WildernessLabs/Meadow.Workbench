@@ -12,11 +12,19 @@ internal class DeviceInformation
     [Field]
     public string? FriendlyName { get; set; }
     [Field]
-    public string? Version { get; set; }
+    public string? OsVersion { get; set; }
     [Field]
     public string? LastRoute { get; set; }
     [Field]
     public DateTime LastSeen { get; set; } = DateTime.UtcNow;
+    [Field]
+    public string? Model { get; set; }
+    [Field]
+    public string? CoprocessorVersion { get; set; }
+    [Field]
+    public string? RuntimeVersion { get; set; }
+    [Field]
+    public string? RawInfo { get; set; }
 
     public IMeadowConnection? Connection { get; set; }
     public bool IsConnected { get; set; }

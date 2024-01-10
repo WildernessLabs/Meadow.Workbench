@@ -74,10 +74,10 @@ internal class DeviceViewModel : ViewModelBase
 
     public string? Version
     {
-        get => RootInfo.Version;
+        get => RootInfo.OsVersion;
         set
         {
-            RootInfo.Version = value;
+            RootInfo.OsVersion = value;
             this.RaisePropertyChanged(nameof(Version));
         }
     }
