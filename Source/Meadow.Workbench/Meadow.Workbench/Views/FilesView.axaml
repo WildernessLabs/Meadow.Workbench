@@ -5,11 +5,28 @@
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:iac="clr-namespace:Avalonia.Xaml.Interactions.Custom;assembly=Avalonia.Xaml.Interactions.Custom"             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Meadow.Workbench.FilesView">
+    <UserControl.Styles>
+        <Style Selector="Image.spin">
+            <Style.Animations>
+                <Animation Duration="0:0:2" IterationCount="INFINITE">
+                    <KeyFrame Cue="0%">
+                        <Setter Property="RotateTransform.Angle" Value="0.0"/>
+                    </KeyFrame>
+                    <KeyFrame Cue="100%">
+                        <Setter Property="RotateTransform.Angle" Value="359.0"/>
+                    </KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>        
+    </UserControl.Styles>
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition />
             <ColumnDefinition />
         </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition />
+        </Grid.RowDefinitions>
         <Border 
             Grid.Row="0" 
             Grid.Column="0" 
@@ -72,9 +89,6 @@
                         DockPanel.Dock="Left"
                         />
                 </DockPanel>
-                <Label
-                    Content="Remote Files"
-                    />
                 <ScrollViewer
                     VerticalScrollBarVisibility="Auto">                    
                     <ListBox
@@ -100,5 +114,27 @@
             </StackPanel>
 
         </Border>
+
+        <Image
+            Classes="spin"
+            Source="/Assets/loading.png"
+            Grid.Row="0"
+            Width="50"
+            Height="50"
+            Grid.Column="1"
+             IsVisible="{Binding IsLoadingRemoteFiles}"
+            VerticalAlignment="Center"
+            HorizontalAlignment="Center"
+            />
+
+        <!--
+        <Image
+            Source="avares://Meadow.Workbench/Assets/loading.jpg"
+            Grid.Row="0"
+            Grid.Column="1"
+            VerticalAlignment="Center"
+            HorizontalAlignment="Center"
+            />
+        -->
     </Grid>
 </UserControl>

@@ -24,6 +24,7 @@ public class FilesViewModel : FeatureViewModel
     private SettingsService? _settingsService;
     private IMeadowConnection? _activeConnection;
     private DeviceInformation? _activeDevice;
+    private bool _isLoadingRemoteFiles;
 
     public ObservableCollection<string> AvailableRemoteRoutes { get; } = new();
 
@@ -71,7 +72,10 @@ public class FilesViewModel : FeatureViewModel
         set
         {
             this.RaiseAndSetIfChanged(ref _selectedRoute, value);
-            UpdateRemoteSource(value, RemoteDirectory);
+            if (value != null)
+            {
+                UpdateRemoteSource(value, RemoteDirectory);
+            }
         }
     }
 
@@ -114,6 +118,12 @@ public class FilesViewModel : FeatureViewModel
         set => this.RaiseAndSetIfChanged(ref _selectedRemoteItem, value);
     }
 
+    public bool IsLoadingRemoteFiles
+    {
+        get => _isLoadingRemoteFiles;
+        set => this.RaiseAndSetIfChanged(ref _isLoadingRemoteFiles, value);
+    }
+
     public void UpdateRemoteSource(string route, string? folder = null)
     {
         SelectedRemoteItem = null;
@@ -123,8 +133,12 @@ public class FilesViewModel : FeatureViewModel
 
         _ = Task.Run(async () =>
         {
+            IsLoadingRemoteFiles = true;
+            _remoteDirectory = folder;
             _remoteFiles = await _deviceService.GetFiles(route, folder);
+            this.RaisePropertyChanged(nameof(RemoteDirectory));
             this.RaisePropertyChanged(nameof(RemoteFiles));
+            IsLoadingRemoteFiles = false;
         });
     }
 }
