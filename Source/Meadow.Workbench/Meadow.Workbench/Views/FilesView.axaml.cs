@@ -33,9 +33,8 @@ public partial class FilesView : UserControl
             {
                 if (this.DataContext is FilesViewModel fvm)
                 {
-                    fvm.UpdateRemoteSource(
-                        fvm.SelectedRemoteRoute,
-                        $"{fvm.RemoteDirectory}{mef.Name}/");
+                    fvm.RemoteDirectory = $"{fvm.RemoteDirectory}{mef.Name}/";
+                    fvm.RefreshRemoteSource();
                 }
             }
         }
