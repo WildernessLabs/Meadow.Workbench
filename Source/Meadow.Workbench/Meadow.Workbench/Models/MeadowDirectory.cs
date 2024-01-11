@@ -43,6 +43,14 @@ public partial class MeadowDirectory : IEnumerable<MeadowFileSystemEntry>
     public MeadowDirectory(string name, MeadowFileInfo[] contents)
     {
         _enumerator = new DirEntryEnumerator(this);
+        /*
+        foreach (var d in contents
+            .Where(f => f.IsDirectory)
+            .Select(i => new MeadowFolderEntry(i.Name)))
+        {
+            Directories.Add(d);
+        }
+        */
         Directories.AddRange(contents
             .Where(f => f.IsDirectory)
             .Select(i => new MeadowFolderEntry(i.Name)));

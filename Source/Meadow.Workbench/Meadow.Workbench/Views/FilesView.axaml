@@ -8,7 +8,7 @@
     <UserControl.Styles>
         <Style Selector="Image.spin">
             <Style.Animations>
-                <Animation Duration="0:0:2" IterationCount="INFINITE">
+                <Animation Duration="0:0:1" IterationCount="INFINITE">
                     <KeyFrame Cue="0%">
                         <Setter Property="RotateTransform.Angle" Value="0.0"/>
                     </KeyFrame>
@@ -105,6 +105,13 @@
                         <Image
                             Height="30"
                             Source="avares://Meadow.Workbench/Assets/delete-file.png"
+                            />
+                    </Button>
+                    <Button
+                        Command="{Binding AddRemoteFolderCommand}">
+                        <Image
+                            Height="30"
+                            Source="avares://Meadow.Workbench/Assets/add-folder.png"
                             />
                     </Button>
                 </StackPanel>

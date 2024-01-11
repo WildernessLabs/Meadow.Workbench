@@ -1,5 +1,6 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Platform.Storage;
+using DialogHostAvalonia;
 using DynamicData;
 using Meadow.Workbench.Services;
 using ReactiveUI;
@@ -16,7 +17,7 @@ public class FilesViewModel : FeatureViewModel
     private string _localDirectory;
     private string? _remoteDirectory;
     private MeadowDirectory _localFiles;
-    private MeadowDirectory _remoteFiles;
+    private MeadowDirectory? _remoteFiles;
     private MeadowFileSystemEntry? _selectedLocalItem;
     private MeadowFileSystemEntry? _selectedRemoteItem;
     private string? _selectedRoute;
@@ -31,6 +32,7 @@ public class FilesViewModel : FeatureViewModel
     public IReactiveCommand DownloadRemoteFileCommand { get; }
     public IReactiveCommand DeleteRemoteFileCommand { get; }
     public IReactiveCommand UploadFileToRemoteCommand { get; }
+    public IReactiveCommand AddRemoteFolderCommand { get; }
 
     public FilesViewModel()
     {
@@ -48,6 +50,33 @@ public class FilesViewModel : FeatureViewModel
         DownloadRemoteFileCommand = ReactiveCommand.CreateFromTask(OnDowloadRemoteFile);
         DeleteRemoteFileCommand = ReactiveCommand.CreateFromTask(OnDeleteRemoteFile);
         UploadFileToRemoteCommand = ReactiveCommand.CreateFromTask(OnUploadToRemoteFile);
+        AddRemoteFolderCommand = ReactiveCommand.CreateFromTask(OnAddRemoteFolder);
+    }
+
+    private async Task OnAddRemoteFolder()
+    {
+        if (IsDeviceConnected)
+        {
+            var dialog = new InputBoxDialog("Name of new folder:", string.Empty, string.Empty);
+            var result = await DialogHost.Show(dialog);
+
+            if (!dialog.IsCancelled && dialog.Text != null && dialog.Text.Length > 0)
+            {
+                var target = dialog.Text.Trim();
+                if (RemoteFiles.Directories.Any(d => string.Compare(d.Name, target, true) == 0))
+                {
+                    // name already exists - ignore
+                }
+                else
+                {
+                    var newFiles = new MeadowDirectory(RemoteFiles.Name);
+                    newFiles.Files.AddRange(RemoteFiles.Files);
+                    newFiles.Directories.AddRange(RemoteFiles.Directories);
+                    newFiles.Directories.Add(new MeadowFolderEntry(target));
+                    RemoteFiles = newFiles;
+                }
+            }
+        }
     }
 
     private async Task OnUploadToRemoteFile()
@@ -180,7 +209,11 @@ public class FilesViewModel : FeatureViewModel
     public string RemoteDirectory
     {
         get => _remoteDirectory;
-        set => this.RaiseAndSetIfChanged(ref _remoteDirectory, value);
+        set
+        {
+            value = ConvertRemotePathToAbsolute(value);
+            this.RaiseAndSetIfChanged(ref _remoteDirectory, value);
+        }
     }
 
     public MeadowDirectory LocalFiles
@@ -189,7 +222,7 @@ public class FilesViewModel : FeatureViewModel
         private set => this.RaiseAndSetIfChanged(ref _localFiles, value);
     }
 
-    public MeadowDirectory RemoteFiles
+    public MeadowDirectory? RemoteFiles
     {
         get => _remoteFiles;
         private set => this.RaiseAndSetIfChanged(ref _remoteFiles, value);
@@ -230,6 +263,7 @@ public class FilesViewModel : FeatureViewModel
         {
             try
             {
+                RemoteFiles = null;
                 IsLoadingRemoteFiles = true;
                 var files = await _deviceService.GetFileList(SelectedRemoteRoute, RemoteDirectory);
                 RemoteFiles = files;

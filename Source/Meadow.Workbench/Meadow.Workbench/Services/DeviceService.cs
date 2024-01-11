@@ -139,7 +139,10 @@ internal class DeviceService
     public async Task DisableRuntime(string route)
     {
         var connection = GetConnectionForRoute(route);
-        await connection.RuntimeDisable();
+        if (await connection.IsRuntimeEnabled())
+        {
+            await connection.RuntimeDisable();
+        }
     }
 
     public async Task<bool> DeleteFile(string route, string remoteFile)
