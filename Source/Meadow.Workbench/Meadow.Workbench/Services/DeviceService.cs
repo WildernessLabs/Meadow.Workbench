@@ -113,7 +113,7 @@ internal class DeviceService
         }
     }
 
-    public async Task<MeadowDirectory> GetFiles(string route, string directory)
+    private IMeadowConnection GetConnectionForRoute(string route)
     {
         var d = KnownDevices.FirstOrDefault(d => d.LastRoute == route);
         if (d == null)
@@ -132,9 +132,44 @@ internal class DeviceService
                 //d.Connection = connection;
                 throw new NotImplementedException();
             }
-            var list = await d.Connection.GetFileList(directory, false);
-            return new MeadowDirectory(directory, list);
+            return d.Connection;
         }
+    }
+
+    public async Task DisableRuntime(string route)
+    {
+        var connection = GetConnectionForRoute(route);
+        if (await connection.IsRuntimeEnabled())
+        {
+            await connection.RuntimeDisable();
+        }
+    }
+
+    public async Task<bool> DeleteFile(string route, string remoteFile)
+    {
+        var connection = GetConnectionForRoute(route);
+        await connection.DeleteFile(remoteFile);
+        return true;
+    }
+
+    public async Task<bool> DownloadFile(string route, string remoteSource, string localDestination)
+    {
+        var connection = GetConnectionForRoute(route);
+        return await connection.ReadFile(remoteSource, localDestination);
+    }
+
+    public async Task<bool> UploadFile(string route, string localSource, string remoteDestination)
+    {
+        var connection = GetConnectionForRoute(route);
+        return await connection.WriteFile(localSource, remoteDestination);
+    }
+
+    public async Task<MeadowDirectory> GetFileList(string route, string directory)
+    {
+        var connection = GetConnectionForRoute(route);
+        var list = await connection.GetFileList(directory, false);
+        return new MeadowDirectory(directory, list);
+
     }
 
     public async Task<IMeadowConnection?> AddConnection(string route)

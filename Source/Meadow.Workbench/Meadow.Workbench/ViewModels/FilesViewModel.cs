@@ -1,11 +1,12 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Platform.Storage;
+using DialogHostAvalonia;
 using DynamicData;
-using Meadow.Hcom;
 using Meadow.Workbench.Services;
 using ReactiveUI;
 using Splat;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -16,21 +17,22 @@ public class FilesViewModel : FeatureViewModel
     private string _localDirectory;
     private string? _remoteDirectory;
     private MeadowDirectory _localFiles;
-    private MeadowDirectory _remoteFiles;
-    private MeadowFolderEntry? _selectedLocalItem;
+    private MeadowDirectory? _remoteFiles;
+    private MeadowFileSystemEntry? _selectedLocalItem;
     private MeadowFileSystemEntry? _selectedRemoteItem;
     private string? _selectedRoute;
     private DeviceService? _deviceService;
     private SettingsService? _settingsService;
-    private IMeadowConnection? _activeConnection;
-    private DeviceInformation? _activeDevice;
     private bool _isLoadingRemoteFiles;
+    private bool _deviceConnected;
 
     public ObservableCollection<string> AvailableRemoteRoutes { get; } = new();
 
     public IReactiveCommand SelectLocalFolderCommand { get; }
     public IReactiveCommand DownloadRemoteFileCommand { get; }
     public IReactiveCommand DeleteRemoteFileCommand { get; }
+    public IReactiveCommand UploadFileToRemoteCommand { get; }
+    public IReactiveCommand AddRemoteFolderCommand { get; }
 
     public FilesViewModel()
     {
@@ -47,24 +49,103 @@ public class FilesViewModel : FeatureViewModel
         SelectLocalFolderCommand = ReactiveCommand.CreateFromTask(OnSelectLocalFolder);
         DownloadRemoteFileCommand = ReactiveCommand.CreateFromTask(OnDowloadRemoteFile);
         DeleteRemoteFileCommand = ReactiveCommand.CreateFromTask(OnDeleteRemoteFile);
+        UploadFileToRemoteCommand = ReactiveCommand.CreateFromTask(OnUploadToRemoteFile);
+        AddRemoteFolderCommand = ReactiveCommand.CreateFromTask(OnAddRemoteFolder);
     }
 
-    private Task OnDowloadRemoteFile()
+    private async Task OnAddRemoteFolder()
+    {
+        if (IsDeviceConnected)
+        {
+            var dialog = new InputBoxDialog("Name of new folder:", string.Empty, string.Empty);
+            var result = await DialogHost.Show(dialog);
+
+            if (!dialog.IsCancelled && dialog.Text != null && dialog.Text.Length > 0)
+            {
+                var target = dialog.Text.Trim();
+                if (RemoteFiles.Directories.Any(d => string.Compare(d.Name, target, true) == 0))
+                {
+                    // name already exists - ignore
+                }
+                else
+                {
+                    var newFiles = new MeadowDirectory(RemoteFiles.Name);
+                    newFiles.Files.AddRange(RemoteFiles.Files);
+                    newFiles.Directories.AddRange(RemoteFiles.Directories);
+                    newFiles.Directories.Add(new MeadowFolderEntry(target));
+                    RemoteFiles = newFiles;
+                }
+            }
+        }
+    }
+
+    private async Task OnUploadToRemoteFile()
+    {
+        if (IsDeviceConnected && SelectedLocalItem != null)
+        {
+            if (SelectedLocalItem is MeadowFileEntry mfe)
+            {
+                var localSource = Path.Combine(LocalDirectory, mfe.Name);
+                var dest = $"{RemoteDirectory}{mfe.Name}";
+
+                await _deviceService.UploadFile(SelectedRemoteRoute, localSource, dest);
+                RefreshRemoteSource();
+            }
+            else if (SelectedLocalItem is MeadowFolderEntry)
+            {
+                // todo: allow folder pushes
+            }
+        }
+    }
+
+    private async Task OnDowloadRemoteFile()
     {
         if (SelectedRemoteItem != null)
         {
-        }
+            if (SelectedRemoteItem is MeadowFileEntry)
+            {
+                IsLoadingRemoteFiles = true;
+                var result = await _deviceService.DownloadFile(
+                    SelectedRemoteRoute,
+                    $"{RemoteDirectory}{SelectedRemoteItem.Name}",
+                    Path.Combine(LocalDirectory, SelectedRemoteItem.Name));
+                IsLoadingRemoteFiles = false;
 
-        return Task.CompletedTask;
+                if (result)
+                {
+                    RefreshLocalSource();
+                }
+            }
+            else if (SelectedRemoteItem is MeadowFolderEntry)
+            {
+                // todo: allow folder pulls
+            }
+        }
     }
 
-    private Task OnDeleteRemoteFile()
+    private async Task OnDeleteRemoteFile()
     {
         if (SelectedRemoteItem != null)
         {
-        }
+            if (SelectedRemoteItem is MeadowFileEntry)
+            {
+                IsLoadingRemoteFiles = true;
+                var result = await _deviceService.DeleteFile(
+                    SelectedRemoteRoute,
+                    $"{RemoteDirectory}{SelectedRemoteItem.Name}");
+                IsLoadingRemoteFiles = false;
 
-        return Task.CompletedTask;
+                if (result)
+                {
+                    RefreshRemoteSource();
+                }
+
+            }
+            else if (SelectedRemoteItem is MeadowFolderEntry)
+            {
+                // todo: allow folder pulls
+            }
+        }
     }
 
     private async Task OnSelectLocalFolder()
@@ -88,19 +169,26 @@ public class FilesViewModel : FeatureViewModel
         }
     }
 
+
     public string? SelectedRemoteRoute
     {
         get => _selectedRoute;
         set
         {
             this.RaiseAndSetIfChanged(ref _selectedRoute, value);
+
             if (value != null)
             {
-                UpdateRemoteSource(value, RemoteDirectory);
+                // if it's an F7 (i.e. serial) we must disable the runtime
+                Task.Run(async () =>
+                {
+                    await _deviceService!.DisableRuntime(value);
+
+                    RefreshRemoteSource();
+                });
             }
         }
     }
-
 
     public string LocalDirectory
     {
@@ -112,10 +200,20 @@ public class FilesViewModel : FeatureViewModel
         }
     }
 
+    public bool IsDeviceConnected
+    {
+        get => _deviceConnected;
+        set => this.RaiseAndSetIfChanged(ref _deviceConnected, value);
+    }
+
     public string RemoteDirectory
     {
         get => _remoteDirectory;
-        set => this.RaiseAndSetIfChanged(ref _remoteDirectory, value);
+        set
+        {
+            value = ConvertRemotePathToAbsolute(value);
+            this.RaiseAndSetIfChanged(ref _remoteDirectory, value);
+        }
     }
 
     public MeadowDirectory LocalFiles
@@ -124,12 +222,13 @@ public class FilesViewModel : FeatureViewModel
         private set => this.RaiseAndSetIfChanged(ref _localFiles, value);
     }
 
-    public MeadowDirectory RemoteFiles
+    public MeadowDirectory? RemoteFiles
     {
         get => _remoteFiles;
+        private set => this.RaiseAndSetIfChanged(ref _remoteFiles, value);
     }
 
-    public MeadowFolderEntry? SelectedLocalItem
+    public MeadowFileSystemEntry? SelectedLocalItem
     {
         get => _selectedLocalItem;
         set => this.RaiseAndSetIfChanged(ref _selectedLocalItem, value);
@@ -147,27 +246,59 @@ public class FilesViewModel : FeatureViewModel
         set => this.RaiseAndSetIfChanged(ref _isLoadingRemoteFiles, value);
     }
 
-    public void UpdateLocalSource(string folder)
+    public void RefreshLocalSource()
     {
-        LocalDirectory = System.IO.Path.GetFullPath(folder);
         LocalFiles = MeadowDirectory.LoadFrom(LocalDirectory);
     }
 
-    public void UpdateRemoteSource(string route, string? folder = null)
+    public void UpdateLocalSource(string folder)
     {
-        SelectedRemoteItem = null;
+        LocalDirectory = System.IO.Path.GetFullPath(folder);
+        RefreshLocalSource();
+    }
 
-        _remoteFiles = null;
-        this.RaisePropertyChanged(nameof(RemoteFiles));
-
+    public void RefreshRemoteSource()
+    {
         _ = Task.Run(async () =>
         {
-            IsLoadingRemoteFiles = true;
-            _remoteDirectory = folder;
-            _remoteFiles = await _deviceService.GetFiles(route, folder);
-            this.RaisePropertyChanged(nameof(RemoteDirectory));
-            this.RaisePropertyChanged(nameof(RemoteFiles));
-            IsLoadingRemoteFiles = false;
+            try
+            {
+                RemoteFiles = null;
+                IsLoadingRemoteFiles = true;
+                var files = await _deviceService.GetFileList(SelectedRemoteRoute, RemoteDirectory);
+                RemoteFiles = files;
+                IsLoadingRemoteFiles = false;
+                IsDeviceConnected = true;
+            }
+            catch
+            {
+                IsDeviceConnected = false;
+            }
         });
+    }
+
+    private string ConvertRemotePathToAbsolute(string path)
+    {
+        if (!path.Contains("..")) return path;
+
+        // remove any "../" suffix, and then back up that many folders
+        var count = 0;
+        while (path.EndsWith("../"))
+        {
+            path = path.Substring(0, path.Length - 3);
+            count++;
+        }
+
+        while (count > 0)
+        {
+            // the path will be terminated with a '/'.  We need to back up to the one before that
+            var index = path
+                .Substring(0, path.Length - 1)
+                .LastIndexOf('/');
+            path = path.Substring(0, index + 1);
+            count--;
+        }
+
+        return path;
     }
 }

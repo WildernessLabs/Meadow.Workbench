@@ -8,7 +8,7 @@
     <UserControl.Styles>
         <Style Selector="Image.spin">
             <Style.Animations>
-                <Animation Duration="0:0:2" IterationCount="INFINITE">
+                <Animation Duration="0:0:1" IterationCount="INFINITE">
                     <KeyFrame Cue="0%">
                         <Setter Property="RotateTransform.Angle" Value="0.0"/>
                     </KeyFrame>
@@ -32,6 +32,16 @@
             Grid.Column="0" 
             Margin="5">
             <StackPanel>
+                <StackPanel
+                    Orientation="Horizontal">
+                    <Button
+                        Command="{Binding UploadFileToRemoteCommand}">
+                        <Image
+                            Height="30"
+                            Source="avares://Meadow.Workbench/Assets/upload-file.png"
+                            />
+                    </Button>
+                </StackPanel>
                 <DockPanel 
                     HorizontalAlignment="Stretch"
                     Margin="3">
@@ -46,13 +56,10 @@
                         Command="{Binding SelectLocalFolderCommand}"
                         />
                 </DockPanel>
-                <Label
-                    Content="Local Files"
-                    />
                 <ListBox
                     Margin="1"                    
                     ItemsSource="{Binding LocalFiles}"                    
-                    SelectedItem="{Binding SelectedLocalFile}"
+                    SelectedItem="{Binding SelectedLocalItem}"
                     SelectionMode="Single">
                     <ListBox.Styles>
                         <Style Selector="ListBoxItem">
@@ -98,6 +105,13 @@
                         <Image
                             Height="30"
                             Source="avares://Meadow.Workbench/Assets/delete-file.png"
+                            />
+                    </Button>
+                    <Button
+                        Command="{Binding AddRemoteFolderCommand}">
+                        <Image
+                            Height="30"
+                            Source="avares://Meadow.Workbench/Assets/add-folder.png"
                             />
                     </Button>
                 </StackPanel>
