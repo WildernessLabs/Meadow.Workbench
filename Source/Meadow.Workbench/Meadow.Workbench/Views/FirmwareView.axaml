@@ -75,12 +75,13 @@
                         Orientation="Horizontal">
                         <Button
                             Margin="5,0"
+                            Command="{Binding DownloadLatestCommand}"
                             Content="{Binding LatestAvailableVersion, StringFormat='Download {0}'}"
                         />
                         <CheckBox
                             Margin="5,0"
                             Content="Make Default"
-                            IsChecked="True"
+                            IsChecked="{Binding MakeDownloadDefault}"
                             />
                     </StackPanel>
                 </StackPanel>
@@ -215,10 +216,12 @@
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Top">
                         <Button
                             Content="delete"
+                            Command="{Binding DeleteFirmwareCommand}"
                             HorizontalAlignment="Left"
                             />
                         <Button
                             Content="make default"
+                            Command="{Binding MakeDefaultCommand}"
                             HorizontalAlignment="Left"
                             IsVisible="{Binding !SelectedFirmwareVersion.IsDefault}"
                             />

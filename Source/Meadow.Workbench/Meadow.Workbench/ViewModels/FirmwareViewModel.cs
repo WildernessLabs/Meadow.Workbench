@@ -1,6 +1,8 @@
 ﻿using Meadow.Software;
 using ReactiveUI;
+using System;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -14,13 +16,69 @@ public class FirmwareViewModel : FeatureViewModel
     private IFirmwarePackageCollection? _store;
     private FirmwarePackageViewModel? _selectedFirmware;
     private string? _latestAvailable;
+    private bool _makeDownloadDefault = true;
 
     public ObservableCollection<FirmwarePackageViewModel> FirmwareVersions { get; } = new();
+    public IReactiveCommand DownloadLatestCommand { get; }
+    public IReactiveCommand MakeDefaultCommand { get; }
+    public IReactiveCommand DeleteFirmwareCommand { get; }
 
     public FirmwareViewModel()
     {
         _manager = new FileManager();
         _ = RefreshCurrentStore();
+
+        DownloadLatestCommand = ReactiveCommand.CreateFromTask(DownloadLatest);
+        MakeDefaultCommand = ReactiveCommand.CreateFromTask(MakeSelectedTheDefault);
+        DeleteFirmwareCommand = ReactiveCommand.CreateFromTask(DeleteSelectedFirmware);
+    }
+
+    private async Task DeleteSelectedFirmware()
+    {
+        if (SelectedFirmwareVersion == null) return;
+        try
+        {
+            await _store!.DeletePackage(SelectedFirmwareVersion.Version);
+            await RefreshCurrentStore();
+        }
+        catch (Exception ex)
+        {
+            // TODO: log this?
+            Debug.WriteLine(ex.Message);
+        }
+    }
+
+    private async Task MakeSelectedTheDefault()
+    {
+        if (SelectedFirmwareVersion == null) return;
+        try
+        {
+            await _store!.SetDefaultPackage(SelectedFirmwareVersion.Version);
+            await RefreshCurrentStore();
+        }
+        catch (Exception ex)
+        {
+            // TODO: log this?
+            Debug.WriteLine(ex.Message);
+        }
+    }
+
+    private async Task DownloadLatest()
+    {
+        if (LatestAvailableVersion == null) return;
+
+        // TODO: progress indicator
+        // _store.DownloadProgress += ....
+
+        await _store?.RetrievePackage(LatestAvailableVersion, true);
+
+        if (MakeDownloadDefault)
+        {
+            await _store.SetDefaultPackage(LatestAvailableVersion);
+        }
+
+        await RefreshCurrentStore();
+
     }
 
     public bool UpdateIsAvailable
@@ -31,6 +89,12 @@ public class FirmwareViewModel : FeatureViewModel
 
             return !_store.Any(f => f.Version == LatestAvailableVersion);
         }
+    }
+
+    public bool MakeDownloadDefault
+    {
+        get => _makeDownloadDefault;
+        private set => this.RaiseAndSetIfChanged(ref _makeDownloadDefault, value);
     }
 
     public string? LatestAvailableVersion
