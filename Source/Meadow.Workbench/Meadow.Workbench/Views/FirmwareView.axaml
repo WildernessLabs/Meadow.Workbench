@@ -4,5 +4,201 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Meadow.Workbench.FirmwareView">
-  Here we show all of you local firmware stuff
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition />
+            <ColumnDefinition />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition />
+        </Grid.RowDefinitions>
+        
+        <Border 
+            Grid.Row="0" 
+            Grid.Column="0" 
+            Margin="5">
+            <DockPanel>                
+                <StackPanel
+                    DockPanel.Dock="Top">
+                    <Label
+                        Content="Local Firmware Versions"
+                        />
+                    <ListBox
+                        ItemsSource="{Binding FirmwareVersions}"
+                        SelectedItem="{Binding SelectedFirmwareVersion}"
+                        >
+                        <ListBox.Styles>
+                            <Style Selector="ListBoxItem">
+                                <Setter Property="Padding" Value="1"/>
+                            </Style>
+                        </ListBox.Styles>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel
+                                    Orientation="Horizontal"
+                                    Height="20"
+                                    >
+                                    <Label
+                                        IsVisible="{Binding IsDefault}"
+                                        Content="*"
+                                        Width="20"
+                                        />
+                                    <Label
+                                        IsVisible="{Binding !IsDefault}"
+                                        Content=" "
+                                        Width="20"
+                                        />
+                                    <Label
+                                        Content="{Binding Version}"
+                                        VerticalAlignment="Center"
+                                        />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </StackPanel>
+
+                <StackPanel
+                    Margin="5"
+                    VerticalAlignment="Bottom"
+                    DockPanel.Dock="Bottom"
+                    >
+                    <Button
+                        Content="Check for Update"
+                        />
+                </StackPanel>
+            </DockPanel>
+        </Border>
+        
+        <Border
+            Grid.Row="0"
+            Grid.Column="1"
+            Margin="5">
+            <DockPanel>                
+                <Grid                
+                    DockPanel.Dock="Top"
+                    IsVisible="{Binding SelectedFirmwareVersion,
+                                Converter={x:Static ObjectConverters.IsNotNull}}"
+                    >
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <Label
+                        Content="Version:"
+                        Grid.Row="0"
+                        Grid.Column="0"
+                        />
+                    <Label
+                        Content="{Binding SelectedFirmwareVersion.Version}"
+                        Grid.Row="0"
+                        Grid.Column="1"
+                        />
+
+                    <Label
+                        Content="Has OS Files:"
+                        Grid.Row="1"
+                        Grid.Column="0"
+                        />
+                    <Label
+                        IsVisible="{Binding SelectedFirmwareVersion.HasOsFiles}"
+                        Content="Yes"
+                        Grid.Row="1"
+                        Grid.Column="1"
+                        />
+                    <Label
+                        IsVisible="{Binding !SelectedFirmwareVersion.HasOsFiles}"
+                        Content="No"
+                        Grid.Row="1"
+                        Grid.Column="1"
+                        />
+
+                    <Label
+                        Content="Has Runtime Files:"
+                        Grid.Row="2"
+                        Grid.Column="0"
+                        />
+                    <Label
+                        IsVisible="{Binding SelectedFirmwareVersion.HasRuntimeFiles}"
+                        Content="Yes"
+                        Grid.Row="2"
+                        Grid.Column="1"
+                        />
+                    <Label
+                        IsVisible="{Binding !SelectedFirmwareVersion.HasRuntimeFiles}"
+                        Content="No"
+                        Grid.Row="2"
+                        Grid.Column="1"
+                        />
+
+                    <Label
+                        Content="Has BCL Files:"
+                        Grid.Row="3"
+                        Grid.Column="0"
+                        />
+                    <Label
+                        IsVisible="{Binding SelectedFirmwareVersion.HasBclFiles}"
+                        Content="Yes"
+                        Grid.Row="3"
+                        Grid.Column="1"
+                        />
+                    <Label
+                        IsVisible="{Binding !SelectedFirmwareVersion.HasBclFiles}"
+                        Content="No"
+                        Grid.Row="3"
+                        Grid.Column="1"
+                        />
+
+                    <Label
+                        Content="Has Coprocessor Files:"
+                        Grid.Row="4"
+                        Grid.Column="0"
+                        />
+                    <Label
+                        IsVisible="{Binding SelectedFirmwareVersion.HasCoprocessorFiles}"
+                        Content="Yes"
+                        Grid.Row="4"
+                        Grid.Column="1"
+                        />
+                    <Label
+                        IsVisible="{Binding !SelectedFirmwareVersion.HasCoprocessorFiles}"
+                        Content="No"
+                        Grid.Row="4"
+                        Grid.Column="1"
+                        />
+                </Grid>
+                <StackPanel                    
+                    Margin="5"
+                    VerticalAlignment="Bottom"
+                    DockPanel.Dock="Bottom">
+                    <Label
+                        Content="Flash" />
+                    <CheckBox
+                        Content="OS" />
+                    <CheckBox
+                        Content="Runtime" />
+                    <CheckBox
+                        Content="Coprocesor" />
+                    <CheckBox
+                        Content="All" />
+                    <StackPanel Orientation="Horizontal">
+                        <ComboBox
+                            Width="200"
+                            />
+                        <Button
+                            Content="send"
+                            />
+                    </StackPanel>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+    </Grid>
 </UserControl>

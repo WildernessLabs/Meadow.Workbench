@@ -57,6 +57,9 @@
                         />
                 </DockPanel>
                 <ListBox
+                    x:Name="localFileList"
+                    DragDrop.AllowDrop="True"
+                    PointerPressed="LocalFileListPointerPressed"
                     Margin="1"                    
                     ItemsSource="{Binding LocalFiles}"                    
                     SelectedItem="{Binding SelectedLocalItem}"
@@ -126,6 +129,8 @@
                 <ScrollViewer
                     VerticalScrollBarVisibility="Auto">                    
                     <ListBox
+                        x:Name="remoteFileList"
+                        DragDrop.AllowDrop="True"
                         Margin="1"
                         ItemsSource="{Binding RemoteFiles}"
                         SelectedItem="{Binding SelectedRemoteItem}"
