@@ -1,4 +1,6 @@
 ﻿using Avalonia.Controls;
+using DialogHostAvalonia;
+using Meadow.Workbench.Dialogs;
 using Meadow.Workbench.Services;
 using ReactiveUI;
 using Splat;
@@ -46,6 +48,16 @@ public class MainViewModel : ViewModelBase
 
     private async Task ShowSettings()
     {
+        var dialog = new SettingsDialog();
+        var result = await DialogHost.Show(dialog, closingEventHandler: (s, e) =>
+        {
+            /*
+            if (!dialog.IsCancelled)
+            {
+            }
+            */
+        });
+
     }
 
     private void ActivateFeature(IFeature feature)

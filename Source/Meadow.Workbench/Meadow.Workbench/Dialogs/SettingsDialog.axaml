@@ -1,0 +1,64 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Meadow.Workbench.Dialogs.SettingsDialog">
+    <StackPanel>
+        <Label
+            Content="Workbench Settings"
+            HorizontalContentAlignment="Stretch"
+            Background="#101010"
+            FontSize="20"
+            />
+        <Grid 
+            HorizontalAlignment="Center">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <Label
+                Content="Developer Mode:"
+                VerticalAlignment="Center"
+                HorizontalAlignment="Right"
+                Grid.Row="0"
+                Grid.Column="0"
+                />
+            <CheckBox
+                Grid.Row="0"
+                Grid.Column="1"
+                />
+
+            <Label
+                Content="Show Beta Features:"
+                VerticalAlignment="Center"
+                HorizontalAlignment="Right"
+                Grid.Row="1"
+                Grid.Column="0"
+                />
+            <CheckBox
+                Grid.Row="1"
+                Grid.Column="1"
+                />
+        </Grid>
+        <StackPanel
+            Orientation="Horizontal"
+            HorizontalAlignment="Center">
+            <Button
+                x:Name="save"
+                Content="Save"
+                />
+            <Button
+                x:Name="cancel"
+                Content="Cancel"
+                />
+        </StackPanel>
+            
+    </StackPanel>
+</UserControl>
