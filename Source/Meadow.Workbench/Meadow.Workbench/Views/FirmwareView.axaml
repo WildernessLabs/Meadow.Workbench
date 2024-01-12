@@ -59,13 +59,30 @@
                 </StackPanel>
 
                 <StackPanel
+                    Background="#55FFD800"
+                    IsVisible="{Binding UpdateIsAvailable}"
                     Margin="5"
                     VerticalAlignment="Bottom"
                     DockPanel.Dock="Bottom"
                     >
-                    <Button
-                        Content="Check for Update"
+                    <Label
+                        Background="Transparent"
+                        Content="{Binding LatestAvailableVersion, StringFormat='Version {0} is available'}"
                         />
+                    <StackPanel
+                        Background="Transparent"
+                        Margin="3"                       
+                        Orientation="Horizontal">
+                        <Button
+                            Margin="5,0"
+                            Content="{Binding LatestAvailableVersion, StringFormat='Download {0}'}"
+                        />
+                        <CheckBox
+                            Margin="5,0"
+                            Content="Make Default"
+                            IsChecked="True"
+                            />
+                    </StackPanel>
                 </StackPanel>
             </DockPanel>
         </Border>
@@ -74,134 +91,140 @@
             Grid.Row="0"
             Grid.Column="1"
             Margin="5">
-            <DockPanel>                
-                <Grid                
+            <DockPanel>
+                <StackPanel
                     DockPanel.Dock="Top"
                     IsVisible="{Binding SelectedFirmwareVersion,
                                 Converter={x:Static ObjectConverters.IsNotNull}}"
-                    >
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
+                    Orientation="Horizontal">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
 
-                    <Label
-                        Content="Version:"
-                        Grid.Row="0"
-                        Grid.Column="0"
-                        />
-                    <Label
-                        Content="{Binding SelectedFirmwareVersion.Version}"
-                        Grid.Row="0"
-                        Grid.Column="1"
-                        />
+                        <Label
+                            Content="Version:"
+                            Grid.Row="0"
+                            Grid.Column="0"
+                            />
+                        <Label
+                            Content="{Binding SelectedFirmwareVersion.Version}"
+                            Grid.Row="0"
+                            Grid.Column="1"
+                            />
 
-                    <Label
-                        Content="IsDefault:"
-                        Grid.Row="1"
-                        Grid.Column="0"
-                        />
-                    <Label
-                        Content="Yes"
-                        IsVisible="{Binding SelectedFirmwareVersion.IsDefault}"
-                        Grid.Row="1"
-                        Grid.Column="1"
-                        />
-                    <Label
-                        Content="No"
-                        IsVisible="{Binding !SelectedFirmwareVersion.IsDefault}"
-                        Grid.Row="1"
-                        Grid.Column="1"
-                        />
-                    <Button
-                        Content="make default"
-                        HorizontalAlignment="Left"
-                        IsVisible="{Binding !SelectedFirmwareVersion.IsDefault}"
-                        Grid.Row="1"
-                        Grid.Column="2"
-                        />
+                        <Label
+                            Content="IsDefault:"
+                            Grid.Row="1"
+                            Grid.Column="0"
+                            />
+                        <Label
+                            Content="Yes"
+                            IsVisible="{Binding SelectedFirmwareVersion.IsDefault}"
+                            Grid.Row="1"
+                            Grid.Column="1"
+                            />
+                        <Label
+                            Content="No"
+                            IsVisible="{Binding !SelectedFirmwareVersion.IsDefault}"
+                            Grid.Row="1"
+                            Grid.Column="1"
+                            />
+                        <Label
+                            Content="Has OS Files:"
+                            Grid.Row="2"
+                            Grid.Column="0"
+                            />
+                        <Label
+                            IsVisible="{Binding SelectedFirmwareVersion.HasOsFiles}"
+                            Content="Yes"
+                            Grid.Row="2"
+                            Grid.Column="1"
+                            />
+                        <Label
+                            IsVisible="{Binding !SelectedFirmwareVersion.HasOsFiles}"
+                            Content="No"
+                            Grid.Row="2"
+                            Grid.Column="1"
+                            />
 
-                    <Label
-                        Content="Has OS Files:"
-                        Grid.Row="2"
-                        Grid.Column="0"
-                        />
-                    <Label
-                        IsVisible="{Binding SelectedFirmwareVersion.HasOsFiles}"
-                        Content="Yes"
-                        Grid.Row="2"
-                        Grid.Column="1"
-                        />
-                    <Label
-                        IsVisible="{Binding !SelectedFirmwareVersion.HasOsFiles}"
-                        Content="No"
-                        Grid.Row="2"
-                        Grid.Column="1"
-                        />
+                        <Label
+                            Content="Has Runtime Files:"
+                            Grid.Row="3"
+                            Grid.Column="0"
+                            />
+                        <Label
+                            IsVisible="{Binding SelectedFirmwareVersion.HasRuntimeFiles}"
+                            Content="Yes"
+                            Grid.Row="3"
+                            Grid.Column="1"
+                            />
+                        <Label
+                            IsVisible="{Binding !SelectedFirmwareVersion.HasRuntimeFiles}"
+                            Content="No"
+                            Grid.Row="3"
+                            Grid.Column="1"
+                            />
 
-                    <Label
-                        Content="Has Runtime Files:"
-                        Grid.Row="3"
-                        Grid.Column="0"
-                        />
-                    <Label
-                        IsVisible="{Binding SelectedFirmwareVersion.HasRuntimeFiles}"
-                        Content="Yes"
-                        Grid.Row="3"
-                        Grid.Column="1"
-                        />
-                    <Label
-                        IsVisible="{Binding !SelectedFirmwareVersion.HasRuntimeFiles}"
-                        Content="No"
-                        Grid.Row="3"
-                        Grid.Column="1"
-                        />
+                        <Label
+                            Content="Has BCL Files:"
+                            Grid.Row="4"
+                            Grid.Column="0"
+                            />
+                        <Label
+                            IsVisible="{Binding SelectedFirmwareVersion.HasBclFiles}"
+                            Content="Yes"
+                            Grid.Row="4"
+                            Grid.Column="1"
+                            />
+                        <Label
+                            IsVisible="{Binding !SelectedFirmwareVersion.HasBclFiles}"
+                            Content="No"
+                            Grid.Row="4"
+                            Grid.Column="1"
+                            />
 
-                    <Label
-                        Content="Has BCL Files:"
-                        Grid.Row="4"
-                        Grid.Column="0"
-                        />
-                    <Label
-                        IsVisible="{Binding SelectedFirmwareVersion.HasBclFiles}"
-                        Content="Yes"
-                        Grid.Row="4"
-                        Grid.Column="1"
-                        />
-                    <Label
-                        IsVisible="{Binding !SelectedFirmwareVersion.HasBclFiles}"
-                        Content="No"
-                        Grid.Row="4"
-                        Grid.Column="1"
-                        />
-
-                    <Label
-                        Content="Has Coprocessor Files:"
-                        Grid.Row="5"
-                        Grid.Column="0"
-                        />
-                    <Label
-                        IsVisible="{Binding SelectedFirmwareVersion.HasCoprocessorFiles}"
-                        Content="Yes"
-                        Grid.Row="5"
-                        Grid.Column="1"
-                        />
-                    <Label
-                        IsVisible="{Binding !SelectedFirmwareVersion.HasCoprocessorFiles}"
-                        Content="No"
-                        Grid.Row="5"
-                        Grid.Column="1"
-                        />
-                </Grid>
+                        <Label
+                            Content="Has Coprocessor Files:"
+                            Grid.Row="5"
+                            Grid.Column="0"
+                            />
+                        <Label
+                            IsVisible="{Binding SelectedFirmwareVersion.HasCoprocessorFiles}"
+                            Content="Yes"
+                            Grid.Row="5"
+                            Grid.Column="1"
+                            />
+                        <Label
+                            IsVisible="{Binding !SelectedFirmwareVersion.HasCoprocessorFiles}"
+                            Content="No"
+                            Grid.Row="5"
+                            Grid.Column="1"
+                            />
+                    </Grid>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Top">
+                        <Button
+                            Content="delete"
+                            HorizontalAlignment="Left"
+                            />
+                        <Button
+                            Content="make default"
+                            HorizontalAlignment="Left"
+                            IsVisible="{Binding !SelectedFirmwareVersion.IsDefault}"
+                            />
+                    </StackPanel>
+                </StackPanel>
+                
                 <StackPanel                    
                     Margin="5"
                     VerticalAlignment="Bottom"

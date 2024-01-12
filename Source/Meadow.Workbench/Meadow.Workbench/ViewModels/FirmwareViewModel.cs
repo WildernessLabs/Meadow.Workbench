@@ -1,40 +1,19 @@
 ﻿using Meadow.Software;
 using ReactiveUI;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Meadow.Workbench.ViewModels;
 
-public class FirmwarePackageViewModel : ViewModelBase
-{
-    private FirmwarePackage _package;
-    private bool _isDefault;
-
-    public FirmwarePackageViewModel(FirmwarePackage package, bool isDefault)
-    {
-        _package = package;
-        IsDefault = isDefault;
-    }
-
-    public string Version => _package.Version;
-    public bool HasOsFiles => !string.IsNullOrEmpty(_package.OSWithBootloader);
-    public bool HasRuntimeFiles => !string.IsNullOrEmpty(_package.Runtime);
-    public bool HasBclFiles => !string.IsNullOrEmpty(_package.BclFolder);
-    public bool HasCoprocessorFiles => !string.IsNullOrEmpty(_package.CoprocApplication);
-
-    public bool IsDefault
-    {
-        get => _isDefault;
-        set => this.RaiseAndSetIfChanged(ref _isDefault, value);
-    }
-}
-
 public class FirmwareViewModel : FeatureViewModel
 {
     private const string CurrentStoreName = "Meadow F7";
+
     private readonly FileManager _manager;
     private IFirmwarePackageCollection? _store;
     private FirmwarePackageViewModel? _selectedFirmware;
+    private string? _latestAvailable;
 
     public ObservableCollection<FirmwarePackageViewModel> FirmwareVersions { get; } = new();
 
@@ -42,6 +21,33 @@ public class FirmwareViewModel : FeatureViewModel
     {
         _manager = new FileManager();
         _ = RefreshCurrentStore();
+    }
+
+    public bool UpdateIsAvailable
+    {
+        get
+        {
+            if (LatestAvailableVersion == null || _store == null) return false;
+
+            return !_store.Any(f => f.Version == LatestAvailableVersion);
+        }
+    }
+
+    public string? LatestAvailableVersion
+    {
+        get => _latestAvailable;
+        private set => this.RaiseAndSetIfChanged(ref _latestAvailable, value);
+    }
+
+    private async Task CheckForUpdate()
+    {
+        var latest = await _store?.GetLatestAvailableVersion();
+
+        if (latest != null)
+        {
+            LatestAvailableVersion = latest;
+            this.RaisePropertyChanged(nameof(UpdateIsAvailable));
+        }
     }
 
     public FirmwarePackageViewModel? SelectedFirmwareVersion
@@ -62,5 +68,6 @@ public class FirmwareViewModel : FeatureViewModel
         {
             FirmwareVersions.Add(new FirmwarePackageViewModel(f, f.Version == _store.DefaultPackage?.Version));
         }
+        _ = CheckForUpdate();
     }
 }
