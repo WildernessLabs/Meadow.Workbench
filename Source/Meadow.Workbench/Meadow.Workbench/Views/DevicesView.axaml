@@ -107,48 +107,76 @@
             </StackPanel>
         </Border>
         <Border Margin="5">
-            <StackPanel>
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition />
-                    </Grid.ColumnDefinitions>                    
-                    <Grid.RowDefinitions>
-                        <RowDefinition />
-                        <RowDefinition />
-                        <RowDefinition />
-                    </Grid.RowDefinitions>
+            <DockPanel>                
+                <StackPanel
+                    DockPanel.Dock="Top">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition />
+                        </Grid.ColumnDefinitions>                    
+                        <Grid.RowDefinitions>
+                            <RowDefinition />
+                            <RowDefinition />
+                            <RowDefinition />
+                        </Grid.RowDefinitions>
 
-                    <Label
-                        Grid.Row="0"
-                        Grid.Column="0"
-                        Content="Device ID:"
-                        />
-                    <Label
-                        Grid.Row="0"
-                        Grid.Column="1"
-                        Content="{Binding SelectedDevice.RootInfo.DeviceID}"
-                        />
+                        <Label
+                            Grid.Row="0"
+                            Grid.Column="0"
+                            Content="Device ID:"
+                            />
+                        <Label
+                            Grid.Row="0"
+                            Grid.Column="1"
+                            Content="{Binding SelectedDevice.RootInfo.DeviceID}"
+                            />
                     
-                    <Label
-                        Grid.Row="1"
-                        Grid.Column="0"
-                        Content="Last route:"
-                        />                    
-                    <Label
-                        Grid.Row="1"
-                        Grid.Column="1"
-                        Content="{Binding SelectedDevice.RootInfo.LastRoute}"
+                        <Label
+                            Grid.Row="1"
+                            Grid.Column="0"
+                            Content="Last route:"
+                            />                    
+                        <Label
+                            Grid.Row="1"
+                            Grid.Column="1"
+                            Content="{Binding SelectedDevice.RootInfo.LastRoute}"
+                            />
+                        <Label
+                            Grid.Row="2"
+                            Grid.Column="0"
+                            Grid.ColumnSpan="2"
+                            Content="{Binding SelectedDevice.RootInfo.RawInfo}"
+                            />
+                    </Grid>
+                    <Rectangle
+                        Fill="DarkGray"
+                        Height="3"
+                        Margin="5"
+                        Stroke="DarkGray"
                         />
-                    <Label
-                        Grid.Row="2"
-                        Grid.Column="0"
-                        Grid.ColumnSpan="2"
-                        Content="{Binding SelectedDevice.RootInfo.RawInfo}"
+                    <StackPanel
+                        IsVisible="{Binding SelectedDevice,
+                                    Converter={x:Static ObjectConverters.IsNotNull}}"
+                        Margin="5"
+                        VerticalAlignment="Bottom"
+                        DockPanel.Dock="Bottom">
+                        <Label
+                            Content="Flash 1.6.0" />
+                        <CheckBox
+                            Content="OS" />
+                        <CheckBox
+                            Content="Runtime" />
+                        <CheckBox
+                            Content="Coprocesor" />
+                        <CheckBox
+                            Content="All" />
+                        <Button
+                            Content="send"
                         />
-
-                </Grid>
-            </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+            </DockPanel>
         </Border>
     </DockPanel>
 </UserControl>

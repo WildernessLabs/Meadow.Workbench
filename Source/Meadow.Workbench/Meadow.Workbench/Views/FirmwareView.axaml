@@ -82,9 +82,11 @@
                     >
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
@@ -104,74 +106,99 @@
                         />
 
                     <Label
-                        Content="Has OS Files:"
+                        Content="IsDefault:"
                         Grid.Row="1"
+                        Grid.Column="0"
+                        />
+                    <Label
+                        Content="Yes"
+                        IsVisible="{Binding SelectedFirmwareVersion.IsDefault}"
+                        Grid.Row="1"
+                        Grid.Column="1"
+                        />
+                    <Label
+                        Content="No"
+                        IsVisible="{Binding !SelectedFirmwareVersion.IsDefault}"
+                        Grid.Row="1"
+                        Grid.Column="1"
+                        />
+                    <Button
+                        Content="make default"
+                        HorizontalAlignment="Left"
+                        IsVisible="{Binding !SelectedFirmwareVersion.IsDefault}"
+                        Grid.Row="1"
+                        Grid.Column="2"
+                        />
+
+                    <Label
+                        Content="Has OS Files:"
+                        Grid.Row="2"
                         Grid.Column="0"
                         />
                     <Label
                         IsVisible="{Binding SelectedFirmwareVersion.HasOsFiles}"
                         Content="Yes"
-                        Grid.Row="1"
+                        Grid.Row="2"
                         Grid.Column="1"
                         />
                     <Label
                         IsVisible="{Binding !SelectedFirmwareVersion.HasOsFiles}"
                         Content="No"
-                        Grid.Row="1"
+                        Grid.Row="2"
                         Grid.Column="1"
                         />
 
                     <Label
                         Content="Has Runtime Files:"
-                        Grid.Row="2"
+                        Grid.Row="3"
                         Grid.Column="0"
                         />
                     <Label
                         IsVisible="{Binding SelectedFirmwareVersion.HasRuntimeFiles}"
                         Content="Yes"
-                        Grid.Row="2"
+                        Grid.Row="3"
                         Grid.Column="1"
                         />
                     <Label
                         IsVisible="{Binding !SelectedFirmwareVersion.HasRuntimeFiles}"
                         Content="No"
-                        Grid.Row="2"
+                        Grid.Row="3"
                         Grid.Column="1"
                         />
 
                     <Label
                         Content="Has BCL Files:"
-                        Grid.Row="3"
+                        Grid.Row="4"
                         Grid.Column="0"
                         />
                     <Label
                         IsVisible="{Binding SelectedFirmwareVersion.HasBclFiles}"
                         Content="Yes"
-                        Grid.Row="3"
+                        Grid.Row="4"
                         Grid.Column="1"
                         />
                     <Label
                         IsVisible="{Binding !SelectedFirmwareVersion.HasBclFiles}"
                         Content="No"
-                        Grid.Row="3"
+                        Grid.Row="4"
                         Grid.Column="1"
                         />
 
                     <Label
                         Content="Has Coprocessor Files:"
-                        Grid.Row="4"
+                        Grid.Row="5"
                         Grid.Column="0"
                         />
                     <Label
                         IsVisible="{Binding SelectedFirmwareVersion.HasCoprocessorFiles}"
                         Content="Yes"
-                        Grid.Row="4"
+                        Grid.Row="5"
                         Grid.Column="1"
                         />
                     <Label
                         IsVisible="{Binding !SelectedFirmwareVersion.HasCoprocessorFiles}"
                         Content="No"
-                        Grid.Row="4"
+                        Grid.Row="5"
                         Grid.Column="1"
                         />
                 </Grid>
