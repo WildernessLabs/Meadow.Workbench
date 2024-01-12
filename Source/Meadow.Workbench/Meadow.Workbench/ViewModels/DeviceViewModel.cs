@@ -10,20 +10,53 @@ internal class DeviceViewModel : ViewModelBase
 {
     private bool _isConnected;
 
-    public DeviceInformation RootInfo { get; private set; }
-
     private StorageService _storageService;
+    private DeviceService _deviceService;
+    private string? _deviceTime;
 
+    public DeviceInformation RootInfo { get; private set; }
     public IReactiveCommand SetFriendlyNameCommand { get; }
+    public IReactiveCommand SetClockCommand { get; }
+    public IReactiveCommand GetClockCommand { get; }
 
-    public DeviceViewModel(DeviceInformation info, StorageService storageService)
+    public DeviceViewModel(DeviceInformation info, DeviceService deviceService, StorageService storageService)
     {
         RootInfo = info;
         _storageService = storageService;
+        _deviceService = deviceService;
 
         IsConnected = info.IsConnected;
 
+        if (IsConnected)
+        {
+            GetDeviceClockTime();
+        }
+
         SetFriendlyNameCommand = ReactiveCommand.CreateFromTask(OnSetFriendlyName);
+        SetClockCommand = ReactiveCommand.CreateFromTask(SendPcTimeToDevice);
+        GetClockCommand = ReactiveCommand.CreateFromTask(GetDeviceClockTime);
+    }
+
+    private async Task SendPcTimeToDevice()
+    {
+        if (IsConnected)
+        {
+            var utc = DateTime.UtcNow;
+            await _deviceService.SetUtcTime(RootInfo.LastRoute, utc);
+            await GetDeviceClockTime();
+        }
+    }
+
+    private async Task GetDeviceClockTime()
+    {
+        if (IsConnected)
+        {
+            var utc = await _deviceService.GetUtcTime(RootInfo.LastRoute);
+            if (utc != null)
+            {
+                DeviceTime = utc.Value.ToLocalTime().ToString();
+            }
+        }
     }
 
     private async Task OnSetFriendlyName()
@@ -38,6 +71,12 @@ internal class DeviceViewModel : ViewModelBase
                 this.RaisePropertyChanged(nameof(FriendlyName));
             }
         });
+    }
+
+    public string? DeviceTime
+    {
+        get => _deviceTime;
+        private set => this.RaiseAndSetIfChanged(ref _deviceTime, value);
     }
 
     public bool HasFriendlyName

@@ -113,9 +113,12 @@
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
                             <ColumnDefinition />
                         </Grid.ColumnDefinitions>                    
                         <Grid.RowDefinitions>
+                            <RowDefinition />
                             <RowDefinition />
                             <RowDefinition />
                             <RowDefinition />
@@ -142,8 +145,34 @@
                             Grid.Column="1"
                             Content="{Binding SelectedDevice.RootInfo.LastRoute}"
                             />
+
                         <Label
                             Grid.Row="2"
+                            Grid.Column="0"
+                            VerticalAlignment="Center"
+                            Content="Clock:"
+                            />
+                        <Label
+                            Grid.Row="2"
+                            Grid.Column="1"
+                            VerticalAlignment="Center"
+                            Content="{Binding SelectedDevice.DeviceTime}"
+                            />
+                        <Button
+                            Grid.Row="2"
+                            Grid.Column="2"
+                            Content="set"
+                            Command="{Binding SelectedDevice.SetClockCommand}"
+                            />
+                        <Button
+                            Grid.Row="2"
+                            Grid.Column="3"
+                            Content="refresh"
+                            Command="{Binding SelectedDevice.GetClockCommand}"
+                            />
+
+                        <Label
+                            Grid.Row="3"
                             Grid.Column="0"
                             Grid.ColumnSpan="2"
                             Content="{Binding SelectedDevice.RootInfo.RawInfo}"

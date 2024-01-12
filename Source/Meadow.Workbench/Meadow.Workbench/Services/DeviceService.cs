@@ -136,6 +136,18 @@ internal class DeviceService
         }
     }
 
+    public async Task SetUtcTime(string route, DateTimeOffset utcTime)
+    {
+        var connection = GetConnectionForRoute(route);
+        await connection.SetRtcTime(utcTime);
+    }
+
+    public async Task<DateTimeOffset?> GetUtcTime(string route)
+    {
+        var connection = GetConnectionForRoute(route);
+        return await connection.GetRtcTime();
+    }
+
     public async Task DisableRuntime(string route)
     {
         var connection = GetConnectionForRoute(route);

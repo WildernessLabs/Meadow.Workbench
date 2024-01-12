@@ -28,7 +28,7 @@ internal class DevicesViewModel : FeatureViewModel
 
         foreach (var device in _deviceService.KnownDevices)
         {
-            Devices.Add(new DeviceViewModel(device, _storageService));
+            Devices.Add(new DeviceViewModel(device, _deviceService, _storageService));
         }
 
         AddDeviceCommand = ReactiveCommand.CreateFromTask(OnAddDevice);
@@ -45,7 +45,7 @@ internal class DevicesViewModel : FeatureViewModel
         var dvm = Devices.FirstOrDefault(d => d.DeviceID == e.DeviceID);
         if (dvm == null)
         {
-            dvm = new DeviceViewModel(e, _storageService);
+            dvm = new DeviceViewModel(e, _deviceService, _storageService);
             Devices.Add(dvm);
         }
 
