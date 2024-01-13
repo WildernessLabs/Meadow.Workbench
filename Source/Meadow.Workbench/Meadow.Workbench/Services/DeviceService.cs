@@ -148,6 +148,12 @@ internal class DeviceService
         return await connection.GetRtcTime();
     }
 
+    public async Task<bool> IsRuntimEnabled(string route)
+    {
+        var connection = GetConnectionForRoute(route);
+        return await connection.IsRuntimeEnabled();
+    }
+
     public async Task DisableRuntime(string route)
     {
         var connection = GetConnectionForRoute(route);
@@ -155,6 +161,21 @@ internal class DeviceService
         {
             await connection.RuntimeDisable();
         }
+    }
+
+    public async Task EnableRuntime(string route)
+    {
+        var connection = GetConnectionForRoute(route);
+        if (!await connection.IsRuntimeEnabled())
+        {
+            await connection.RuntimeEnable();
+        }
+    }
+
+    public async Task ResetDevice(string route)
+    {
+        var connection = GetConnectionForRoute(route);
+        await connection.ResetDevice();
     }
 
     public async Task<bool> DeleteFile(string route, string remoteFile)

@@ -122,6 +122,7 @@
                             <RowDefinition />
                             <RowDefinition />
                             <RowDefinition />
+                            <RowDefinition />
                         </Grid.RowDefinitions>
 
                         <Label
@@ -134,7 +135,13 @@
                             Grid.Column="1"
                             Content="{Binding SelectedDevice.RootInfo.DeviceID}"
                             />
-                    
+                        <Button
+                            Grid.Row="0"
+                            Grid.Column="2"
+                            Content="reset"
+                            Command="{Binding SelectedDevice.ResetCommand}"
+                            />
+
                         <Label
                             Grid.Row="1"
                             Grid.Column="0"
@@ -173,6 +180,33 @@
 
                         <Label
                             Grid.Row="3"
+                            Grid.Column="0"
+                            VerticalAlignment="Center"
+                            Content="Runtime:"
+                            />
+                        <Label
+                            Grid.Row="3"
+                            Grid.Column="1"
+                            VerticalAlignment="Center"
+                            Content="{Binding SelectedDevice.IsRuntimeEnabled}"
+                            />
+                        <Button
+                            Grid.Row="3"
+                            Grid.Column="3"
+                            IsVisible="{Binding SelectedDevice.IsRuntimeEnabled}"
+                            Content="disable"
+                            Command="{Binding SelectedDevice.DisableRuntimeCommand}"
+                        />
+                        <Button
+                            Grid.Row="3"
+                            Grid.Column="3"
+                            IsVisible="{Binding !SelectedDevice.IsRuntimeEnabled}"
+                            Content="enable"
+                            Command="{Binding SelectedDevice.EnableRuntimeCommand}"
+                        />
+
+                        <Label
+                            Grid.Row="4"
                             Grid.Column="0"
                             Grid.ColumnSpan="2"
                             Content="{Binding SelectedDevice.RootInfo.RawInfo}"

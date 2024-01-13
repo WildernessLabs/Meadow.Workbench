@@ -13,11 +13,15 @@ internal class DeviceViewModel : ViewModelBase
     private StorageService _storageService;
     private DeviceService _deviceService;
     private string? _deviceTime;
+    private bool _isRuntimeEnabled;
 
     public DeviceInformation RootInfo { get; private set; }
     public IReactiveCommand SetFriendlyNameCommand { get; }
     public IReactiveCommand SetClockCommand { get; }
     public IReactiveCommand GetClockCommand { get; }
+    public IReactiveCommand ResetCommand { get; }
+    public IReactiveCommand DisableRuntimeCommand { get; }
+    public IReactiveCommand EnableRuntimeCommand { get; }
 
     public DeviceViewModel(DeviceInformation info, DeviceService deviceService, StorageService storageService)
     {
@@ -29,12 +33,51 @@ internal class DeviceViewModel : ViewModelBase
 
         if (IsConnected)
         {
-            GetDeviceClockTime();
+            _ = GetDeviceClockTime();
         }
 
         SetFriendlyNameCommand = ReactiveCommand.CreateFromTask(OnSetFriendlyName);
         SetClockCommand = ReactiveCommand.CreateFromTask(SendPcTimeToDevice);
         GetClockCommand = ReactiveCommand.CreateFromTask(GetDeviceClockTime);
+        ResetCommand = ReactiveCommand.CreateFromTask(Reset);
+        DisableRuntimeCommand = ReactiveCommand.CreateFromTask(DisableRuntime);
+        EnableRuntimeCommand = ReactiveCommand.CreateFromTask(EnableRuntime);
+
+    }
+
+    private async Task Reset()
+    {
+        if (IsConnected)
+        {
+            await _deviceService.ResetDevice(RootInfo.LastRoute);
+            _ = RefreshRuntimeState();
+        }
+    }
+
+    private async Task RefreshRuntimeState()
+    {
+        if (IsConnected)
+        {
+            IsRuntimeEnabled = await _deviceService.IsRuntimEnabled(RootInfo.LastRoute);
+        }
+    }
+
+    private async Task EnableRuntime()
+    {
+        if (IsConnected)
+        {
+            await _deviceService.EnableRuntime(RootInfo.LastRoute);
+            await RefreshRuntimeState();
+        }
+    }
+
+    private async Task DisableRuntime()
+    {
+        if (IsConnected)
+        {
+            await _deviceService.DisableRuntime(RootInfo.LastRoute);
+            await RefreshRuntimeState();
+        }
     }
 
     private async Task SendPcTimeToDevice()
@@ -56,6 +99,8 @@ internal class DeviceViewModel : ViewModelBase
             {
                 DeviceTime = utc.Value.ToLocalTime().ToString();
             }
+
+            _ = RefreshRuntimeState();
         }
     }
 
@@ -84,10 +129,20 @@ internal class DeviceViewModel : ViewModelBase
         get => !string.IsNullOrWhiteSpace(FriendlyName);
     }
 
+    public bool IsRuntimeEnabled
+    {
+        get => _isRuntimeEnabled;
+        private set => this.RaiseAndSetIfChanged(ref _isRuntimeEnabled, value);
+    }
+
     public bool IsConnected
     {
         get => _isConnected;
-        set => this.RaiseAndSetIfChanged(ref _isConnected, value);
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _isConnected, value);
+            _ = RefreshRuntimeState();
+        }
     }
 
     public string? FriendlyName
