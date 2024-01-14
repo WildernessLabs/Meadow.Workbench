@@ -109,6 +109,8 @@
         <Border Margin="5">
             <DockPanel>                
                 <StackPanel
+                    IsVisible="{Binding SelectedDevice,
+                                Converter={x:Static ObjectConverters.IsNotNull}}"                    
                     DockPanel.Dock="Top">
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -219,24 +221,30 @@
                         Stroke="DarkGray"
                         />
                     <StackPanel
-                        IsVisible="{Binding SelectedDevice,
-                                    Converter={x:Static ObjectConverters.IsNotNull}}"
-                        Margin="5"
-                        VerticalAlignment="Bottom"
-                        DockPanel.Dock="Bottom">
-                        <Label
-                            Content="Flash 1.6.0" />
-                        <CheckBox
-                            Content="OS" />
-                        <CheckBox
-                            Content="Runtime" />
-                        <CheckBox
-                            Content="Coprocesor" />
-                        <CheckBox
-                            Content="All" />
+                        Orientation="Horizontal"
+                        IsVisible="{Binding SelectedDevice.IsConnected}"
+                        >
                         <Button
-                            Content="send"
-                        />
+                            Content="{Binding DefaultFirmwareVersion, StringFormat='Flash {0} files'}"
+                            Command="{Binding FlashDeviceCommand}"
+                            />
+                        <StackPanel
+                            Margin="5"
+                            VerticalAlignment="Bottom"
+                            DockPanel.Dock="Bottom">
+                            <CheckBox
+                                IsChecked="{Binding FlashOS}"
+                                Content="OS" />
+                            <CheckBox
+                                IsChecked="{Binding FlashRuntime}"
+                                Content="Runtime" />
+                            <CheckBox
+                                IsChecked="{Binding FlashCoprocessor}"
+                                Content="Coprocesor" />
+                            <CheckBox
+                                IsChecked="{Binding FlashAll}"
+                                Content="All" />
+                        </StackPanel>
                     </StackPanel>
                 </StackPanel>
             </DockPanel>

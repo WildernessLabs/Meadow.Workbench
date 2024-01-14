@@ -18,6 +18,7 @@ internal class DeviceService
 
     private SerialPortMonitor? _portMonitor;
     private StorageService _storageService;
+    private FirmwareService _firmwareService;
     private SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
 
     public List<DeviceInformation> KnownDevices { get; } = new();
@@ -25,6 +26,7 @@ internal class DeviceService
     public DeviceService()
     {
         _storageService = Locator.Current.GetService<StorageService>() ?? throw new Exception();
+        _firmwareService = Locator.Current.GetService<FirmwareService>() ?? throw new Exception();
 
         KnownDevices = _storageService.GetAllDevices().ToList();
 
@@ -134,6 +136,53 @@ internal class DeviceService
             }
             return d.Connection;
         }
+    }
+
+    public async Task FlashFirmware(string route, bool writeOS, bool writeRuntime, bool writeCoprocessor, string? version = null)
+    {
+        var package =
+            version == null
+            ? _firmwareService.CurrentStore.DefaultPackage
+            : _firmwareService.CurrentStore[version];
+
+        if (package == null)
+        {
+            // TODO: error
+            return;
+        }
+
+        var connection = GetConnectionForRoute(route);
+
+        if (await connection.IsRuntimeEnabled())
+        {
+            await connection.RuntimeDisable();
+        }
+
+        if (writeOS)
+        {
+            var useDfu = false; // TODO: get from settings
+            if (!useDfu)
+            {
+                var source = package.GetFullyQualifiedPath(package.OsWithoutBootloader);
+                var dest = $"/meadow0/update/os/{package.OsWithoutBootloader}";
+                await connection.WriteFile(source, dest);
+                source = package.GetFullyQualifiedPath(package.Runtime);
+                dest = $"/meadow0/update/os/{package.Runtime}";
+                await connection.WriteFile(source, dest);
+            }
+        }
+
+        await connection.ResetDevice();
+        /*
+                await connection.WriteRuntime();
+                await connection.WriteCoprocessorFile();
+                await connection.WaitForMeadowAttach();
+        */
+    }
+
+    public string GetDefaultFirmwareVersionForDevice(string route)
+    {
+        return _firmwareService.CurrentStore?.DefaultPackage?.Version ?? "unknown";
     }
 
     public async Task SetUtcTime(string route, DateTimeOffset utcTime)

@@ -21,6 +21,7 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
             <Label
@@ -46,6 +47,19 @@
                 Grid.Row="1"
                 Grid.Column="1"
                 />
+
+            <Label
+                Content="Flash OS with DFU:"
+                VerticalAlignment="Center"
+                HorizontalAlignment="Right"
+                Grid.Row="2"
+                Grid.Column="0"
+                />
+            <CheckBox
+                Grid.Row="2"
+                Grid.Column="1"
+                />
+
         </Grid>
         <StackPanel
             Orientation="Horizontal"
