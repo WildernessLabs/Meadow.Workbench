@@ -1,0 +1,62 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Meadow.Workbench.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Meadow.Workbench.Dialogs.FirmwareFlashDialog">
+    <Design.DataContext>
+        <!-- This only sets the DataContext for the previewer in an IDE,
+         to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+        <vm:FirmwareFlashViewModel />
+    </Design.DataContext>
+    
+    <StackPanel>
+        <Label
+            HorizontalAlignment="Center"
+            FontSize="25"
+            Content="Flashing F7 Feather"
+            />
+        <!-- put an image of the device here? -->
+
+        <Label
+            HorizontalAlignment="Center"
+            FontSize="16"
+            Content="Your Meadow firmware is being updated.  Here's what to expect:"
+            />
+        <Label
+            HorizontalAlignment="Center"
+            FontSize="12"
+            Content="(Times are approximate. Highlighted step is an estimate)"
+            />
+
+        <DataGrid
+            HorizontalAlignment="Center"
+            ItemsSource="{Binding Timeline}"
+            SelectedItem="{Binding ActiveTimelineEntry}"
+            AutoGenerateColumns="False"
+            GridLinesVisibility="All"
+            BorderThickness="1"
+            BorderBrush="White"
+            IsHitTestVisible="False"
+            >
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Time" Binding="{Binding Time}" />
+                <DataGridTextColumn Header="Activity" Binding="{Binding Activity}" />
+                <DataGridTextColumn Header="LED State" Binding="{Binding LedState}" />
+            </DataGrid.Columns>            
+            
+        </DataGrid>
+
+        <Label
+            HorizontalAlignment="Center"
+            Content="{Binding Timestamp, StringFormat='{}{0:mm}:{0:ss}'}"
+            FontSize="40"
+            />
+        <Button
+            x:Name="close"
+            HorizontalAlignment="Center"
+            Content="Close"
+            />
+    </StackPanel>
+</UserControl>

@@ -1,4 +1,5 @@
 ﻿using DialogHostAvalonia;
+using Meadow.Workbench.Dialogs;
 using Meadow.Workbench.Services;
 using ReactiveUI;
 using Splat;
@@ -11,6 +12,7 @@ namespace Meadow.Workbench.ViewModels;
 internal class DevicesViewModel : FeatureViewModel
 {
     private DeviceService _deviceService;
+    private FirmwareService _firmwareService;
     private StorageService _storageService;
     private DeviceViewModel? _selectedDevice;
     private bool _flashOS;
@@ -31,6 +33,8 @@ internal class DevicesViewModel : FeatureViewModel
 
         _storageService = Locator.Current.GetService<StorageService>();
 
+        _firmwareService = Locator.Current.GetService<FirmwareService>();
+
         foreach (var device in _deviceService.KnownDevices)
         {
             Devices.Add(new DeviceViewModel(device, _deviceService, _storageService));
@@ -40,9 +44,15 @@ internal class DevicesViewModel : FeatureViewModel
         FlashDeviceCommand = ReactiveCommand.CreateFromTask(FlashSelectedDevice);
     }
 
+    public override void OnActivated()
+    {
+        // force a refresh of default firmware (in case the user downloaded on another tab)
+        this.RaisePropertyChanged(nameof(DefaultFirmwareVersion));
+    }
+
     public string DefaultFirmwareVersion
     {
-        get => _deviceService.GetDefaultFirmwareVersionForDevice(_selectedDevice?.RootInfo.LastRoute ?? string.Empty);
+        get => _firmwareService.CurrentStore?.DefaultPackage?.Version ?? "unknown";
     }
 
     private async Task FlashSelectedDevice()
@@ -50,11 +60,16 @@ internal class DevicesViewModel : FeatureViewModel
         if (_selectedDevice == null) return;
         if (!_selectedDevice.IsConnected) return;
 
-        await _deviceService.FlashFirmware(
+        var vm = new FirmwareFlashViewModel(
+            _deviceService,
             _selectedDevice.RootInfo.LastRoute,
             FlashOS,
             FlashRuntime,
             FlashCoprocessor);
+
+        var dialog = new FirmwareFlashDialog(vm);
+
+        var result = await DialogHost.Show(dialog);
     }
 
     public DeviceViewModel? SelectedDevice

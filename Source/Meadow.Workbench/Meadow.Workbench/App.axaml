@@ -6,6 +6,7 @@
 
     <Application.Styles>
         <FluentTheme />
+        <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
         <dialogHostAvalonia:DialogHostStyles />
         <Style Selector="ContentControl">
             <Setter Property="Background" Value="#202020"/>

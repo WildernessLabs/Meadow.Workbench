@@ -17,53 +17,14 @@
             Grid.Row="0" 
             Grid.Column="0" 
             Margin="5">
-            <DockPanel>                
-                <StackPanel
-                    DockPanel.Dock="Top">
-                    <Label
-                        Content="Local Firmware Versions"
-                        />
-                    <ListBox
-                        ItemsSource="{Binding FirmwareVersions}"
-                        SelectedItem="{Binding SelectedFirmwareVersion}"
-                        >
-                        <ListBox.Styles>
-                            <Style Selector="ListBoxItem">
-                                <Setter Property="Padding" Value="1"/>
-                            </Style>
-                        </ListBox.Styles>
-                        <ListBox.ItemTemplate>
-                            <DataTemplate>
-                                <StackPanel
-                                    Orientation="Horizontal"
-                                    Height="20"
-                                    >
-                                    <Label
-                                        IsVisible="{Binding IsDefault}"
-                                        Content="*"
-                                        Width="20"
-                                        />
-                                    <Label
-                                        IsVisible="{Binding !IsDefault}"
-                                        Content=" "
-                                        Width="20"
-                                        />
-                                    <Label
-                                        Content="{Binding Version}"
-                                        VerticalAlignment="Center"
-                                        />
-                                </StackPanel>
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-                    </ListBox>
-                </StackPanel>
-
+            <DockPanel
+                >
                 <StackPanel
                     Background="#55FFD800"
                     IsVisible="{Binding UpdateIsAvailable}"
                     Margin="5"
                     VerticalAlignment="Bottom"
-                    DockPanel.Dock="Bottom"
+                    DockPanel.Dock="Top"
                     >
                     <Label
                         Background="Transparent"
@@ -71,7 +32,7 @@
                         />
                     <StackPanel
                         Background="Transparent"
-                        Margin="3"                       
+                        Margin="3"
                         Orientation="Horizontal">
                         <Button
                             Margin="5,0"
@@ -85,6 +46,50 @@
                             />
                     </StackPanel>
                 </StackPanel>
+                
+                <ScrollViewer>
+                    <StackPanel                    
+                    DockPanel.Dock="Top">
+                    <Label
+                        Content="Local Firmware Versions"
+                        />
+                        <ListBox
+                            VerticalAlignment="Stretch"
+                            ItemsSource="{Binding FirmwareVersions}"
+                            SelectedItem="{Binding SelectedFirmwareVersion}"
+                            >
+                            <ListBox.Styles>
+                                <Style Selector="ListBoxItem">
+                                    <Setter Property="Padding" Value="1"/>
+                                </Style>
+                            </ListBox.Styles>
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel
+                                        Orientation="Horizontal"
+                                        Height="20"
+                                        >
+                                        <Label
+                                            IsVisible="{Binding IsDefault}"
+                                            Content="*"
+                                            Width="20"
+                                            />
+                                        <Label
+                                            IsVisible="{Binding !IsDefault}"
+                                            Content=" "
+                                            Width="20"
+                                            />
+                                        <Label
+                                            Content="{Binding Version}"
+                                            VerticalAlignment="Center"
+                                            />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                </StackPanel>
+                </ScrollViewer>
+                
             </DockPanel>
         </Border>
         

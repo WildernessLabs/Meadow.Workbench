@@ -13,7 +13,6 @@ namespace Meadow.Workbench.ViewModels;
 public class MainViewModel : ViewModelBase
 {
     private UserControl _activeContent;
-    private IFeature? _activeFeature;
 
     internal FeatureService FeatureService { get; }
     private SettingsService SettingsService { get; }
@@ -62,14 +61,7 @@ public class MainViewModel : ViewModelBase
 
     private void ActivateFeature(IFeature feature)
     {
-        if (_activeFeature != null)
-        {
-            _activeFeature.IsActive = false;
-        }
-
-        _activeFeature = feature;
-        _activeFeature.IsActive = true;
-        Content = feature.ViewInstance.Value;
+        Content = FeatureService.Activate(feature);
         SettingsService.LastFeature = feature.Title;
     }
 }

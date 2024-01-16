@@ -12,6 +12,8 @@ namespace Meadow.Workbench.Services;
 
 internal class DeviceService
 {
+    private const string F7OtAOsFolder = "/meadow0/update/os/";
+
     public event EventHandler<DeviceInformation> DeviceAdded;
     public event EventHandler<DeviceInformation> DeviceConnected;
     public event EventHandler<DeviceInformation> DeviceDisconnected;
@@ -158,26 +160,49 @@ internal class DeviceService
             await connection.RuntimeDisable();
         }
 
+        await connection.WaitForMeadowAttach();
+
+        var useDfu = false; // TODO: get from settings
+
         if (writeOS)
         {
-            var useDfu = false; // TODO: get from settings
-            if (!useDfu)
+            if (useDfu)
             {
+                throw new NotSupportedException();
+            }
+            else
+            {
+                // note: OtA *requires* both the OS and runtime pair
                 var source = package.GetFullyQualifiedPath(package.OsWithoutBootloader);
-                var dest = $"/meadow0/update/os/{package.OsWithoutBootloader}";
+                var dest = $"{F7OtAOsFolder}{package.OsWithoutBootloader}";
                 await connection.WriteFile(source, dest);
                 source = package.GetFullyQualifiedPath(package.Runtime);
-                dest = $"/meadow0/update/os/{package.Runtime}";
+                dest = $"{F7OtAOsFolder}{package.Runtime}";
+                await connection.WriteFile(source, dest);
+            }
+        }
+        if (writeCoprocessor)
+        {
+            if (useDfu)
+            {
+                throw new NotSupportedException();
+            }
+            else
+            {
+                var source = package.GetFullyQualifiedPath(package.CoprocApplication);
+                var dest = $"{F7OtAOsFolder}{package.CoprocApplication}";
+                await connection.WriteFile(source, dest);
+                source = package.GetFullyQualifiedPath(package.CoprocPartitionTable);
+                dest = $"{F7OtAOsFolder}{package.CoprocPartitionTable}";
+                await connection.WriteFile(source, dest);
+                source = package.GetFullyQualifiedPath(package.CoprocBootloader);
+                dest = $"{F7OtAOsFolder}{package.CoprocBootloader}";
                 await connection.WriteFile(source, dest);
             }
         }
 
         await connection.ResetDevice();
-        /*
-                await connection.WriteRuntime();
-                await connection.WriteCoprocessorFile();
-                await connection.WaitForMeadowAttach();
-        */
+        await connection.WaitForMeadowAttach();
     }
 
     public string GetDefaultFirmwareVersionForDevice(string route)

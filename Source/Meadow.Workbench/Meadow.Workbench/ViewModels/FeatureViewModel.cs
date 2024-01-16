@@ -12,6 +12,14 @@ public abstract class FeatureViewModel : ViewModelBase
         get; set;
     }
 
+    public virtual void OnActivated()
+    {
+    }
+
+    public virtual void OnDeactivated()
+    {
+    }
+
     public Window ParentWindow
     {
         get

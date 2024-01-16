@@ -128,7 +128,7 @@ public class FirmwareViewModel : FeatureViewModel
         {
             _store = _manager.Firmware[CurrentStoreName];
         }
-        foreach (var f in _store)
+        foreach (var f in _store.OrderByDescending(s => s.Version))
         {
             FirmwareVersions.Add(new FirmwarePackageViewModel(f, f.Version == _store.DefaultPackage?.Version));
         }
