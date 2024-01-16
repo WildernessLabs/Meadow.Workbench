@@ -31,8 +31,9 @@
             Grid.Row="0" 
             Grid.Column="0" 
             Margin="5">
-            <StackPanel>
+            <DockPanel>
                 <StackPanel
+                    DockPanel.Dock="Top"
                     Orientation="Horizontal">
                     <Button
                         Command="{Binding UploadFileToRemoteCommand}">
@@ -43,6 +44,7 @@
                     </Button>
                 </StackPanel>
                 <DockPanel 
+                    DockPanel.Dock="Top"
                     HorizontalAlignment="Stretch"
                     Margin="3">
                     <TextBox
@@ -55,8 +57,9 @@
                         Content="..."
                         Command="{Binding SelectLocalFolderCommand}"
                         />
-                </DockPanel>
+                </DockPanel>                
                 <ListBox
+                    DockPanel.Dock="Bottom"
                     x:Name="localFileList"
                     DragDrop.AllowDrop="True"
                     PointerPressed="LocalFileListPointerPressed"
@@ -81,20 +84,22 @@
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                 </ListBox>
-            </StackPanel>
+            </DockPanel>
         </Border>
 
         <Border
             Grid.Row="0"
             Grid.Column="1"
             Margin="5">
-            <StackPanel>
+            <DockPanel>
                 <ComboBox
+                    DockPanel.Dock="Top"
                     ItemsSource="{Binding AvailableRemoteRoutes}"
                     SelectedItem="{Binding SelectedRemoteRoute}"
                     Width="300"
                     />
                 <StackPanel
+                    DockPanel.Dock="Top"
                     Orientation="Horizontal">
                     <Button
                         Command="{Binding DownloadRemoteFileCommand}">
@@ -119,6 +124,7 @@
                     </Button>
                 </StackPanel>
                 <DockPanel
+                    DockPanel.Dock="Top"
                     HorizontalAlignment="Stretch"
                     Margin="3">
                     <TextBox
@@ -126,34 +132,32 @@
                         DockPanel.Dock="Left"
                         />
                 </DockPanel>
-                <ScrollViewer
-                    VerticalScrollBarVisibility="Auto">                    
-                    <ListBox
-                        x:Name="remoteFileList"
-                        DragDrop.AllowDrop="True"
-                        Margin="1"
-                        ItemsSource="{Binding RemoteFiles}"
-                        SelectedItem="{Binding SelectedRemoteItem}"
-                        SelectionMode="Single">
-                        <ListBox.Styles>
-                            <Style Selector="ListBoxItem">
-                                <Setter Property="Padding" Value="1"/>
-                            </Style>
-                        </ListBox.Styles>
-                        <ListBox.ItemTemplate>
-                            <DataTemplate>
-                                <StackPanel 
-                                    Orientation="Horizontal" 
-                                    Height="22" 
-                                    DoubleTapped="RemoteFolderDoubleTapped">
-                                    <Svg Path="{Binding Icon}" Height="18" />
-                                    <Label Content="{Binding Name}" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-                    </ListBox>
-                </ScrollViewer>
-            </StackPanel>
+                <ListBox
+                    DockPanel.Dock="Bottom"
+                    x:Name="remoteFileList"
+                    DragDrop.AllowDrop="True"
+                    Margin="1"
+                    ItemsSource="{Binding RemoteFiles}"
+                    SelectedItem="{Binding SelectedRemoteItem}"
+                    SelectionMode="Single">
+                    <ListBox.Styles>
+                        <Style Selector="ListBoxItem">
+                            <Setter Property="Padding" Value="1"/>
+                        </Style>
+                    </ListBox.Styles>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel 
+                                Orientation="Horizontal" 
+                                Height="22" 
+                                DoubleTapped="RemoteFolderDoubleTapped">
+                                <Svg Path="{Binding Icon}" Height="18" />
+                                <Label Content="{Binding Name}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </DockPanel>
 
         </Border>
 

@@ -72,6 +72,8 @@ internal class DevicesViewModel : FeatureViewModel
         var result = await DialogHost.Show(dialog);
     }
 
+    public bool UsingDfu => false; // TODO: get from settings
+
     public DeviceViewModel? SelectedDevice
     {
         get => _selectedDevice;

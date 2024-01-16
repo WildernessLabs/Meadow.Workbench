@@ -237,6 +237,7 @@
                                 Content="OS" />
                             <CheckBox
                                 IsChecked="{Binding FlashRuntime}"
+                                IsVisible="{Binding UsingDfu}"
                                 Content="Runtime" />
                             <CheckBox
                                 IsChecked="{Binding FlashCoprocessor}"

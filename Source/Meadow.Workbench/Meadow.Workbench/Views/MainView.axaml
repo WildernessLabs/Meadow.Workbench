@@ -12,7 +12,9 @@
     <vm:MainViewModel />
   </Design.DataContext>
 
-    <DockPanel>
+    <DockPanel
+        Margin="5"
+        >        
         <DockPanel 
             DockPanel.Dock="Top">
             <Label DockPanel.Dock="Left"
@@ -20,12 +22,12 @@
                    Foreground="AntiqueWhite"
                    FontFamily="Courier"
                    FontSize="20"
+                   Margin="5"
                    Padding="20,10">
                 Meadow Workbench
             </Label>
 
             <StackPanel
-                Margin="5"
                 HorizontalAlignment="Right"
                 Orientation="Horizontal"
                 >
@@ -49,8 +51,12 @@
 
         </DockPanel>
 
-        <StackPanel Background="#303030" Width="200" DockPanel.Dock="Left">
-            <ItemsControl ItemsSource="{Binding FeatureService.Features}">
+        <StackPanel 
+            Background="#303030" 
+            Width="200" 
+            DockPanel.Dock="Left">
+            <ItemsControl 
+                ItemsSource="{Binding FeatureService.Features}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
                         <StackPanel>
