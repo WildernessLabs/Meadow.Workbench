@@ -12,12 +12,15 @@ namespace Meadow.Workbench.Services;
 
 internal class DeviceService
 {
+    private const string F7OtAOsFolder = "/meadow0/update/os/";
+
     public event EventHandler<DeviceInformation> DeviceAdded;
     public event EventHandler<DeviceInformation> DeviceConnected;
     public event EventHandler<DeviceInformation> DeviceDisconnected;
 
     private SerialPortMonitor? _portMonitor;
     private StorageService _storageService;
+    private FirmwareService _firmwareService;
     private SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
 
     public List<DeviceInformation> KnownDevices { get; } = new();
@@ -25,6 +28,7 @@ internal class DeviceService
     public DeviceService()
     {
         _storageService = Locator.Current.GetService<StorageService>() ?? throw new Exception();
+        _firmwareService = Locator.Current.GetService<FirmwareService>() ?? throw new Exception();
 
         KnownDevices = _storageService.GetAllDevices().ToList();
 
@@ -136,6 +140,94 @@ internal class DeviceService
         }
     }
 
+    public async Task FlashFirmware(string route, bool writeOS, bool writeRuntime, bool writeCoprocessor, string? version = null)
+    {
+        var package =
+            version == null
+            ? _firmwareService.CurrentStore.DefaultPackage
+            : _firmwareService.CurrentStore[version];
+
+        if (package == null)
+        {
+            // TODO: error
+            return;
+        }
+
+        var connection = GetConnectionForRoute(route);
+
+        if (await connection.IsRuntimeEnabled())
+        {
+            await connection.RuntimeDisable();
+        }
+
+        await connection.WaitForMeadowAttach();
+
+        var useDfu = false; // TODO: get from settings
+
+        if (writeOS)
+        {
+            if (useDfu)
+            {
+                throw new NotSupportedException();
+            }
+            else
+            {
+                // note: OtA *requires* both the OS and runtime pair
+                var source = package.GetFullyQualifiedPath(package.OsWithoutBootloader);
+                var dest = $"{F7OtAOsFolder}{package.OsWithoutBootloader}";
+                await connection.WriteFile(source, dest);
+                source = package.GetFullyQualifiedPath(package.Runtime);
+                dest = $"{F7OtAOsFolder}{package.Runtime}";
+                await connection.WriteFile(source, dest);
+            }
+        }
+        if (writeCoprocessor)
+        {
+            if (useDfu)
+            {
+                throw new NotSupportedException();
+            }
+            else
+            {
+                var source = package.GetFullyQualifiedPath(package.CoprocApplication);
+                var dest = $"{F7OtAOsFolder}{package.CoprocApplication}";
+                await connection.WriteFile(source, dest);
+                source = package.GetFullyQualifiedPath(package.CoprocPartitionTable);
+                dest = $"{F7OtAOsFolder}{package.CoprocPartitionTable}";
+                await connection.WriteFile(source, dest);
+                source = package.GetFullyQualifiedPath(package.CoprocBootloader);
+                dest = $"{F7OtAOsFolder}{package.CoprocBootloader}";
+                await connection.WriteFile(source, dest);
+            }
+        }
+
+        await connection.ResetDevice();
+        await connection.WaitForMeadowAttach();
+    }
+
+    public string GetDefaultFirmwareVersionForDevice(string route)
+    {
+        return _firmwareService.CurrentStore?.DefaultPackage?.Version ?? "unknown";
+    }
+
+    public async Task SetUtcTime(string route, DateTimeOffset utcTime)
+    {
+        var connection = GetConnectionForRoute(route);
+        await connection.SetRtcTime(utcTime);
+    }
+
+    public async Task<DateTimeOffset?> GetUtcTime(string route)
+    {
+        var connection = GetConnectionForRoute(route);
+        return await connection.GetRtcTime();
+    }
+
+    public async Task<bool> IsRuntimEnabled(string route)
+    {
+        var connection = GetConnectionForRoute(route);
+        return await connection.IsRuntimeEnabled();
+    }
+
     public async Task DisableRuntime(string route)
     {
         var connection = GetConnectionForRoute(route);
@@ -143,6 +235,21 @@ internal class DeviceService
         {
             await connection.RuntimeDisable();
         }
+    }
+
+    public async Task EnableRuntime(string route)
+    {
+        var connection = GetConnectionForRoute(route);
+        if (!await connection.IsRuntimeEnabled())
+        {
+            await connection.RuntimeEnable();
+        }
+    }
+
+    public async Task ResetDevice(string route)
+    {
+        var connection = GetConnectionForRoute(route);
+        await connection.ResetDevice();
     }
 
     public async Task<bool> DeleteFile(string route, string remoteFile)

@@ -1,9 +1,12 @@
 ﻿using Avalonia.Controls;
+using DialogHostAvalonia;
+using Meadow.Workbench.Dialogs;
 using Meadow.Workbench.Services;
 using ReactiveUI;
 using Splat;
 using System.Linq;
 using System.Reactive;
+using System.Threading.Tasks;
 
 namespace Meadow.Workbench.ViewModels;
 
@@ -15,6 +18,9 @@ public class MainViewModel : ViewModelBase
     private SettingsService SettingsService { get; }
 
     public ReactiveCommand<IFeature, Unit> FeatureSelectedCommand { get; }
+    public IReactiveCommand SettingsCommand { get; }
+    public IReactiveCommand UserCommand { get; }
+
     public UserControl Content { get => _activeContent; set => this.RaiseAndSetIfChanged(ref _activeContent, value); }
 
     public MainViewModel()
@@ -23,8 +29,10 @@ public class MainViewModel : ViewModelBase
         FeatureSelectedCommand = ReactiveCommand.Create<IFeature>(ActivateFeature);
         SettingsService = Locator.Current.GetService<SettingsService>();
 
+        SettingsCommand = ReactiveCommand.CreateFromTask(ShowSettings);
+        UserCommand = ReactiveCommand.CreateFromTask(ShowUserLogin);
+
         // select the first feature
-        // TODO: remember the last feature selected and restore it on app run
         SettingsService = Locator.Current.GetService<SettingsService>();
         var lastFeature = SettingsService.LastFeature;
 
@@ -33,9 +41,27 @@ public class MainViewModel : ViewModelBase
         Content = c;
     }
 
+    private async Task ShowUserLogin()
+    {
+    }
+
+    private async Task ShowSettings()
+    {
+        var dialog = new SettingsDialog();
+        var result = await DialogHost.Show(dialog, closingEventHandler: (s, e) =>
+        {
+            /*
+            if (!dialog.IsCancelled)
+            {
+            }
+            */
+        });
+
+    }
+
     private void ActivateFeature(IFeature feature)
     {
-        Content = feature.ViewInstance.Value;
+        Content = FeatureService.Activate(feature);
         SettingsService.LastFeature = feature.Title;
     }
 }

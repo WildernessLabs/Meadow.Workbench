@@ -12,18 +12,51 @@
     <vm:MainViewModel />
   </Design.DataContext>
 
-    <DockPanel>
-        <Label DockPanel.Dock="Top"
-			   Background="Black"
-			   Foreground="AntiqueWhite"
-			   FontFamily="Courier"
-			   FontSize="20"
-			   Padding="20,10">
-            Meadow Workbench
-        </Label>
+    <DockPanel
+        Margin="5"
+        >        
+        <DockPanel 
+            DockPanel.Dock="Top">
+            <Label DockPanel.Dock="Left"
+                   Background="Black"
+                   Foreground="AntiqueWhite"
+                   FontFamily="Courier"
+                   FontSize="20"
+                   Margin="5"
+                   Padding="20,10">
+                Meadow Workbench
+            </Label>
 
-        <StackPanel Background="#303030" Width="200" DockPanel.Dock="Left">
-            <ItemsControl ItemsSource="{Binding FeatureService.Features}">
+            <StackPanel
+                HorizontalAlignment="Right"
+                Orientation="Horizontal"
+                >
+                <Button
+                    Command="{Binding UserCommand}"
+                    >
+                    <Image
+                        Height="30"
+                        Source="avares://Meadow.Workbench/Assets/user.png"
+                            />
+                </Button>
+                <Button
+                    Command="{Binding SettingsCommand}"
+                    >
+                    <Image
+                        Height="30"
+                        Source="avares://Meadow.Workbench/Assets/settings.png"
+                            />
+                </Button>
+            </StackPanel>
+
+        </DockPanel>
+
+        <StackPanel 
+            Background="#303030" 
+            Width="200" 
+            DockPanel.Dock="Left">
+            <ItemsControl 
+                ItemsSource="{Binding FeatureService.Features}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
                         <StackPanel>
@@ -32,11 +65,22 @@
 								CommandParameter="{Binding .}"
 								HorizontalAlignment="Center"
 								Width="200">
-                                <Label
-									HorizontalAlignment="Center"
-									FontSize="20"
-									Foreground="AntiqueWhite"
-									Content="{Binding Title}" />
+                                <StackPanel Background="Transparent">                                    
+                                    <Label
+                                        Background="Transparent"
+									    HorizontalAlignment="Center"
+									    FontSize="20"
+									    Foreground="AntiqueWhite"
+									    Content="{Binding Title}" />
+                                    <Rectangle
+                                        Height="3"
+                                        Margin="15,0"
+                                        Stroke="DarkBlue"
+                                        Fill="DarkBlue"
+                                        IsVisible="{Binding IsActive}"
+                                        />
+                                </StackPanel>
+
                             </Button>
                         </StackPanel>
                     </DataTemplate>

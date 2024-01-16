@@ -33,5 +33,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\Meadow.CLI\Source\v2\Meadow.Hcom\Meadow.HCom.csproj" />
+    <ProjectReference Include="..\..\..\..\Meadow.CLI\Source\v2\Meadow.SoftwareManager\Meadow.SoftwareManager.csproj" />
   </ItemGroup>
 </Project>

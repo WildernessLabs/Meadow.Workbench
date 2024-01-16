@@ -10,20 +10,98 @@ internal class DeviceViewModel : ViewModelBase
 {
     private bool _isConnected;
 
-    public DeviceInformation RootInfo { get; private set; }
-
     private StorageService _storageService;
+    private DeviceService _deviceService;
+    private string? _deviceTime;
+    private bool _isRuntimeEnabled;
 
+    public DeviceInformation RootInfo { get; private set; }
     public IReactiveCommand SetFriendlyNameCommand { get; }
+    public IReactiveCommand SetClockCommand { get; }
+    public IReactiveCommand GetClockCommand { get; }
+    public IReactiveCommand ResetCommand { get; }
+    public IReactiveCommand DisableRuntimeCommand { get; }
+    public IReactiveCommand EnableRuntimeCommand { get; }
 
-    public DeviceViewModel(DeviceInformation info, StorageService storageService)
+    public DeviceViewModel(DeviceInformation info, DeviceService deviceService, StorageService storageService)
     {
         RootInfo = info;
         _storageService = storageService;
+        _deviceService = deviceService;
 
         IsConnected = info.IsConnected;
 
+        if (IsConnected)
+        {
+            _ = GetDeviceClockTime();
+        }
+
         SetFriendlyNameCommand = ReactiveCommand.CreateFromTask(OnSetFriendlyName);
+        SetClockCommand = ReactiveCommand.CreateFromTask(SendPcTimeToDevice);
+        GetClockCommand = ReactiveCommand.CreateFromTask(GetDeviceClockTime);
+        ResetCommand = ReactiveCommand.CreateFromTask(Reset);
+        DisableRuntimeCommand = ReactiveCommand.CreateFromTask(DisableRuntime);
+        EnableRuntimeCommand = ReactiveCommand.CreateFromTask(EnableRuntime);
+
+    }
+
+    private async Task Reset()
+    {
+        if (IsConnected)
+        {
+            await _deviceService.ResetDevice(RootInfo.LastRoute);
+            _ = RefreshRuntimeState();
+        }
+    }
+
+    private async Task RefreshRuntimeState()
+    {
+        if (IsConnected)
+        {
+            IsRuntimeEnabled = await _deviceService.IsRuntimEnabled(RootInfo.LastRoute);
+        }
+    }
+
+    private async Task EnableRuntime()
+    {
+        if (IsConnected)
+        {
+            await _deviceService.EnableRuntime(RootInfo.LastRoute);
+            await RefreshRuntimeState();
+        }
+    }
+
+    private async Task DisableRuntime()
+    {
+        if (IsConnected)
+        {
+            await _deviceService.DisableRuntime(RootInfo.LastRoute);
+            await RefreshRuntimeState();
+        }
+    }
+
+    private async Task SendPcTimeToDevice()
+    {
+        if (IsConnected)
+        {
+            var utc = DateTime.UtcNow;
+            await _deviceService.SetUtcTime(RootInfo.LastRoute, utc);
+            await GetDeviceClockTime();
+        }
+    }
+
+    private async Task GetDeviceClockTime()
+    {
+        if (IsConnected)
+        {
+            var utc = await _deviceService.GetUtcTime(RootInfo.LastRoute);
+            if (utc != null)
+            {
+                DeviceTime = utc.Value.ToLocalTime().ToString();
+            }
+
+            _ = RefreshRuntimeState();
+        }
     }
 
     private async Task OnSetFriendlyName()
@@ -40,15 +118,31 @@ internal class DeviceViewModel : ViewModelBase
         });
     }
 
+    public string? DeviceTime
+    {
+        get => _deviceTime;
+        private set => this.RaiseAndSetIfChanged(ref _deviceTime, value);
+    }
+
     public bool HasFriendlyName
     {
         get => !string.IsNullOrWhiteSpace(FriendlyName);
     }
 
+    public bool IsRuntimeEnabled
+    {
+        get => _isRuntimeEnabled;
+        private set => this.RaiseAndSetIfChanged(ref _isRuntimeEnabled, value);
+    }
+
     public bool IsConnected
     {
         get => _isConnected;
-        set => this.RaiseAndSetIfChanged(ref _isConnected, value);
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _isConnected, value);
+            _ = RefreshRuntimeState();
+        }
     }
 
     public string? FriendlyName
