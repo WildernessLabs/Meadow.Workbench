@@ -1,5 +1,7 @@
 ﻿using Meadow.Software;
+using Meadow.Workbench.Services;
 using ReactiveUI;
+using Splat;
 using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -21,23 +23,65 @@ public class FirmwareViewModel : FeatureViewModel
     private bool _flashAll;
     private bool _flashOS;
     private bool _flashRuntime;
+    private DeviceService _deviceService;
+    private string? _selectedRoute;
 
     public ObservableCollection<FirmwarePackageViewModel> FirmwareVersions { get; } = new();
+    public ObservableCollection<string> ConnectedRoutes { get; } = new();
+
     public IReactiveCommand DownloadLatestCommand { get; }
     public IReactiveCommand MakeDefaultCommand { get; }
     public IReactiveCommand DeleteFirmwareCommand { get; }
+    public IReactiveCommand FlashCommand { get; }
 
     public FirmwareViewModel()
     {
+        _deviceService = Locator.Current.GetService<DeviceService>();
+
+        foreach (var d in _deviceService.KnownDevices)
+        {
+            if (d.IsConnected && d.LastRoute != null)
+            {
+                ConnectedRoutes.Add(d.LastRoute);
+            }
+        }
+
+        _deviceService!.DeviceConnected += OnDeviceConnected;
+        _deviceService!.DeviceDisconnected += OnDeviceDisconnected;
+        _deviceService!.DeviceRemoved += OnDeviceRemoved;
+
+
         _manager = new FileManager();
         _ = RefreshCurrentStore();
 
         DownloadLatestCommand = ReactiveCommand.CreateFromTask(DownloadLatest);
         MakeDefaultCommand = ReactiveCommand.CreateFromTask(MakeSelectedTheDefault);
         DeleteFirmwareCommand = ReactiveCommand.CreateFromTask(DeleteSelectedFirmware);
+        FlashCommand = ReactiveCommand.CreateFromTask(FlashSelectedFirmware);
     }
 
     public bool UsingDfu => false; // TODO: get from settings
+
+    private void OnDeviceConnected(object? sender, DeviceInformation e)
+    {
+        if (e.LastRoute != null)
+        {
+            ConnectedRoutes.Add(e.LastRoute);
+        }
+    }
+
+    private void OnDeviceDisconnected(object? sender, DeviceInformation e)
+    {
+        if (e.LastRoute != null)
+        {
+            ConnectedRoutes.Remove(e.LastRoute);
+        }
+    }
+
+    private void OnDeviceRemoved(object? sender, string e)
+    {
+        ConnectedRoutes.Remove(e);
+    }
 
     public bool FlashAll
     {
@@ -93,6 +137,12 @@ public class FirmwareViewModel : FeatureViewModel
                 this.RaisePropertyChanged(nameof(FlashAll));
             }
         }
+    }
+
+    private async Task FlashSelectedFirmware()
+    {
+        if (SelectedFirmwareVersion == null) return;
+        await _deviceService.FlashFirmware(SelectedRoute, FlashOS, FlashRuntime, FlashCoprocessor, SelectedFirmwareVersion.Version);
     }
 
     private async Task DeleteSelectedFirmware()
@@ -157,6 +207,12 @@ public class FirmwareViewModel : FeatureViewModel
     {
         get => _makeDownloadDefault;
         private set => this.RaiseAndSetIfChanged(ref _makeDownloadDefault, value);
+    }
+
+    public string? SelectedRoute
+    {
+        get => _selectedRoute;
+        private set => this.RaiseAndSetIfChanged(ref _selectedRoute, value);
     }
 
     public string? LatestAvailableVersion

@@ -233,7 +233,8 @@
                     </StackPanel>
                 </StackPanel>
                 
-                <StackPanel                    
+                <StackPanel   
+                    IsVisible="{Binding !!SelectedFirmwareVersion}"
                     Margin="5"
                     VerticalAlignment="Bottom"
                     DockPanel.Dock="Bottom">
@@ -254,10 +255,14 @@
                         Content="All" />
                     <StackPanel Orientation="Horizontal">
                         <ComboBox
+                            ItemsSource="{Binding ConnectedRoutes}"
+                            SelectedItem="{Binding SelectedRoute}"
                             Width="200"
                             />
                         <Button
                             Content="send"
+                            IsEnabled="{Binding !!SelectedRoute}"
+                            Command="{Binding FlashCommand}"
                             />
                     </StackPanel>
                 </StackPanel>
