@@ -30,6 +30,7 @@ internal class DevicesViewModel : FeatureViewModel
         _deviceService = Locator.Current.GetService<DeviceService>();
         _deviceService!.DeviceConnected += OnDeviceConnected;
         _deviceService!.DeviceDisconnected += OnDeviceDisconnected;
+        _deviceService!.DeviceRemoved += OnDeviceRemoved;
 
         _storageService = Locator.Current.GetService<StorageService>();
 
@@ -42,6 +43,15 @@ internal class DevicesViewModel : FeatureViewModel
 
         AddDeviceCommand = ReactiveCommand.CreateFromTask(OnAddDevice);
         FlashDeviceCommand = ReactiveCommand.CreateFromTask(FlashSelectedDevice);
+    }
+
+    private void OnDeviceRemoved(object? sender, string e)
+    {
+        var existing = Devices.FirstOrDefault(d => d.DeviceID == e);
+        if (existing != null)
+        {
+            Devices.Remove(existing);
+        }
     }
 
     public override void OnActivated()

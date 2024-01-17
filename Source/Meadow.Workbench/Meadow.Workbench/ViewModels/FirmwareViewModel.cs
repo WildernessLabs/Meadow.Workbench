@@ -17,6 +17,10 @@ public class FirmwareViewModel : FeatureViewModel
     private FirmwarePackageViewModel? _selectedFirmware;
     private string? _latestAvailable;
     private bool _makeDownloadDefault = true;
+    private bool _flashCoprocessor;
+    private bool _flashAll;
+    private bool _flashOS;
+    private bool _flashRuntime;
 
     public ObservableCollection<FirmwarePackageViewModel> FirmwareVersions { get; } = new();
     public IReactiveCommand DownloadLatestCommand { get; }
@@ -31,6 +35,64 @@ public class FirmwareViewModel : FeatureViewModel
         DownloadLatestCommand = ReactiveCommand.CreateFromTask(DownloadLatest);
         MakeDefaultCommand = ReactiveCommand.CreateFromTask(MakeSelectedTheDefault);
         DeleteFirmwareCommand = ReactiveCommand.CreateFromTask(DeleteSelectedFirmware);
+    }
+
+    public bool UsingDfu => false; // TODO: get from settings
+
+    public bool FlashAll
+    {
+        get => _flashAll;
+        set
+        {
+            if (value == FlashAll) return;
+            this.RaiseAndSetIfChanged(ref _flashAll, value);
+
+            FlashOS = value;
+            FlashRuntime = value;
+            FlashCoprocessor = value;
+        }
+    }
+
+    public bool FlashOS
+    {
+        get => _flashOS;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _flashOS, value);
+            if (!value)
+            {
+                _flashAll = false;
+                this.RaisePropertyChanged(nameof(FlashAll));
+            }
+        }
+    }
+
+    public bool FlashRuntime
+    {
+        get => _flashRuntime;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _flashRuntime, value);
+            if (!value)
+            {
+                _flashAll = false;
+                this.RaisePropertyChanged(nameof(FlashAll));
+            }
+        }
+    }
+
+    public bool FlashCoprocessor
+    {
+        get => _flashCoprocessor;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _flashCoprocessor, value);
+            if (!value)
+            {
+                _flashAll = false;
+                this.RaisePropertyChanged(nameof(FlashAll));
+            }
+        }
     }
 
     private async Task DeleteSelectedFirmware()

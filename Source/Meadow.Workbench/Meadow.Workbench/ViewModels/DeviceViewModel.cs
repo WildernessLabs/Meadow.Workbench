@@ -22,6 +22,7 @@ internal class DeviceViewModel : ViewModelBase
     public IReactiveCommand ResetCommand { get; }
     public IReactiveCommand DisableRuntimeCommand { get; }
     public IReactiveCommand EnableRuntimeCommand { get; }
+    public IReactiveCommand DeleteDeviceCommand { get; }
 
     public DeviceViewModel(DeviceInformation info, DeviceService deviceService, StorageService storageService)
     {
@@ -42,6 +43,7 @@ internal class DeviceViewModel : ViewModelBase
         ResetCommand = ReactiveCommand.CreateFromTask(Reset);
         DisableRuntimeCommand = ReactiveCommand.CreateFromTask(DisableRuntime);
         EnableRuntimeCommand = ReactiveCommand.CreateFromTask(EnableRuntime);
+        DeleteDeviceCommand = ReactiveCommand.CreateFromTask(DeleteDevice);
 
     }
 
@@ -60,6 +62,12 @@ internal class DeviceViewModel : ViewModelBase
         {
             IsRuntimeEnabled = await _deviceService.IsRuntimEnabled(RootInfo.LastRoute);
         }
+    }
+
+    private async Task DeleteDevice()
+    {
+        await _deviceService.RemoveDevice(RootInfo.DeviceID);
+        await RefreshRuntimeState();
     }
 
     private async Task EnableRuntime()

@@ -240,12 +240,17 @@
                     <Label
                         Content="Flash" />
                     <CheckBox
+                        IsChecked="{Binding FlashOS}"
                         Content="OS" />
                     <CheckBox
+                        IsChecked="{Binding FlashRuntime}"
+                        IsVisible="{Binding UsingDfu}"
                         Content="Runtime" />
                     <CheckBox
+                        IsChecked="{Binding FlashCoprocessor}"
                         Content="Coprocesor" />
                     <CheckBox
+                        IsChecked="{Binding FlashAll}"
                         Content="All" />
                     <StackPanel Orientation="Horizontal">
                         <ComboBox

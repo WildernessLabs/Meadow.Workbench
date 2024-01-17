@@ -54,21 +54,28 @@
                                         Command="{Binding SetFriendlyNameCommand}"
                                         Content="Set Friendly Name"
                                         />
+
+                                    <Button
+                                        Grid.Row="0"
+                                        Grid.Column="2"
+                                        HorizontalAlignment="Right"
+                                        Command="{Binding DeleteDeviceCommand}"
+                                        Content="X"
+                                        />
                                     
                                     <Image
                                         Grid.Row="0"
                                         Grid.Column="0"
-                                        Grid.RowSpan="4"
-                                        Width="40"
+                                        Width="20"
                                         IsVisible="{Binding IsConnected}"
                                         Source="{SvgImage /Assets/connected.svg}" />
                                     <Image
                                         Grid.Row="0"
                                         Grid.Column="0"
-                                        Grid.RowSpan="4"
-                                        Width="40"
+                                        Width="20"
                                         IsVisible="{Binding !IsConnected}"
-                                        Source="{SvgImage /Assets/disconnected.svg}" />                                    
+                                        Source="{SvgImage /Assets/disconnected.svg}" />
+                                    
                                     <Label
                                         Grid.Row="1"
                                         Grid.Column="1"
@@ -89,6 +96,7 @@
                                         Grid.Column="2"
                                         Content="{Binding Version}"
                                         />
+                                    
                                     <Label
                                         Grid.Row="3"
                                         Grid.Column="1"

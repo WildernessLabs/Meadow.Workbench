@@ -15,6 +15,7 @@ internal class DeviceService
     private const string F7OtAOsFolder = "/meadow0/update/os/";
 
     public event EventHandler<DeviceInformation> DeviceAdded;
+    public event EventHandler<string> DeviceRemoved;
     public event EventHandler<DeviceInformation> DeviceConnected;
     public event EventHandler<DeviceInformation> DeviceDisconnected;
 
@@ -68,17 +69,29 @@ internal class DeviceService
     private async Task CheckForDeviceAtLocation(string route)
     {
         // do we already know about this device?
-        var existing = KnownDevices.FirstOrDefault(d => d.LastRoute == route && d.IsConnected);
-        if (existing != null)
-        {
-            Debug.WriteLine($"Already known device at {route}");
-            // TODO: should we pull info and verify ID?
-            return;
-        }
+        IMeadowConnection? connection = null;
 
         Debug.WriteLine($"Looking for a device at {route}");
 
-        var connection = new Hcom.SerialConnection(route);
+        var existing = KnownDevices.FirstOrDefault(d => d.LastRoute == route);
+        if (existing != null)
+        {
+            if (existing.IsConnected)
+            {
+                Debug.WriteLine($"Already known and connected device at {route}");
+                // TODO: should we pull info and verify ID?
+                return;
+            }
+
+            connection = existing.Connection;
+        }
+
+        if (connection == null)
+        {
+
+            connection = new Hcom.SerialConnection(route);
+        }
+
         await connection.Attach();
         try
         {
@@ -277,6 +290,13 @@ internal class DeviceService
         var list = await connection.GetFileList(directory, false);
         return new MeadowDirectory(directory, list);
 
+    }
+
+    public Task RemoveDevice(string deviceID)
+    {
+        _storageService.DeleteDeviceInfo(deviceID);
+        DeviceRemoved?.Invoke(this, deviceID);
+        return Task.CompletedTask;
     }
 
     public async Task<IMeadowConnection?> AddConnection(string route)
