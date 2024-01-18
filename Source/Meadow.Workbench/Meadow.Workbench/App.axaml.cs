@@ -39,7 +39,7 @@ public partial class App : Application
         {
             Title = "Code"
         });
-        fs.Features.Add(new Feature<SimulationView, SimulationModel>
+        fs.Features.Add(new Feature<SimulationView, SimulationViewModel>
         {
             Title = "Simulation"
         });

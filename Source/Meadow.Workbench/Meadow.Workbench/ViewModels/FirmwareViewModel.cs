@@ -25,6 +25,8 @@ public class FirmwareViewModel : FeatureViewModel
     private bool _flashRuntime;
     private DeviceService _deviceService;
     private string? _selectedRoute;
+    private bool _useDfu;
+    private bool _defuDeviceAvailable;
 
     public ObservableCollection<FirmwarePackageViewModel> FirmwareVersions { get; } = new();
     public ObservableCollection<string> ConnectedRoutes { get; } = new();
@@ -60,7 +62,24 @@ public class FirmwareViewModel : FeatureViewModel
         FlashCommand = ReactiveCommand.CreateFromTask(FlashSelectedFirmware);
     }
 
-    public bool UsingDfu => false; // TODO: get from settings
+    public bool UsingDfu
+    {
+        get => _useDfu;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _useDfu, value);
+
+            _ = CheckForDfuDevice();
+        }
+    }
+
+    private Task CheckForDfuDevice()
+    {
+        return Task.Run(() =>
+        {
+            DfuDeviceAvailable = _deviceService.IsLibUsbDeviceConnected();
+        });
+    }
 
     private void OnDeviceConnected(object? sender, DeviceInformation e)
     {
@@ -139,10 +158,27 @@ public class FirmwareViewModel : FeatureViewModel
         }
     }
 
+    public bool DfuDeviceAvailable
+    {
+        get => _defuDeviceAvailable;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _defuDeviceAvailable, value);
+        }
+    }
+
     private async Task FlashSelectedFirmware()
     {
         if (SelectedFirmwareVersion == null) return;
-        await _deviceService.FlashFirmware(SelectedRoute, FlashOS, FlashRuntime, FlashCoprocessor, SelectedFirmwareVersion.Version);
+
+        if (UsingDfu)
+        {
+            await _deviceService.FlashFirmwareWithDfu(SelectedRoute, FlashOS, FlashRuntime, FlashCoprocessor, SelectedFirmwareVersion.Version);
+        }
+        else
+        {
+            await _deviceService.FlashFirmwareWithOtA(SelectedRoute, FlashOS, FlashCoprocessor, SelectedFirmwareVersion.Version);
+        }
     }
 
     private async Task DeleteSelectedFirmware()
@@ -212,7 +248,27 @@ public class FirmwareViewModel : FeatureViewModel
     public string? SelectedRoute
     {
         get => _selectedRoute;
-        private set => this.RaiseAndSetIfChanged(ref _selectedRoute, value);
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _selectedRoute, value);
+
+            var device = _deviceService.KnownDevices.FirstOrDefault(d => d.LastRoute == _selectedRoute);
+            if (device != null)
+            {
+                if (Version.TryParse(device.OsVersion, out Version? v))
+                {
+                    if (v != null)
+                    {
+                        if (v.Minor < 7)
+                        {
+                            UsingDfu = true;
+                            return;
+                        }
+                    }
+                }
+            }
+            UsingDfu = false;
+        }
     }
 
     public string? LatestAvailableVersion

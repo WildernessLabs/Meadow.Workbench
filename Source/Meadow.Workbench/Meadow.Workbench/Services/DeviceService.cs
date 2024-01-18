@@ -1,5 +1,6 @@
 ﻿using Meadow.Hcom;
 using Meadow.Workbench.ViewModels;
+using MeadowCLI;
 using Splat;
 using System;
 using System.Collections.Generic;
@@ -23,8 +24,10 @@ internal class DeviceService
     private StorageService _storageService;
     private FirmwareService _firmwareService;
     private SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
+    private FirmwareWriter _firmwareWriter;
 
     public List<DeviceInformation> KnownDevices { get; } = new();
+    private FirmwareWriter FirmwareWriter => _firmwareWriter ??= new FirmwareWriter();
 
     public DeviceService()
     {
@@ -153,7 +156,18 @@ internal class DeviceService
         }
     }
 
-    public async Task FlashFirmware(string route, bool writeOS, bool writeRuntime, bool writeCoprocessor, string? version = null)
+    public bool IsLibUsbDeviceConnected()
+    {
+        return FirmwareWriter.GetLibUsbDevices().Count() > 0;
+    }
+
+    public async Task FlashFirmwareWithDfu(string route, bool writeOS, bool writeRuntime, bool writeCoprocessor, string version)
+    {
+
+        var devices = FirmwareWriter.GetLibUsbDevices();
+    }
+
+    public async Task FlashFirmwareWithOtA(string route, bool writeOS, bool writeCoprocessor, string? version = null)
     {
         var package =
             version == null
@@ -175,43 +189,27 @@ internal class DeviceService
 
         await connection.WaitForMeadowAttach();
 
-        var useDfu = false; // TODO: get from settings
-
         if (writeOS)
         {
-            if (useDfu)
-            {
-                throw new NotSupportedException();
-            }
-            else
-            {
-                // note: OtA *requires* both the OS and runtime pair
-                var source = package.GetFullyQualifiedPath(package.OsWithoutBootloader);
-                var dest = $"{F7OtAOsFolder}{package.OsWithoutBootloader}";
-                await connection.WriteFile(source, dest);
-                source = package.GetFullyQualifiedPath(package.Runtime);
-                dest = $"{F7OtAOsFolder}{package.Runtime}";
-                await connection.WriteFile(source, dest);
-            }
+            // note: OtA *requires* both the OS and runtime pair
+            var source = package.GetFullyQualifiedPath(package.OsWithoutBootloader);
+            var dest = $"{F7OtAOsFolder}{package.OsWithoutBootloader}";
+            await connection.WriteFile(source, dest);
+            source = package.GetFullyQualifiedPath(package.Runtime);
+            dest = $"{F7OtAOsFolder}{package.Runtime}";
+            await connection.WriteFile(source, dest);
         }
         if (writeCoprocessor)
         {
-            if (useDfu)
-            {
-                throw new NotSupportedException();
-            }
-            else
-            {
-                var source = package.GetFullyQualifiedPath(package.CoprocApplication);
-                var dest = $"{F7OtAOsFolder}{package.CoprocApplication}";
-                await connection.WriteFile(source, dest);
-                source = package.GetFullyQualifiedPath(package.CoprocPartitionTable);
-                dest = $"{F7OtAOsFolder}{package.CoprocPartitionTable}";
-                await connection.WriteFile(source, dest);
-                source = package.GetFullyQualifiedPath(package.CoprocBootloader);
-                dest = $"{F7OtAOsFolder}{package.CoprocBootloader}";
-                await connection.WriteFile(source, dest);
-            }
+            var source = package.GetFullyQualifiedPath(package.CoprocApplication);
+            var dest = $"{F7OtAOsFolder}{package.CoprocApplication}";
+            await connection.WriteFile(source, dest);
+            source = package.GetFullyQualifiedPath(package.CoprocPartitionTable);
+            dest = $"{F7OtAOsFolder}{package.CoprocPartitionTable}";
+            await connection.WriteFile(source, dest);
+            source = package.GetFullyQualifiedPath(package.CoprocBootloader);
+            dest = $"{F7OtAOsFolder}{package.CoprocBootloader}";
+            await connection.WriteFile(source, dest);
         }
 
         await connection.ResetDevice();

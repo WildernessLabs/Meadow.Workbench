@@ -241,6 +241,9 @@
                     <Label
                         Content="Flash" />
                     <CheckBox
+                        IsChecked="{Binding UsingDfu}"
+                        Content="Use DFU/HCOM" />
+                    <CheckBox
                         IsChecked="{Binding FlashOS}"
                         Content="OS" />
                     <CheckBox
@@ -257,13 +260,30 @@
                         <ComboBox
                             ItemsSource="{Binding ConnectedRoutes}"
                             SelectedItem="{Binding SelectedRoute}"
+                            IsVisible="{Binding !UsingDfu}"
                             Width="200"
                             />
+                        <Label
+                            Content="No DFU Device Detected!"
+                            >
+                            <Label.IsVisible>
+                                <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                    <Binding Path="UsingDfu"/>
+                                    <Binding Path="!DfuDeviceAvailable"/>
+                                </MultiBinding>
+                            </Label.IsVisible>
+                        </Label>
                         <Button
                             Content="send"
-                            IsEnabled="{Binding !!SelectedRoute}"
                             Command="{Binding FlashCommand}"
-                            />
+                            >
+                            <Button.IsEnabled>
+                                <MultiBinding Converter="{x:Static BoolConverters.Or}">
+                                    <Binding Path="!!SelectedRoute"/>
+                                    <Binding Path="DfuDeviceAvailable"/>
+                                </MultiBinding>
+                            </Button.IsEnabled>
+                        </Button>
                     </StackPanel>
                 </StackPanel>
             </DockPanel>

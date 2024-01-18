@@ -23,6 +23,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Meadow.Logging", "..\..\..\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Meadow.Units", "..\..\..\Meadow.Units\Source\Meadow.Units\Meadow.Units.csproj", "{64777198-0B6A-4EBD-B6F4-2EF56C9B9FD1}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Meadow.UsbLib", "..\..\..\Meadow.CLI\Source\v2\Meadow.UsbLib\Meadow.UsbLib.csproj", "{99D0F118-9791-477E-A666-DDCE66D76428}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Meadow.UsbLib.Core", "..\..\..\Meadow.CLI\Source\v2\Meadow.UsbLib.Core\Meadow.UsbLib.Core.csproj", "{16C46AF0-83A2-4F9A-B889-A8E0CB669ECC}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Meadow.UsbLibClassic", "..\..\..\Meadow.CLI\Source\v2\Meadow.UsbLibClassic\Meadow.UsbLibClassic.csproj", "{9A6B5966-0C01-4D12-9A94-1A716CED6F45}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -90,6 +96,24 @@ Global
 		{64777198-0B6A-4EBD-B6F4-2EF56C9B9FD1}.Simulation|Any CPU.ActiveCfg = Debug|Any CPU
 		{64777198-0B6A-4EBD-B6F4-2EF56C9B9FD1}.Simulation|Any CPU.Build.0 = Debug|Any CPU
 		{64777198-0B6A-4EBD-B6F4-2EF56C9B9FD1}.Simulation|Any CPU.Deploy.0 = Debug|Any CPU
+		{99D0F118-9791-477E-A666-DDCE66D76428}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{99D0F118-9791-477E-A666-DDCE66D76428}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{99D0F118-9791-477E-A666-DDCE66D76428}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{99D0F118-9791-477E-A666-DDCE66D76428}.Release|Any CPU.Build.0 = Release|Any CPU
+		{99D0F118-9791-477E-A666-DDCE66D76428}.Simulation|Any CPU.ActiveCfg = Debug|Any CPU
+		{99D0F118-9791-477E-A666-DDCE66D76428}.Simulation|Any CPU.Build.0 = Debug|Any CPU
+		{16C46AF0-83A2-4F9A-B889-A8E0CB669ECC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{16C46AF0-83A2-4F9A-B889-A8E0CB669ECC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{16C46AF0-83A2-4F9A-B889-A8E0CB669ECC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{16C46AF0-83A2-4F9A-B889-A8E0CB669ECC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{16C46AF0-83A2-4F9A-B889-A8E0CB669ECC}.Simulation|Any CPU.ActiveCfg = Debug|Any CPU
+		{16C46AF0-83A2-4F9A-B889-A8E0CB669ECC}.Simulation|Any CPU.Build.0 = Debug|Any CPU
+		{9A6B5966-0C01-4D12-9A94-1A716CED6F45}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9A6B5966-0C01-4D12-9A94-1A716CED6F45}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9A6B5966-0C01-4D12-9A94-1A716CED6F45}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9A6B5966-0C01-4D12-9A94-1A716CED6F45}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9A6B5966-0C01-4D12-9A94-1A716CED6F45}.Simulation|Any CPU.ActiveCfg = Debug|Any CPU
+		{9A6B5966-0C01-4D12-9A94-1A716CED6F45}.Simulation|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -102,6 +126,9 @@ Global
 		{94B4D0D4-845A-494D-AA90-17FD7D9C85CC} = {DDFDEBEE-B935-428F-8C10-B59433644262}
 		{9B3462E5-4ABE-4E06-9D4B-58A2016B2F08} = {DDFDEBEE-B935-428F-8C10-B59433644262}
 		{64777198-0B6A-4EBD-B6F4-2EF56C9B9FD1} = {DDFDEBEE-B935-428F-8C10-B59433644262}
+		{99D0F118-9791-477E-A666-DDCE66D76428} = {DDFDEBEE-B935-428F-8C10-B59433644262}
+		{16C46AF0-83A2-4F9A-B889-A8E0CB669ECC} = {DDFDEBEE-B935-428F-8C10-B59433644262}
+		{9A6B5966-0C01-4D12-9A94-1A716CED6F45} = {DDFDEBEE-B935-428F-8C10-B59433644262}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {4B0F6E78-491A-455C-ABF6-C48E3FBE046E}

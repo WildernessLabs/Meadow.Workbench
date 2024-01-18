@@ -4,9 +4,9 @@ using Meadow.Workbench.ViewModels;
 
 namespace Meadow.Workbench.Dialogs;
 
-public partial class FirmwareFlashDialog : UserControl
+public partial class OtAFirmwareFlashDialog : UserControl
 {
-    public FirmwareFlashDialog()
+    public OtAFirmwareFlashDialog()
     {
         InitializeComponent();
         close.Click += Close_Click;
@@ -17,7 +17,7 @@ public partial class FirmwareFlashDialog : UserControl
         DialogHost.Close(null);
     }
 
-    internal FirmwareFlashDialog(FirmwareFlashViewModel viewModel)
+    internal OtAFirmwareFlashDialog(OtAFirmwareFlashViewModel viewModel)
         : this()
     {
         this.DataContext = viewModel;
