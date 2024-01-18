@@ -95,9 +95,9 @@ internal class DeviceService
             connection = new Hcom.SerialConnection(route);
         }
 
-        await connection.Attach();
         try
         {
+            await connection.Attach();
             var info = await connection.GetDeviceInfo();
 
             if (info != null)
@@ -163,8 +163,13 @@ internal class DeviceService
 
     public async Task FlashFirmwareWithDfu(string route, bool writeOS, bool writeRuntime, bool writeCoprocessor, string version)
     {
+        var package = _firmwareService.CurrentStore[version];
 
-        var devices = FirmwareWriter.GetLibUsbDevices();
+        if (package == null) return;
+
+        var source = package.GetFullyQualifiedPath(package.OSWithBootloader);
+
+        await FirmwareWriter.WriteOsWithDfu(source, null, false);
     }
 
     public async Task FlashFirmwareWithOtA(string route, bool writeOS, bool writeCoprocessor, string? version = null)
