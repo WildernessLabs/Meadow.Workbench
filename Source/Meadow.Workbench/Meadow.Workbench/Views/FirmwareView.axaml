@@ -233,27 +233,57 @@
                     </StackPanel>
                 </StackPanel>
                 
-                <StackPanel                    
+                <StackPanel   
+                    IsVisible="{Binding !!SelectedFirmwareVersion}"
                     Margin="5"
                     VerticalAlignment="Bottom"
                     DockPanel.Dock="Bottom">
                     <Label
                         Content="Flash" />
                     <CheckBox
+                        IsChecked="{Binding UsingDfu}"
+                        Content="Use DFU/HCOM" />
+                    <CheckBox
+                        IsChecked="{Binding FlashOS}"
                         Content="OS" />
                     <CheckBox
+                        IsChecked="{Binding FlashRuntime}"
+                        IsVisible="{Binding UsingDfu}"
                         Content="Runtime" />
                     <CheckBox
+                        IsChecked="{Binding FlashCoprocessor}"
                         Content="Coprocesor" />
                     <CheckBox
+                        IsChecked="{Binding FlashAll}"
                         Content="All" />
                     <StackPanel Orientation="Horizontal">
                         <ComboBox
+                            ItemsSource="{Binding ConnectedRoutes}"
+                            SelectedItem="{Binding SelectedRoute}"
+                            IsVisible="{Binding !UsingDfu}"
                             Width="200"
                             />
+                        <Label
+                            Content="No DFU Device Detected!"
+                            >
+                            <Label.IsVisible>
+                                <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                    <Binding Path="UsingDfu"/>
+                                    <Binding Path="!DfuDeviceAvailable"/>
+                                </MultiBinding>
+                            </Label.IsVisible>
+                        </Label>
                         <Button
                             Content="send"
-                            />
+                            Command="{Binding FlashCommand}"
+                            >
+                            <Button.IsEnabled>
+                                <MultiBinding Converter="{x:Static BoolConverters.Or}">
+                                    <Binding Path="!!SelectedRoute"/>
+                                    <Binding Path="DfuDeviceAvailable"/>
+                                </MultiBinding>
+                            </Button.IsEnabled>
+                        </Button>
                     </StackPanel>
                 </StackPanel>
             </DockPanel>

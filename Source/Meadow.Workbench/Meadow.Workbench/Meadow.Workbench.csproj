@@ -32,7 +32,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\Meadow.CLI\Source\v2\Meadow.Cli.Core\Meadow.CLI.Core.csproj" />
     <ProjectReference Include="..\..\..\..\Meadow.CLI\Source\v2\Meadow.Hcom\Meadow.HCom.csproj" />
     <ProjectReference Include="..\..\..\..\Meadow.CLI\Source\v2\Meadow.SoftwareManager\Meadow.SoftwareManager.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Properties\PublishProfiles\" />
+  </ItemGroup>
+
 </Project>

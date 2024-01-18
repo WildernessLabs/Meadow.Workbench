@@ -14,14 +14,14 @@ public class SoftwareFlashTimelineEntry
     public string LedState { get; set; }
 }
 
-public class FirmwareFlashViewModel : ViewModelBase
+public class OtAFirmwareFlashViewModel : ViewModelBase
 {
     private int _startTick;
     private Timer? _timer;
     private TimeSpan _timestamp;
     private SoftwareFlashTimelineEntry? _activeTimelineEntry;
 
-    public FirmwareFlashViewModel()
+    public OtAFirmwareFlashViewModel()
     {
         // TODO: get these based on selected options, platform, etc
         Timeline =
@@ -91,15 +91,14 @@ public class FirmwareFlashViewModel : ViewModelBase
         ResetTimer();
     }
 
-    internal FirmwareFlashViewModel(DeviceService deviceService, string route, bool flashOS, bool flashRuntime, bool flashCoprocessor)
+    internal OtAFirmwareFlashViewModel(DeviceService deviceService, string route, bool flashOS, bool flashCoprocessor)
         : this()
     {
         Task.Run(() =>
         {
-            _ = deviceService.FlashFirmware(
+            _ = deviceService.FlashFirmwareWithOtA(
                 route,
                 flashOS,
-                flashRuntime,
                 flashCoprocessor);
         });
 

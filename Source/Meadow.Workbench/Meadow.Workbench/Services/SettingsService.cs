@@ -36,6 +36,12 @@ public class SettingsService
             SettingsFile);
     }
 
+    public bool UseDfu
+    {
+        get => GetBool(nameof(UseDfu)) ?? false;
+        set => SetBool(nameof(UseDfu), value);
+    }
+
     public string LastFeature
     {
         get => GetString(nameof(LastFeature)) ?? string.Empty;
@@ -120,5 +126,40 @@ public class SettingsService
             }
         }
         return null;
+    }
+
+    public bool? GetBool(string key, bool defaultValue = false)
+    {
+        using (var f = File.OpenText(SettingFilePath))
+        {
+            JsonDocument doc = JsonDocument.Parse(f.ReadToEnd());
+
+            if (doc.RootElement.TryGetProperty(key, out JsonElement e))
+            {
+                try
+                {
+                    return e.GetBoolean();
+                }
+                catch
+                {
+                    return defaultValue;
+                }
+            }
+        }
+        return defaultValue;
+    }
+
+    public void SetBool(string key, bool value)
+    {
+        string text;
+        using (var f = File.OpenText(SettingFilePath))
+        {
+            text = f.ReadToEnd();
+        }
+
+        var json = JsonObject.Parse(text);
+        json[key] = value;
+
+        File.WriteAllText(SettingFilePath, json.ToString());
     }
 }

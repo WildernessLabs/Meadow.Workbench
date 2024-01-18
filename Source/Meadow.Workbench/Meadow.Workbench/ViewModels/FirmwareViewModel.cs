@@ -1,5 +1,7 @@
 ﻿using Meadow.Software;
+using Meadow.Workbench.Services;
 using ReactiveUI;
+using Splat;
 using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -17,20 +19,166 @@ public class FirmwareViewModel : FeatureViewModel
     private FirmwarePackageViewModel? _selectedFirmware;
     private string? _latestAvailable;
     private bool _makeDownloadDefault = true;
+    private bool _flashCoprocessor;
+    private bool _flashAll;
+    private bool _flashOS;
+    private bool _flashRuntime;
+    private DeviceService _deviceService;
+    private string? _selectedRoute;
+    private bool _useDfu;
+    private bool _defuDeviceAvailable;
 
     public ObservableCollection<FirmwarePackageViewModel> FirmwareVersions { get; } = new();
+    public ObservableCollection<string> ConnectedRoutes { get; } = new();
+
     public IReactiveCommand DownloadLatestCommand { get; }
     public IReactiveCommand MakeDefaultCommand { get; }
     public IReactiveCommand DeleteFirmwareCommand { get; }
+    public IReactiveCommand FlashCommand { get; }
 
     public FirmwareViewModel()
     {
+        _deviceService = Locator.Current.GetService<DeviceService>();
+
+        foreach (var d in _deviceService.KnownDevices)
+        {
+            if (d.IsConnected && d.LastRoute != null)
+            {
+                ConnectedRoutes.Add(d.LastRoute);
+            }
+        }
+
+        _deviceService!.DeviceConnected += OnDeviceConnected;
+        _deviceService!.DeviceDisconnected += OnDeviceDisconnected;
+        _deviceService!.DeviceRemoved += OnDeviceRemoved;
+
+
         _manager = new FileManager();
         _ = RefreshCurrentStore();
 
         DownloadLatestCommand = ReactiveCommand.CreateFromTask(DownloadLatest);
         MakeDefaultCommand = ReactiveCommand.CreateFromTask(MakeSelectedTheDefault);
         DeleteFirmwareCommand = ReactiveCommand.CreateFromTask(DeleteSelectedFirmware);
+        FlashCommand = ReactiveCommand.CreateFromTask(FlashSelectedFirmware);
+    }
+
+    public bool UsingDfu
+    {
+        get => _useDfu;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _useDfu, value);
+
+            _ = CheckForDfuDevice();
+        }
+    }
+
+    private Task CheckForDfuDevice()
+    {
+        return Task.Run(() =>
+        {
+            DfuDeviceAvailable = _deviceService.IsLibUsbDeviceConnected();
+        });
+    }
+
+    private void OnDeviceConnected(object? sender, DeviceInformation e)
+    {
+        if (e.LastRoute != null)
+        {
+            ConnectedRoutes.Add(e.LastRoute);
+        }
+    }
+
+    private void OnDeviceDisconnected(object? sender, DeviceInformation e)
+    {
+        if (e.LastRoute != null)
+        {
+            ConnectedRoutes.Remove(e.LastRoute);
+        }
+    }
+
+    private void OnDeviceRemoved(object? sender, string e)
+    {
+        ConnectedRoutes.Remove(e);
+    }
+
+    public bool FlashAll
+    {
+        get => _flashAll;
+        set
+        {
+            if (value == FlashAll) return;
+            this.RaiseAndSetIfChanged(ref _flashAll, value);
+
+            FlashOS = value;
+            FlashRuntime = value;
+            FlashCoprocessor = value;
+        }
+    }
+
+    public bool FlashOS
+    {
+        get => _flashOS;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _flashOS, value);
+            if (!value)
+            {
+                _flashAll = false;
+                this.RaisePropertyChanged(nameof(FlashAll));
+            }
+        }
+    }
+
+    public bool FlashRuntime
+    {
+        get => _flashRuntime;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _flashRuntime, value);
+            if (!value)
+            {
+                _flashAll = false;
+                this.RaisePropertyChanged(nameof(FlashAll));
+            }
+        }
+    }
+
+    public bool FlashCoprocessor
+    {
+        get => _flashCoprocessor;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _flashCoprocessor, value);
+            if (!value)
+            {
+                _flashAll = false;
+                this.RaisePropertyChanged(nameof(FlashAll));
+            }
+        }
+    }
+
+    public bool DfuDeviceAvailable
+    {
+        get => _defuDeviceAvailable;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _defuDeviceAvailable, value);
+        }
+    }
+
+    private async Task FlashSelectedFirmware()
+    {
+        if (SelectedFirmwareVersion == null) return;
+
+        if (UsingDfu)
+        {
+            await _deviceService.FlashFirmwareWithDfu(SelectedRoute, FlashOS, FlashRuntime, FlashCoprocessor, SelectedFirmwareVersion.Version);
+        }
+        else
+        {
+            await _deviceService.FlashFirmwareWithOtA(SelectedRoute, FlashOS, FlashCoprocessor, SelectedFirmwareVersion.Version);
+        }
     }
 
     private async Task DeleteSelectedFirmware()
@@ -95,6 +243,32 @@ public class FirmwareViewModel : FeatureViewModel
     {
         get => _makeDownloadDefault;
         private set => this.RaiseAndSetIfChanged(ref _makeDownloadDefault, value);
+    }
+
+    public string? SelectedRoute
+    {
+        get => _selectedRoute;
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _selectedRoute, value);
+
+            var device = _deviceService.KnownDevices.FirstOrDefault(d => d.LastRoute == _selectedRoute);
+            if (device != null)
+            {
+                if (Version.TryParse(device.OsVersion, out Version? v))
+                {
+                    if (v != null)
+                    {
+                        if (v.Minor < 7)
+                        {
+                            UsingDfu = true;
+                            return;
+                        }
+                    }
+                }
+            }
+            UsingDfu = false;
+        }
     }
 
     public string? LatestAvailableVersion

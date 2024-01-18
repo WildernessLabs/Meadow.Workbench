@@ -1,5 +1,6 @@
 ﻿using Meadow.Hcom;
 using Meadow.Workbench.ViewModels;
+using MeadowCLI;
 using Splat;
 using System;
 using System.Collections.Generic;
@@ -15,6 +16,7 @@ internal class DeviceService
     private const string F7OtAOsFolder = "/meadow0/update/os/";
 
     public event EventHandler<DeviceInformation> DeviceAdded;
+    public event EventHandler<string> DeviceRemoved;
     public event EventHandler<DeviceInformation> DeviceConnected;
     public event EventHandler<DeviceInformation> DeviceDisconnected;
 
@@ -22,8 +24,10 @@ internal class DeviceService
     private StorageService _storageService;
     private FirmwareService _firmwareService;
     private SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
+    private FirmwareWriter _firmwareWriter;
 
     public List<DeviceInformation> KnownDevices { get; } = new();
+    private FirmwareWriter FirmwareWriter => _firmwareWriter ??= new FirmwareWriter();
 
     public DeviceService()
     {
@@ -68,20 +72,32 @@ internal class DeviceService
     private async Task CheckForDeviceAtLocation(string route)
     {
         // do we already know about this device?
-        var existing = KnownDevices.FirstOrDefault(d => d.LastRoute == route && d.IsConnected);
-        if (existing != null)
-        {
-            Debug.WriteLine($"Already known device at {route}");
-            // TODO: should we pull info and verify ID?
-            return;
-        }
+        IMeadowConnection? connection = null;
 
         Debug.WriteLine($"Looking for a device at {route}");
 
-        var connection = new Hcom.SerialConnection(route);
-        await connection.Attach();
+        var existing = KnownDevices.FirstOrDefault(d => d.LastRoute == route);
+        if (existing != null)
+        {
+            if (existing.IsConnected)
+            {
+                Debug.WriteLine($"Already known and connected device at {route}");
+                // TODO: should we pull info and verify ID?
+                return;
+            }
+
+            connection = existing.Connection;
+        }
+
+        if (connection == null)
+        {
+
+            connection = new Hcom.SerialConnection(route);
+        }
+
         try
         {
+            await connection.Attach();
             var info = await connection.GetDeviceInfo();
 
             if (info != null)
@@ -140,7 +156,23 @@ internal class DeviceService
         }
     }
 
-    public async Task FlashFirmware(string route, bool writeOS, bool writeRuntime, bool writeCoprocessor, string? version = null)
+    public bool IsLibUsbDeviceConnected()
+    {
+        return FirmwareWriter.GetLibUsbDevices().Count() > 0;
+    }
+
+    public async Task FlashFirmwareWithDfu(string route, bool writeOS, bool writeRuntime, bool writeCoprocessor, string version)
+    {
+        var package = _firmwareService.CurrentStore[version];
+
+        if (package == null) return;
+
+        var source = package.GetFullyQualifiedPath(package.OSWithBootloader);
+
+        await FirmwareWriter.WriteOsWithDfu(source, null, false);
+    }
+
+    public async Task FlashFirmwareWithOtA(string route, bool writeOS, bool writeCoprocessor, string? version = null)
     {
         var package =
             version == null
@@ -162,43 +194,27 @@ internal class DeviceService
 
         await connection.WaitForMeadowAttach();
 
-        var useDfu = false; // TODO: get from settings
-
         if (writeOS)
         {
-            if (useDfu)
-            {
-                throw new NotSupportedException();
-            }
-            else
-            {
-                // note: OtA *requires* both the OS and runtime pair
-                var source = package.GetFullyQualifiedPath(package.OsWithoutBootloader);
-                var dest = $"{F7OtAOsFolder}{package.OsWithoutBootloader}";
-                await connection.WriteFile(source, dest);
-                source = package.GetFullyQualifiedPath(package.Runtime);
-                dest = $"{F7OtAOsFolder}{package.Runtime}";
-                await connection.WriteFile(source, dest);
-            }
+            // note: OtA *requires* both the OS and runtime pair
+            var source = package.GetFullyQualifiedPath(package.OsWithoutBootloader);
+            var dest = $"{F7OtAOsFolder}{package.OsWithoutBootloader}";
+            await connection.WriteFile(source, dest);
+            source = package.GetFullyQualifiedPath(package.Runtime);
+            dest = $"{F7OtAOsFolder}{package.Runtime}";
+            await connection.WriteFile(source, dest);
         }
         if (writeCoprocessor)
         {
-            if (useDfu)
-            {
-                throw new NotSupportedException();
-            }
-            else
-            {
-                var source = package.GetFullyQualifiedPath(package.CoprocApplication);
-                var dest = $"{F7OtAOsFolder}{package.CoprocApplication}";
-                await connection.WriteFile(source, dest);
-                source = package.GetFullyQualifiedPath(package.CoprocPartitionTable);
-                dest = $"{F7OtAOsFolder}{package.CoprocPartitionTable}";
-                await connection.WriteFile(source, dest);
-                source = package.GetFullyQualifiedPath(package.CoprocBootloader);
-                dest = $"{F7OtAOsFolder}{package.CoprocBootloader}";
-                await connection.WriteFile(source, dest);
-            }
+            var source = package.GetFullyQualifiedPath(package.CoprocApplication);
+            var dest = $"{F7OtAOsFolder}{package.CoprocApplication}";
+            await connection.WriteFile(source, dest);
+            source = package.GetFullyQualifiedPath(package.CoprocPartitionTable);
+            dest = $"{F7OtAOsFolder}{package.CoprocPartitionTable}";
+            await connection.WriteFile(source, dest);
+            source = package.GetFullyQualifiedPath(package.CoprocBootloader);
+            dest = $"{F7OtAOsFolder}{package.CoprocBootloader}";
+            await connection.WriteFile(source, dest);
         }
 
         await connection.ResetDevice();
@@ -277,6 +293,13 @@ internal class DeviceService
         var list = await connection.GetFileList(directory, false);
         return new MeadowDirectory(directory, list);
 
+    }
+
+    public Task RemoveDevice(string deviceID)
+    {
+        _storageService.DeleteDeviceInfo(deviceID);
+        DeviceRemoved?.Invoke(this, deviceID);
+        return Task.CompletedTask;
     }
 
     public async Task<IMeadowConnection?> AddConnection(string route)

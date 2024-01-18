@@ -1,5 +1,6 @@
 using Avalonia.Controls;
 using DialogHostAvalonia;
+using Meadow.Workbench.ViewModels;
 
 namespace Meadow.Workbench.Dialogs;
 
@@ -9,6 +10,8 @@ public partial class SettingsDialog : UserControl
 
     public SettingsDialog()
     {
+        this.DataContext = new SettingsViewModel();
+
         InitializeComponent();
         this.cancel.Click += Cancel_Click;
         this.save.Click += Save_Click;

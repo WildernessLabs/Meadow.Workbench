@@ -31,6 +31,11 @@ internal class StorageService
         return _store.Select<DeviceInformation>();
     }
 
+    public void DeleteDeviceInfo(string deviceID)
+    {
+        _store.Delete<DeviceInformation>(deviceID);
+    }
+
     public DeviceInformation UpdateDeviceInfo(DeviceInformation info)
     {
         var existing = _store.Select<DeviceInformation>(info.DeviceID);
@@ -46,6 +51,8 @@ internal class StorageService
         existing.LastSeen = info.LastSeen;
         existing.LastRoute = info.LastRoute ?? existing.LastRoute;
         existing.FriendlyName = info.FriendlyName ?? existing.FriendlyName;
+
+        _store.Update(existing);
 
         return existing;
     }

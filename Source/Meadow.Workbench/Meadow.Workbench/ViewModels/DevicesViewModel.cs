@@ -3,6 +3,7 @@ using Meadow.Workbench.Dialogs;
 using Meadow.Workbench.Services;
 using ReactiveUI;
 using Splat;
+using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
@@ -30,6 +31,7 @@ internal class DevicesViewModel : FeatureViewModel
         _deviceService = Locator.Current.GetService<DeviceService>();
         _deviceService!.DeviceConnected += OnDeviceConnected;
         _deviceService!.DeviceDisconnected += OnDeviceDisconnected;
+        _deviceService!.DeviceRemoved += OnDeviceRemoved;
 
         _storageService = Locator.Current.GetService<StorageService>();
 
@@ -42,6 +44,15 @@ internal class DevicesViewModel : FeatureViewModel
 
         AddDeviceCommand = ReactiveCommand.CreateFromTask(OnAddDevice);
         FlashDeviceCommand = ReactiveCommand.CreateFromTask(FlashSelectedDevice);
+    }
+
+    private void OnDeviceRemoved(object? sender, string e)
+    {
+        var existing = Devices.FirstOrDefault(d => d.DeviceID == e);
+        if (existing != null)
+        {
+            Devices.Remove(existing);
+        }
     }
 
     public override void OnActivated()
@@ -60,16 +71,22 @@ internal class DevicesViewModel : FeatureViewModel
         if (_selectedDevice == null) return;
         if (!_selectedDevice.IsConnected) return;
 
-        var vm = new FirmwareFlashViewModel(
-            _deviceService,
-            _selectedDevice.RootInfo.LastRoute,
-            FlashOS,
-            FlashRuntime,
-            FlashCoprocessor);
+        if (UsingDfu)
+        {
+            throw new NotSupportedException();
+        }
+        else
+        {
+            var vm = new OtAFirmwareFlashViewModel(
+                _deviceService,
+                _selectedDevice.RootInfo.LastRoute,
+                FlashOS,
+                FlashCoprocessor);
 
-        var dialog = new FirmwareFlashDialog(vm);
+            var dialog = new OtAFirmwareFlashDialog(vm);
 
-        var result = await DialogHost.Show(dialog);
+            var result = await DialogHost.Show(dialog);
+        }
     }
 
     public bool UsingDfu => false; // TODO: get from settings
