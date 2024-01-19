@@ -161,6 +161,10 @@ internal class DevicesViewModel : FeatureViewModel
             dvm = new DeviceViewModel(e, _deviceService, _storageService);
             Devices.Add(dvm);
         }
+        else
+        {
+            dvm.Update(e);
+        }
 
         dvm.IsConnected = true;
     }

@@ -47,6 +47,12 @@ internal class DeviceViewModel : ViewModelBase
 
     }
 
+    public void Update(DeviceInformation info)
+    {
+        this.RootInfo = info;
+        this.RaisePropertyChanged(nameof(RootInfo));
+    }
+
     private async Task Reset()
     {
         if (IsConnected)
@@ -61,6 +67,10 @@ internal class DeviceViewModel : ViewModelBase
         if (IsConnected)
         {
             IsRuntimeEnabled = await _deviceService.IsRuntimEnabled(RootInfo.LastRoute);
+
+            this.RaisePropertyChanged(nameof(Version));
+            this.RaisePropertyChanged(nameof(LastSeen));
+            this.RaisePropertyChanged(nameof(RootInfo));
         }
     }
 
