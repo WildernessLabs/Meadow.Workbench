@@ -1,0 +1,63 @@
+name: create package
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "develop" ]
+
+jobs:
+
+  build:
+    runs-on: windows-latest
+    
+    steps:
+
+    - name: Checkout Meadow.CLI
+      uses: actions/checkout@v3
+      with:
+        repository: WildernessLabs/Meadow.CLI
+        path: Meadow.CLI
+        ref: develop
+
+    - name: Checkout Meadow.Logging
+      uses: actions/checkout@v3
+      with:
+        repository: WildernessLabs/Meadow.Logging
+        path: Meadow.Logging
+        ref: develop
+
+    - name: Checkout Meadow.Units
+      uses: actions/checkout@v3
+      with:
+        repository: WildernessLabs/Meadow.Units
+        path: Meadow.Units
+        ref: develop
+
+    - name: Checkout Meadow.Contracts
+      uses: actions/checkout@v3
+      with:
+        repository: WildernessLabs/Meadow.Contracts
+        path: Meadow.Contracts
+        ref: develop
+        
+    - name: Checkout Workbench
+      uses: actions/checkout@v3
+      with:
+        path: Meadow.Workbench
+
+    - name: Install .NET Core
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 7.0.x
+    
+    - name: Build
+      run: dotnet build -c Debug Meadow.Workbench/Source/Meadow.Workbench/Meadow.Workbench.sln
+      
+    - name: Package
+      run: dotnet publish .\Meadow.Workbench\Source\Meadow.Workbench\Meadow.Workbench.Desktop\Meadow.Workbench.Desktop.csproj -f net7.0 --no-restore -o package
+      
+    - name: upload
+      uses: actions/upload-artifact@v4
+      with:
+        name: workbench-output
+        path: package/
