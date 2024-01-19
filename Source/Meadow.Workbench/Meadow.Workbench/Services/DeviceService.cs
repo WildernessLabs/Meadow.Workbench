@@ -167,9 +167,35 @@ internal class DeviceService
 
         if (package == null) return;
 
-        var source = package.GetFullyQualifiedPath(package.OSWithBootloader);
+        if (writeOS)
+        {
+            var source = package.GetFullyQualifiedPath(package.OSWithBootloader);
 
-        await FirmwareWriter.WriteOsWithDfu(source, null, false);
+            await FirmwareWriter.WriteOsWithDfu(source);
+        }
+
+        if (writeRuntime && route != null)
+        {
+            var connection = GetConnectionForRoute(route);
+
+            var source = package.GetFullyQualifiedPath(package.Runtime);
+
+            await FirmwareWriter.WriteRuntimeWithHcom(connection, source);
+        }
+
+        if (writeCoprocessor)
+        {
+            var connection = GetConnectionForRoute(route);
+
+            var fileList = new string[]
+            {
+                package.GetFullyQualifiedPath(package.CoprocApplication),
+                package.GetFullyQualifiedPath(package.CoprocBootloader),
+                package.GetFullyQualifiedPath(package.CoprocPartitionTable),
+            };
+
+            await FirmwareWriter.WriteCoprocessorFilesWithHcom(connection, fileList);
+        }
     }
 
     public async Task FlashFirmwareWithOtA(string route, bool writeOS, bool writeCoprocessor, string? version = null)

@@ -19,5 +19,11 @@
             <Setter Property="BorderThickness" Value="3"/>
             <Setter Property="CornerRadius" Value="5"/>
         </Style>
+        <Style Selector="Button.active">
+            <Setter Property="Background" Value="#204080"/>
+        </Style>
+        <Style Selector="Button.inactive">
+            <Setter Property="Background" Value="#202020"/>
+        </Style>
     </Application.Styles>
 </Application>

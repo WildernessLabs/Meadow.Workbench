@@ -2,6 +2,7 @@
 using Meadow.Workbench.Services;
 using ReactiveUI;
 using System;
+using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 
 namespace Meadow.Workbench.ViewModels;
@@ -14,6 +15,8 @@ internal class DeviceViewModel : ViewModelBase
     private DeviceService _deviceService;
     private string? _deviceTime;
     private bool _isRuntimeEnabled;
+    private bool _outputConneted = false;
+    private int? _selectedOutput;
 
     public DeviceInformation RootInfo { get; private set; }
     public IReactiveCommand SetFriendlyNameCommand { get; }
@@ -23,6 +26,9 @@ internal class DeviceViewModel : ViewModelBase
     public IReactiveCommand DisableRuntimeCommand { get; }
     public IReactiveCommand EnableRuntimeCommand { get; }
     public IReactiveCommand DeleteDeviceCommand { get; }
+    public IReactiveCommand ClearOutputCommand { get; }
+
+    public ObservableCollection<String> Output { get; } = new();
 
     public DeviceViewModel(DeviceInformation info, DeviceService deviceService, StorageService storageService)
     {
@@ -44,7 +50,43 @@ internal class DeviceViewModel : ViewModelBase
         DisableRuntimeCommand = ReactiveCommand.CreateFromTask(DisableRuntime);
         EnableRuntimeCommand = ReactiveCommand.CreateFromTask(EnableRuntime);
         DeleteDeviceCommand = ReactiveCommand.CreateFromTask(DeleteDevice);
+        ClearOutputCommand = ReactiveCommand.Create(ClearOutput);
 
+        if (RootInfo.Connection != null)
+        {
+            this.RootInfo.Connection.DeviceMessageReceived += OnDeviceMessageReceived;
+            _outputConneted = true;
+        }
+    }
+
+    public int? SelectedOutput
+    {
+        get => _selectedOutput;
+        set => this.RaiseAndSetIfChanged(ref _selectedOutput, value);
+    }
+
+    private void OnDeviceMessageReceived(object? sender, (string message, string? source) e)
+    {
+        Output.Add(e.message);
+        SelectedOutput = Output.Count - 1;
+    }
+
+    public void ClearOutput()
+    {
+        Output.Clear();
+    }
+
+    public void Update(DeviceInformation info)
+    {
+        this.RootInfo = info;
+
+        if (RootInfo.Connection != null && !_outputConneted)
+        {
+            this.RootInfo.Connection.DeviceMessageReceived += OnDeviceMessageReceived;
+            _outputConneted = true;
+        }
+
+        this.RaisePropertyChanged(nameof(RootInfo));
     }
 
     private async Task Reset()
@@ -61,6 +103,10 @@ internal class DeviceViewModel : ViewModelBase
         if (IsConnected)
         {
             IsRuntimeEnabled = await _deviceService.IsRuntimEnabled(RootInfo.LastRoute);
+
+            this.RaisePropertyChanged(nameof(Version));
+            this.RaisePropertyChanged(nameof(LastSeen));
+            this.RaisePropertyChanged(nameof(RootInfo));
         }
     }
 
