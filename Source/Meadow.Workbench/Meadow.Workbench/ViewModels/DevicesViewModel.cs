@@ -20,9 +20,12 @@ internal class DevicesViewModel : FeatureViewModel
     private bool _flashAll;
     private bool _flashRuntime;
     private bool _flashCoprocessor;
+    private bool _showInfo;
 
     public IReactiveCommand AddDeviceCommand { get; }
     public IReactiveCommand FlashDeviceCommand { get; }
+    public IReactiveCommand ShowInfoCommand { get; }
+    public IReactiveCommand ShowOutputCommand { get; }
 
     public ObservableCollection<DeviceViewModel> Devices { get; } = new();
 
@@ -44,6 +47,19 @@ internal class DevicesViewModel : FeatureViewModel
 
         AddDeviceCommand = ReactiveCommand.CreateFromTask(OnAddDevice);
         FlashDeviceCommand = ReactiveCommand.CreateFromTask(FlashSelectedDevice);
+        ShowInfoCommand = ReactiveCommand.Create(ShowDeviceInfo);
+        ShowOutputCommand = ReactiveCommand.Create(ShowDeviceOutput);
+        ShowInfo = true;
+    }
+
+    private void ShowDeviceInfo()
+    {
+        ShowInfo = true;
+    }
+
+    private void ShowDeviceOutput()
+    {
+        ShowInfo = false;
     }
 
     private void OnDeviceRemoved(object? sender, string e)
@@ -95,6 +111,12 @@ internal class DevicesViewModel : FeatureViewModel
     {
         get => _selectedDevice;
         set => this.RaiseAndSetIfChanged(ref _selectedDevice, value);
+    }
+
+    public bool ShowInfo
+    {
+        get => _showInfo;
+        set => this.RaiseAndSetIfChanged(ref _showInfo, value);
     }
 
     public bool FlashAll

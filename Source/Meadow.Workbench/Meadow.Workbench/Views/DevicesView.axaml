@@ -115,12 +115,44 @@
             </StackPanel>
         </Border>
         <Border Margin="5">
-            <DockPanel>                
-                <StackPanel
-                    IsVisible="{Binding SelectedDevice,
-                                Converter={x:Static ObjectConverters.IsNotNull}}"                    
+            <DockPanel>
+                <Grid
+                    DockPanel.Dock="Top"
+                    >
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition />
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+                    <Button
+                        Grid.Column="0"
+                        Content="Info"
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Center"
+                        Command="{Binding ShowInfoCommand}"
+                        Classes.active="{Binding ShowInfo}"
+                        Classes.inactive="{Binding !ShowInfo}"
+                        />
+                    <Button
+                        Grid.Column="1"
+                        Content="Output"
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Center"
+                        Command="{Binding ShowOutputCommand}"
+                        Classes.active="{Binding !ShowInfo}"
+                        Classes.inactive="{Binding ShowInfo}"
+                        />
+                </Grid>
+                <DockPanel
                     DockPanel.Dock="Top">
-                    <Grid>
+                    <Grid
+                        DockPanel.Dock="Top"
+                        x:Name="infoGrid">
+                        <Grid.IsVisible>
+                            <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                <Binding Path="SelectedDevice" Converter="{x:Static ObjectConverters.IsNotNull}"/>
+                                <Binding Path="ShowInfo"/>
+                            </MultiBinding>
+                        </Grid.IsVisible>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
@@ -222,40 +254,77 @@
                             Content="{Binding SelectedDevice.RootInfo.RawInfo}"
                             />
                     </Grid>
-                    <Rectangle
-                        Fill="DarkGray"
-                        Height="3"
-                        Margin="5"
-                        Stroke="DarkGray"
-                        />
-                    <StackPanel
-                        Orientation="Horizontal"
-                        IsVisible="{Binding SelectedDevice.IsConnected}"
+
+                    <DockPanel
+                        DockPanel.Dock="Top"
+                        x:Name="outputPanel2"
                         >
+                        <DockPanel.IsVisible>
+                            <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                <Binding Path="SelectedDevice" Converter="{x:Static ObjectConverters.IsNotNull}"/>
+                                <Binding Path="!ShowInfo"/>
+                            </MultiBinding>
+                        </DockPanel.IsVisible>
                         <Button
-                            Content="{Binding DefaultFirmwareVersion, StringFormat='Flash {0} files'}"
-                            Command="{Binding FlashDeviceCommand}"
-                            />
-                        <StackPanel
+                            DockPanel.Dock="Top"
+                            Content="clear"
+                            Command="{Binding SelectedDevice.ClearOutputCommand}"
+                                />
+                        <ListBox
+                            DockPanel.Dock="Bottom"
+                            MaxHeight="400"
+                            ItemsSource="{Binding SelectedDevice.Output}"
+                            SelectedIndex="{Binding SelectedDevice.SelectedOutput}"
+                            AutoScrollToSelectedItem="True"
+                            >
+                            <ListBox.Styles>
+                                <Style Selector="ListBoxItem">
+                                    <Setter Property="Padding" Value="1"/>
+                                </Style>
+                            </ListBox.Styles>
+                        </ListBox>
+
+                    </DockPanel>
+                    
+                    <DockPanel
+                        VerticalAlignment="Bottom"
+                        DockPanel.Dock="Bottom">
+
+                        <Rectangle
+                            Height="3"
                             Margin="5"
-                            VerticalAlignment="Bottom"
-                            DockPanel.Dock="Bottom">
-                            <CheckBox
-                                IsChecked="{Binding FlashOS}"
-                                Content="OS" />
-                            <CheckBox
-                                IsChecked="{Binding FlashRuntime}"
-                                IsVisible="{Binding UsingDfu}"
-                                Content="Runtime" />
-                            <CheckBox
-                                IsChecked="{Binding FlashCoprocessor}"
-                                Content="Coprocesor" />
-                            <CheckBox
-                                IsChecked="{Binding FlashAll}"
-                                Content="All" />
+                            Stroke="DarkGray"
+                            IsVisible="{Binding SelectedDevice.IsConnected}"
+                        />
+                        <StackPanel
+                            Orientation="Horizontal"
+                            IsVisible="{Binding SelectedDevice.IsConnected}"
+                            >
+                            <Button
+                                Content="{Binding DefaultFirmwareVersion, StringFormat='Flash {0} files'}"
+                                Command="{Binding FlashDeviceCommand}"
+                                />
+                            <StackPanel
+                                Margin="5"
+                                VerticalAlignment="Bottom"
+                                DockPanel.Dock="Bottom">
+                                <CheckBox
+                                    IsChecked="{Binding FlashOS}"
+                                    Content="OS" />
+                                <CheckBox
+                                    IsChecked="{Binding FlashRuntime}"
+                                    IsVisible="{Binding UsingDfu}"
+                                    Content="Runtime" />
+                                <CheckBox
+                                    IsChecked="{Binding FlashCoprocessor}"
+                                    Content="Coprocesor" />
+                                <CheckBox
+                                    IsChecked="{Binding FlashAll}"
+                                    Content="All" />
+                            </StackPanel>
                         </StackPanel>
-                    </StackPanel>
-                </StackPanel>
+                    </DockPanel>
+                </DockPanel>
             </DockPanel>
         </Border>
     </DockPanel>
