@@ -13,7 +13,7 @@ internal class FirmwareService
 
     public FirmwareService()
     {
-        _manager = new FileManager();
+        _manager = new FileManager(FileManager.UserAgentWorkbench);
         _ = RefreshCurrentStore();
     }
 

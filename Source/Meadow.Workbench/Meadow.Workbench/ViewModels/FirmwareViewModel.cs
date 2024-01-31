@@ -52,8 +52,7 @@ public class FirmwareViewModel : FeatureViewModel
         _deviceService!.DeviceDisconnected += OnDeviceDisconnected;
         _deviceService!.DeviceRemoved += OnDeviceRemoved;
 
-
-        _manager = new FileManager();
+        _manager = new FileManager(FileManager.UserAgentWorkbench);
         _ = RefreshCurrentStore();
 
         DownloadLatestCommand = ReactiveCommand.CreateFromTask(DownloadLatest);

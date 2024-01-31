@@ -32,20 +32,34 @@
                 Orientation="Horizontal"
                 >
                 <Button
-                    Command="{Binding UserCommand}"
-                    >
-                    <Image
-                        Height="30"
-                        Source="avares://Meadow.Workbench/Assets/user.png"
-                            />
-                </Button>
-                <Button
                     Command="{Binding SettingsCommand}"
                     >
                     <Image
                         Height="30"
                         Source="avares://Meadow.Workbench/Assets/settings.png"
+                        />
+                </Button>
+                <Button
+                    x:Name="userButton"
+                    Command="{Binding UserCommand}"
+                    >
+                    <FlyoutBase.AttachedFlyout>
+                        <Flyout>
+                            <TextBlock x:Name="userFlyoutContent" Text="[user]" />
+                        </Flyout>
+                    </FlyoutBase.AttachedFlyout>
+                    <Panel>
+                        <Image
+                            Height="30"
+                            IsVisible="{Binding IsAuthenticated}"
+                            Source="avares://Meadow.Workbench/Assets/user-connected.png"
                             />
+                        <Image
+                            Height="30"
+                            IsVisible="{Binding !IsAuthenticated}"
+                            Source="avares://Meadow.Workbench/Assets/user-disconnected.png"
+                            />
+                    </Panel>
                 </Button>
             </StackPanel>
 
