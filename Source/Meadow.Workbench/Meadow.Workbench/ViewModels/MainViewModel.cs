@@ -1,7 +1,7 @@
 ﻿using Avalonia.Controls;
 using DialogHostAvalonia;
-using Meadow.Cloud;
-using Meadow.Cloud.Identity;
+using Meadow.Cloud.Client;
+using Meadow.Cloud.Client.Identity;
 using Meadow.Workbench.Dialogs;
 using Meadow.Workbench.Services;
 using ReactiveUI;

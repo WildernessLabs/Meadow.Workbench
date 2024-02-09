@@ -1,26 +1,56 @@
-﻿using Meadow.Software;
+﻿using Meadow.Cloud.Client;
+using Meadow.Cloud.Client.Identity;
+using Meadow.Software;
+using System;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace Meadow.Workbench.Services;
 
+
 internal class FirmwareService
 {
-    private const string CurrentStoreName = "Meadow F7";
+    private const string Meadow_F7 = "Meadow F7";
+
+    private MeadowCloudClient _cloudClient;
 
     private readonly FileManager _manager;
 
-    public IFirmwarePackageCollection CurrentStore { get; private set; }
+    public IFirmwarePackageCollection? CurrentStore { get; private set; }
 
     public FirmwareService()
     {
-        _manager = new FileManager(FileManager.UserAgentWorkbench);
-        _ = RefreshCurrentStore();
+        var client = new HttpClient
+        {
+            Timeout = TimeSpan.FromMinutes(5),
+            BaseAddress = new Uri("https://staging.meadowcloud.dev")
+        };
+        var identiyManager = new IdentityManager();
+
+        _cloudClient = new MeadowCloudClient(
+            client,
+            identiyManager,
+            MeadowCloudUserAgent.Workbench);
+
+        _manager = new FileManager(_cloudClient);
     }
 
-    private async Task RefreshCurrentStore()
+    public async Task SelectStore(string storeName = Meadow_F7)
     {
         await _manager.Refresh();
-        CurrentStore = _manager.Firmware[CurrentStoreName];
+        if (CurrentStore == null)
+        {
+            CurrentStore = _manager.Firmware[storeName];
+        }
+    }
+
+    public async Task RefreshCurrentStore()
+    {
+        await _manager.Refresh();
+        if (CurrentStore == null)
+        {
+            CurrentStore = _manager.Firmware[Meadow_F7];
+        }
     }
 
 }
