@@ -23,7 +23,7 @@ public class FirmwareViewModel : FeatureViewModel
     private bool _flashAll;
     private bool _flashOS;
     private bool _flashRuntime;
-    private DeviceService _deviceService;
+    private readonly DeviceService _deviceService;
     private string? _selectedRoute;
     private bool _useDfu;
     private bool _defuDeviceAvailable;
@@ -53,7 +53,7 @@ public class FirmwareViewModel : FeatureViewModel
         _deviceService!.DeviceRemoved += OnDeviceRemoved;
 
 
-        _manager = new FileManager();
+        _manager = new FileManager(null); //ToDo
         _ = RefreshCurrentStore();
 
         DownloadLatestCommand = ReactiveCommand.CreateFromTask(DownloadLatest);
