@@ -67,7 +67,7 @@ internal class DeviceViewModel : ViewModelBase
 
     private void OnDeviceMessageReceived(object? sender, (string message, string? source) e)
     {
-        Output.Add(e.message);
+        Output.Add(e.message.TrimEnd());
         SelectedOutput = Output.Count - 1;
     }
 

@@ -1,5 +1,4 @@
-﻿using Meadow.Software;
-using Meadow.Workbench.Services;
+﻿using Meadow.Workbench.Services;
 using ReactiveUI;
 using Splat;
 using System;
@@ -12,10 +11,6 @@ namespace Meadow.Workbench.ViewModels;
 
 public class FirmwareViewModel : FeatureViewModel
 {
-    private const string CurrentStoreName = "Meadow F7";
-
-    private readonly FileManager _manager;
-    private IFirmwarePackageCollection? _store;
     private FirmwarePackageViewModel? _selectedFirmware;
     private string? _latestAvailable;
     private bool _makeDownloadDefault = true;
@@ -27,6 +22,7 @@ public class FirmwareViewModel : FeatureViewModel
     private string? _selectedRoute;
     private bool _useDfu;
     private bool _defuDeviceAvailable;
+    private FirmwareService _firmwareService;
 
     public ObservableCollection<FirmwarePackageViewModel> FirmwareVersions { get; } = new();
     public ObservableCollection<string> ConnectedRoutes { get; } = new();
@@ -39,6 +35,7 @@ public class FirmwareViewModel : FeatureViewModel
     public FirmwareViewModel()
     {
         _deviceService = Locator.Current.GetService<DeviceService>();
+        _firmwareService = Locator.Current.GetService<FirmwareService>();
 
         foreach (var d in _deviceService.KnownDevices)
         {
@@ -52,14 +49,34 @@ public class FirmwareViewModel : FeatureViewModel
         _deviceService!.DeviceDisconnected += OnDeviceDisconnected;
         _deviceService!.DeviceRemoved += OnDeviceRemoved;
 
-
-        _manager = new FileManager();
         _ = RefreshCurrentStore();
 
         DownloadLatestCommand = ReactiveCommand.CreateFromTask(DownloadLatest);
         MakeDefaultCommand = ReactiveCommand.CreateFromTask(MakeSelectedTheDefault);
         DeleteFirmwareCommand = ReactiveCommand.CreateFromTask(DeleteSelectedFirmware);
         FlashCommand = ReactiveCommand.CreateFromTask(FlashSelectedFirmware);
+    }
+
+    private async Task RefreshCurrentStore()
+    {
+        FirmwareVersions.Clear();
+
+        if (_firmwareService.CurrentStore == null)
+        {
+            await _firmwareService.SelectStore();
+        }
+        else
+        {
+
+            await _firmwareService.CurrentStore.Refresh();
+        }
+
+        foreach (var fw in _firmwareService.CurrentStore)
+        {
+            FirmwareVersions.Add(
+                new FirmwarePackageViewModel(
+                    fw, fw == _firmwareService.CurrentStore.DefaultPackage));
+        }
     }
 
     public bool UsingDfu
@@ -186,7 +203,7 @@ public class FirmwareViewModel : FeatureViewModel
         if (SelectedFirmwareVersion == null) return;
         try
         {
-            await _store!.DeletePackage(SelectedFirmwareVersion.Version);
+            await _firmwareService.CurrentStore.DeletePackage(SelectedFirmwareVersion.Version);
             await RefreshCurrentStore();
         }
         catch (Exception ex)
@@ -201,7 +218,7 @@ public class FirmwareViewModel : FeatureViewModel
         if (SelectedFirmwareVersion == null) return;
         try
         {
-            await _store!.SetDefaultPackage(SelectedFirmwareVersion.Version);
+            await _firmwareService.CurrentStore.SetDefaultPackage(SelectedFirmwareVersion.Version);
             await RefreshCurrentStore();
         }
         catch (Exception ex)
@@ -218,24 +235,23 @@ public class FirmwareViewModel : FeatureViewModel
         // TODO: progress indicator
         // _store.DownloadProgress += ....
 
-        await _store?.RetrievePackage(LatestAvailableVersion, true);
+        await _firmwareService.CurrentStore.RetrievePackage(LatestAvailableVersion, true);
 
         if (MakeDownloadDefault)
         {
-            await _store.SetDefaultPackage(LatestAvailableVersion);
+            await _firmwareService.CurrentStore.SetDefaultPackage(LatestAvailableVersion);
         }
 
         await RefreshCurrentStore();
-
     }
 
     public bool UpdateIsAvailable
     {
         get
         {
-            if (LatestAvailableVersion == null || _store == null) return false;
+            if (LatestAvailableVersion == null || _firmwareService.CurrentStore == null) return false;
 
-            return !_store.Any(f => f.Version == LatestAvailableVersion);
+            return !_firmwareService.CurrentStore.Any(f => f.Version == LatestAvailableVersion);
         }
     }
 
@@ -279,7 +295,7 @@ public class FirmwareViewModel : FeatureViewModel
 
     private async Task CheckForUpdate()
     {
-        var latest = await _store?.GetLatestAvailableVersion();
+        var latest = await _firmwareService.CurrentStore.GetLatestAvailableVersion();
 
         if (latest != null)
         {
@@ -292,20 +308,5 @@ public class FirmwareViewModel : FeatureViewModel
     {
         get => _selectedFirmware;
         set => this.RaiseAndSetIfChanged(ref _selectedFirmware, value);
-    }
-
-    private async Task RefreshCurrentStore()
-    {
-        FirmwareVersions.Clear();
-        await _manager.Refresh();
-        if (_store == null)
-        {
-            _store = _manager.Firmware[CurrentStoreName];
-        }
-        foreach (var f in _store.OrderByDescending(s => s.Version))
-        {
-            FirmwareVersions.Add(new FirmwarePackageViewModel(f, f.Version == _store.DefaultPackage?.Version));
-        }
-        _ = CheckForUpdate();
     }
 }
