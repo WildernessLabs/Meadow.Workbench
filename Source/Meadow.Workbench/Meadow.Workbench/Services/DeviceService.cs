@@ -69,6 +69,27 @@ internal class DeviceService
         await CheckForDeviceAtLocation(e);
     }
 
+    public async Task<DeviceInformation?> GetDeviceInformationAtLocation(string route)
+    {
+        var existing = KnownDevices.FirstOrDefault(d => d.LastRoute == route);
+        if (existing == null)
+        {
+            return null;
+        }
+
+        if (existing.Connection != null)
+        {
+            await existing.Connection.Attach();
+            var info = await existing.Connection.GetDeviceInfo();
+
+            if (info != null)
+            {
+                return _storageService.UpdateDeviceInfo(info, route);
+            }
+        }
+        return null;
+    }
+
     private async Task CheckForDeviceAtLocation(string route)
     {
         // do we already know about this device?

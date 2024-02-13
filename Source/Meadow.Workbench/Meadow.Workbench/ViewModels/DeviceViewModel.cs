@@ -27,6 +27,8 @@ internal class DeviceViewModel : ViewModelBase
     public IReactiveCommand EnableRuntimeCommand { get; }
     public IReactiveCommand DeleteDeviceCommand { get; }
     public IReactiveCommand ClearOutputCommand { get; }
+    public IReactiveCommand RefreshInfoCommand { get; }
+    public IReactiveCommand ProvisionCommand { get; }
 
     public ObservableCollection<String> Output { get; } = new();
 
@@ -51,6 +53,8 @@ internal class DeviceViewModel : ViewModelBase
         EnableRuntimeCommand = ReactiveCommand.CreateFromTask(EnableRuntime);
         DeleteDeviceCommand = ReactiveCommand.CreateFromTask(DeleteDevice);
         ClearOutputCommand = ReactiveCommand.Create(ClearOutput);
+        RefreshInfoCommand = ReactiveCommand.CreateFromTask(RefreshDeviceInfo);
+        ProvisionCommand = ReactiveCommand.CreateFromTask(ProvisionDevice);
 
         if (RootInfo.Connection != null)
         {
@@ -69,6 +73,22 @@ internal class DeviceViewModel : ViewModelBase
     {
         Output.Add(e.message.TrimEnd());
         SelectedOutput = Output.Count - 1;
+    }
+
+    public async Task RefreshDeviceInfo()
+    {
+        var info = await _deviceService.GetDeviceInformationAtLocation(RootInfo.LastRoute);
+        if (info != null)
+        {
+            RootInfo = info;
+            this.RaisePropertyChanged(nameof(Version));
+            this.RaisePropertyChanged(nameof(LastSeen));
+            this.RaisePropertyChanged(nameof(RootInfo));
+        }
+    }
+
+    public async Task ProvisionDevice()
+    {
     }
 
     public void ClearOutput()
