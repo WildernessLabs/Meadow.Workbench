@@ -49,9 +49,10 @@
                 
                 <ScrollViewer>
                     <StackPanel                    
-                    DockPanel.Dock="Top">
-                    <Label
-                        Content="Local Firmware Versions"
+                        DockPanel.Dock="Top">
+                        <Label
+                            VerticalAlignment="Center"
+                            Content="Local Firmware Versions"
                         />
                         <ListBox
                             VerticalAlignment="Stretch"
@@ -87,7 +88,7 @@
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
                         </ListBox>
-                </StackPanel>
+                    </StackPanel>
                 </ScrollViewer>
                 
             </DockPanel>

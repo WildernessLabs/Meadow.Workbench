@@ -17,6 +17,8 @@ public class MainViewModel : ViewModelBase
     private UserControl _activeContent;
     private bool _isAuthenticated;
     private User? _activeUser;
+    private IdentityManager _identityManager;
+    private UserService _userService;
 
     internal FeatureService FeatureService { get; }
     private SettingsService SettingsService { get; }
@@ -29,6 +31,9 @@ public class MainViewModel : ViewModelBase
 
     public MainViewModel()
     {
+        _identityManager = Locator.Current.GetService<IdentityManager>();
+        _userService = new UserService(_identityManager);
+
         FeatureService = Locator.Current.GetService<FeatureService>();
         FeatureSelectedCommand = ReactiveCommand.Create<IFeature>(ActivateFeature);
         SettingsService = Locator.Current.GetService<SettingsService>();
@@ -50,7 +55,7 @@ public class MainViewModel : ViewModelBase
 
     private async Task ChangeAuthentication()
     {
-        var identityManager = new IdentityManager();
+        var identityManager = Locator.Current.GetService<IdentityManager>();
 
         if (IsAuthenticated)
         {
@@ -59,7 +64,7 @@ public class MainViewModel : ViewModelBase
         }
         else
         {
-            if (await identityManager.Login("https://staging.meadowcloud.dev"))
+            if (await identityManager.Login(SettingsService.CloudHostName))
             {
                 _ = RefreshUserInfo();
             }
@@ -96,10 +101,7 @@ public class MainViewModel : ViewModelBase
 
     public async Task<User?> RefreshUserInfo()
     {
-        var identityManager = new IdentityManager();
-        var userService = new UserService(identityManager);
-
-        _activeUser = await userService.GetMe("https://staging.meadowcloud.dev");
+        _activeUser = await _userService.GetMe("https://staging.meadowcloud.dev");
 
         IsAuthenticated = _activeUser != null;
 

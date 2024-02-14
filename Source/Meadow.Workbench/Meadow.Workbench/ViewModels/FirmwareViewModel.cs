@@ -1,4 +1,6 @@
-﻿using Meadow.Workbench.Services;
+﻿using DialogHostAvalonia;
+using Meadow.Workbench.Dialogs;
+using Meadow.Workbench.Services;
 using ReactiveUI;
 using Splat;
 using System;
@@ -6,6 +8,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using IMeadowCloudClient = Meadow.Cloud.Client.IMeadowCloudClient;
 
 namespace Meadow.Workbench.ViewModels;
 
@@ -18,11 +21,12 @@ public class FirmwareViewModel : FeatureViewModel
     private bool _flashAll;
     private bool _flashOS;
     private bool _flashRuntime;
-    private DeviceService _deviceService;
+    private readonly DeviceService _deviceService;
     private string? _selectedRoute;
     private bool _useDfu;
     private bool _defuDeviceAvailable;
-    private FirmwareService _firmwareService;
+    private readonly FirmwareService _firmwareService;
+    private readonly IMeadowCloudClient? _meadowCloudClient;
 
     public ObservableCollection<FirmwarePackageViewModel> FirmwareVersions { get; } = new();
     public ObservableCollection<string> ConnectedRoutes { get; } = new();
@@ -31,11 +35,13 @@ public class FirmwareViewModel : FeatureViewModel
     public IReactiveCommand MakeDefaultCommand { get; }
     public IReactiveCommand DeleteFirmwareCommand { get; }
     public IReactiveCommand FlashCommand { get; }
+    public IReactiveCommand RevealLocalPathCommand { get; }
 
     public FirmwareViewModel()
     {
         _deviceService = Locator.Current.GetService<DeviceService>();
         _firmwareService = Locator.Current.GetService<FirmwareService>();
+        _meadowCloudClient = Locator.Current.GetService<IMeadowCloudClient>();
 
         foreach (var d in _deviceService.KnownDevices)
         {
@@ -55,6 +61,14 @@ public class FirmwareViewModel : FeatureViewModel
         MakeDefaultCommand = ReactiveCommand.CreateFromTask(MakeSelectedTheDefault);
         DeleteFirmwareCommand = ReactiveCommand.CreateFromTask(DeleteSelectedFirmware);
         FlashCommand = ReactiveCommand.CreateFromTask(FlashSelectedFirmware);
+        RevealLocalPathCommand = ReactiveCommand.CreateFromTask(RevealLocalFirmwarePath);
+
+        Task.Run(CheckForUpdate);
+    }
+
+    private async Task RevealLocalFirmwarePath()
+    {
+
     }
 
     private async Task RefreshCurrentStore()
@@ -210,6 +224,7 @@ public class FirmwareViewModel : FeatureViewModel
         {
             // TODO: log this?
             Debug.WriteLine(ex.Message);
+            await RefreshCurrentStore();
         }
     }
 
@@ -234,8 +249,25 @@ public class FirmwareViewModel : FeatureViewModel
 
         // TODO: progress indicator
         // _store.DownloadProgress += ....
+        if (!await _meadowCloudClient!.Authenticate())
+        {
+            var dialog = new NotAuthenticatedDialog(new NotAuthenticatedViewModel());
 
-        await _firmwareService.CurrentStore.RetrievePackage(LatestAvailableVersion, true);
+            await DialogHost.Show(dialog);
+            // notify user to log in
+            //            _meadowCloudClient.
+        }
+
+        try
+        {
+            await _firmwareService.CurrentStore.RetrievePackage(LatestAvailableVersion, true);
+        }
+        catch (Exception ex)
+        {
+            if (Debugger.IsAttached) Debugger.Break();
+            // TODO show a dialog
+            // TODO: log?
+        }
 
         if (MakeDownloadDefault)
         {

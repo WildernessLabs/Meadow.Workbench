@@ -156,6 +156,11 @@ internal class DeviceService
 
     private IMeadowConnection GetConnectionForRoute(string route)
     {
+        if (route == null)
+        {
+            return null;
+        }
+
         var d = KnownDevices.FirstOrDefault(d => d.LastRoute == route);
         if (d == null)
         {

@@ -29,6 +29,11 @@ public class SettingsService
         }
     }
 
+    public string CloudHostName
+    {
+        get => "https://staging.meadowcloud.dev";
+    }
+
     private string SettingFilePath
     {
         get => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
