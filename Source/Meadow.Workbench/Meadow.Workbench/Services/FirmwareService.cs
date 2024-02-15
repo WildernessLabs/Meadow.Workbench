@@ -1,18 +1,15 @@
 ﻿using Meadow.Cloud.Client;
-using Meadow.Cloud.Client.Identity;
 using Meadow.Software;
-using System;
-using System.Net.Http;
+using Splat;
 using System.Threading.Tasks;
 
 namespace Meadow.Workbench.Services;
-
 
 internal class FirmwareService
 {
     private const string Meadow_F7 = "Meadow F7";
 
-    private MeadowCloudClient _cloudClient;
+    private IMeadowCloudClient _cloudClient;
 
     private readonly FileManager _manager;
 
@@ -20,18 +17,7 @@ internal class FirmwareService
 
     public FirmwareService()
     {
-        var client = new HttpClient
-        {
-            Timeout = TimeSpan.FromMinutes(5),
-            BaseAddress = new Uri("https://staging.meadowcloud.dev")
-        };
-        var identiyManager = new IdentityManager();
-
-        _cloudClient = new MeadowCloudClient(
-            client,
-            identiyManager,
-            MeadowCloudUserAgent.Workbench);
-
+        _cloudClient = Locator.Current.GetService<IMeadowCloudClient>();
         _manager = new FileManager(_cloudClient);
     }
 

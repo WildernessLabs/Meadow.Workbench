@@ -144,186 +144,202 @@
                 </Grid>
                 <DockPanel
                     DockPanel.Dock="Top">
-                    <Grid
-                        DockPanel.Dock="Top"
-                        x:Name="infoGrid">
-                        <Grid.IsVisible>
+                    <StackPanel>
+                        <StackPanel.IsVisible>
                             <MultiBinding Converter="{x:Static BoolConverters.And}">
                                 <Binding Path="SelectedDevice" Converter="{x:Static ObjectConverters.IsNotNull}"/>
                                 <Binding Path="ShowInfo"/>
                             </MultiBinding>
-                        </Grid.IsVisible>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition />
-                        </Grid.ColumnDefinitions>                    
-                        <Grid.RowDefinitions>
-                            <RowDefinition />
-                            <RowDefinition />
-                            <RowDefinition />
-                            <RowDefinition />
-                            <RowDefinition />
-                        </Grid.RowDefinitions>
-
-                        <Label
-                            Grid.Row="0"
-                            Grid.Column="0"
-                            Content="Device ID:"
-                            />
-                        <Label
-                            Grid.Row="0"
-                            Grid.Column="1"
-                            Content="{Binding SelectedDevice.RootInfo.DeviceID}"
-                            />
-                        <Button
-                            Grid.Row="0"
-                            Grid.Column="2"
-                            Content="reset"
-                            Command="{Binding SelectedDevice.ResetCommand}"
-                            />
-
-                        <Label
-                            Grid.Row="1"
-                            Grid.Column="0"
-                            Content="Last route:"
-                            />                    
-                        <Label
-                            Grid.Row="1"
-                            Grid.Column="1"
-                            Content="{Binding SelectedDevice.RootInfo.LastRoute}"
-                            />
-
-                        <Label
-                            Grid.Row="2"
-                            Grid.Column="0"
-                            VerticalAlignment="Center"
-                            Content="Clock:"
-                            />
-                        <Label
-                            Grid.Row="2"
-                            Grid.Column="1"
-                            VerticalAlignment="Center"
-                            Content="{Binding SelectedDevice.DeviceTime}"
-                            />
-                        <Button
-                            Grid.Row="2"
-                            Grid.Column="2"
-                            Content="set"
-                            Command="{Binding SelectedDevice.SetClockCommand}"
-                            />
-                        <Button
-                            Grid.Row="2"
-                            Grid.Column="3"
-                            Content="refresh"
-                            Command="{Binding SelectedDevice.GetClockCommand}"
-                            />
-
-                        <Label
-                            Grid.Row="3"
-                            Grid.Column="0"
-                            VerticalAlignment="Center"
-                            Content="Runtime:"
-                            />
-                        <Label
-                            Grid.Row="3"
-                            Grid.Column="1"
-                            VerticalAlignment="Center"
-                            Content="{Binding SelectedDevice.IsRuntimeEnabled}"
-                            />
-                        <Button
-                            Grid.Row="3"
-                            Grid.Column="3"
-                            IsVisible="{Binding SelectedDevice.IsRuntimeEnabled}"
-                            Content="disable"
-                            Command="{Binding SelectedDevice.DisableRuntimeCommand}"
-                        />
-                        <Button
-                            Grid.Row="3"
-                            Grid.Column="3"
-                            IsVisible="{Binding !SelectedDevice.IsRuntimeEnabled}"
-                            Content="enable"
-                            Command="{Binding SelectedDevice.EnableRuntimeCommand}"
-                        />
-
-                        <Label
-                            Grid.Row="4"
-                            Grid.Column="0"
-                            Grid.ColumnSpan="2"
-                            Content="{Binding SelectedDevice.RootInfo.RawInfo}"
-                            />
-                    </Grid>
-
-                    <DockPanel
-                        DockPanel.Dock="Top"
-                        x:Name="outputPanel2"
-                        >
-                        <DockPanel.IsVisible>
-                            <MultiBinding Converter="{x:Static BoolConverters.And}">
-                                <Binding Path="SelectedDevice" Converter="{x:Static ObjectConverters.IsNotNull}"/>
-                                <Binding Path="!ShowInfo"/>
-                            </MultiBinding>
-                        </DockPanel.IsVisible>
-                        <Button
-                            DockPanel.Dock="Top"
-                            Content="clear"
-                            Command="{Binding SelectedDevice.ClearOutputCommand}"
-                                />
-                        <ListBox
-                            DockPanel.Dock="Bottom"
-                            MaxHeight="400"
-                            ItemsSource="{Binding SelectedDevice.Output}"
-                            SelectedIndex="{Binding SelectedDevice.SelectedOutput}"
-                            AutoScrollToSelectedItem="True"
-                            >
-                            <ListBox.Styles>
-                                <Style Selector="ListBoxItem">
-                                    <Setter Property="Padding" Value="1"/>
-                                </Style>
-                            </ListBox.Styles>
-                        </ListBox>
-
-                    </DockPanel>
-                    
-                    <DockPanel
-                        VerticalAlignment="Bottom"
-                        DockPanel.Dock="Bottom">
-
-                        <Rectangle
-                            Height="3"
-                            Margin="5"
-                            Stroke="DarkGray"
-                            IsVisible="{Binding SelectedDevice.IsConnected}"
-                        />
-                        <StackPanel
-                            Orientation="Horizontal"
-                            IsVisible="{Binding SelectedDevice.IsConnected}"
-                            >
+                        </StackPanel.IsVisible>
+                        
+                        <StackPanel Orientation="Horizontal">
                             <Button
-                                Content="{Binding DefaultFirmwareVersion, StringFormat='Flash {0} files'}"
-                                Command="{Binding FlashDeviceCommand}"
+                                Content="reset device"
+                                Command="{Binding SelectedDevice.ResetCommand}"
                                 />
-                            <StackPanel
-                                Margin="5"
-                                VerticalAlignment="Bottom"
-                                DockPanel.Dock="Bottom">
-                                <CheckBox
-                                    IsChecked="{Binding FlashOS}"
-                                    Content="OS" />
-                                <CheckBox
-                                    IsChecked="{Binding FlashRuntime}"
-                                    IsVisible="{Binding UsingDfu}"
-                                    Content="Runtime" />
-                                <CheckBox
-                                    IsChecked="{Binding FlashCoprocessor}"
-                                    Content="Coprocesor" />
-                                <CheckBox
-                                    IsChecked="{Binding FlashAll}"
-                                    Content="All" />
-                            </StackPanel>
+                            <Button
+                                Content="refresh info"
+                                Command="{Binding SelectedDevice.RefreshInfoCommand}"
+                                />
+                            <Button
+                                Content="cloud provision"
+                                Command="{Binding SelectedDevice.ProvisionCommand}"
+                                />
+
                         </StackPanel>
-                    </DockPanel>
+                        <Grid
+                            DockPanel.Dock="Top"
+                            x:Name="infoGrid">
+                            <Grid.IsVisible>
+                                <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                    <Binding Path="SelectedDevice" Converter="{x:Static ObjectConverters.IsNotNull}"/>
+                                    <Binding Path="ShowInfo"/>
+                                </MultiBinding>
+                            </Grid.IsVisible>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition />
+                            </Grid.ColumnDefinitions>                    
+                            <Grid.RowDefinitions>
+                                <RowDefinition />
+                                <RowDefinition />
+                                <RowDefinition />
+                                <RowDefinition />
+                                <RowDefinition />
+                            </Grid.RowDefinitions>
+
+                            <Label
+                                Grid.Row="0"
+                                Grid.Column="0"
+                                Content="Device ID:"
+                                />
+                            <Label
+                                Grid.Row="0"
+                                Grid.Column="1"
+                                Content="{Binding SelectedDevice.RootInfo.DeviceID}"
+                                />
+
+                            <Label
+                                Grid.Row="1"
+                                Grid.Column="0"
+                                Content="Last route:"
+                                />                    
+                            <Label
+                                Grid.Row="1"
+                                Grid.Column="1"
+                                Content="{Binding SelectedDevice.RootInfo.LastRoute}"
+                                />
+
+                            <Label
+                                Grid.Row="2"
+                                Grid.Column="0"
+                                VerticalAlignment="Center"
+                                Content="Clock:"
+                                />
+                            <Label
+                                Grid.Row="2"
+                                Grid.Column="1"
+                                VerticalAlignment="Center"
+                                Content="{Binding SelectedDevice.DeviceTime}"
+                                />
+                            <Button
+                                Grid.Row="2"
+                                Grid.Column="2"
+                                Content="set"
+                                Command="{Binding SelectedDevice.SetClockCommand}"
+                                />
+                            <Button
+                                Grid.Row="2"
+                                Grid.Column="3"
+                                Content="refresh"
+                                Command="{Binding SelectedDevice.GetClockCommand}"
+                                />
+
+                            <Label
+                                Grid.Row="3"
+                                Grid.Column="0"
+                                VerticalAlignment="Center"
+                                Content="Runtime:"
+                                />
+                            <Label
+                                Grid.Row="3"
+                                Grid.Column="1"
+                                VerticalAlignment="Center"
+                                Content="{Binding SelectedDevice.IsRuntimeEnabled}"
+                                />
+                            <Button
+                                Grid.Row="3"
+                                Grid.Column="3"
+                                IsVisible="{Binding SelectedDevice.IsRuntimeEnabled}"
+                                Content="disable"
+                                Command="{Binding SelectedDevice.DisableRuntimeCommand}"
+                            />
+                            <Button
+                                Grid.Row="3"
+                                Grid.Column="3"
+                                IsVisible="{Binding !SelectedDevice.IsRuntimeEnabled}"
+                                Content="enable"
+                                Command="{Binding SelectedDevice.EnableRuntimeCommand}"
+                            />
+
+                            <Label
+                                Grid.Row="4"
+                                Grid.Column="0"
+                                Grid.ColumnSpan="2"
+                                Content="{Binding SelectedDevice.RootInfo.RawInfo}"
+                                />
+                        </Grid>
+                        <DockPanel
+                            DockPanel.Dock="Top"
+                            x:Name="outputPanel2"
+                            >
+                            <DockPanel.IsVisible>
+                                <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                    <Binding Path="SelectedDevice" Converter="{x:Static ObjectConverters.IsNotNull}"/>
+                                    <Binding Path="!ShowInfo"/>
+                                </MultiBinding>
+                            </DockPanel.IsVisible>
+                            <Button
+                                DockPanel.Dock="Top"
+                                Content="clear"
+                                Command="{Binding SelectedDevice.ClearOutputCommand}"
+                                    />
+                            <ListBox
+                                DockPanel.Dock="Bottom"
+                                MaxHeight="400"
+                                ItemsSource="{Binding SelectedDevice.Output}"
+                                SelectedIndex="{Binding SelectedDevice.SelectedOutput}"
+                                AutoScrollToSelectedItem="True"
+                                >
+                                <ListBox.Styles>
+                                    <Style Selector="ListBoxItem">
+                                        <Setter Property="Padding" Value="1"/>
+                                    </Style>
+                                </ListBox.Styles>
+                            </ListBox>
+
+                        </DockPanel>
+                        <DockPanel
+                            VerticalAlignment="Bottom"
+                            DockPanel.Dock="Bottom">
+
+                            <Rectangle
+                                Height="3"
+                                Margin="5"
+                                Stroke="DarkGray"
+                                IsVisible="{Binding SelectedDevice.IsConnected}"
+                            />
+                            <StackPanel
+                                Orientation="Horizontal"
+                                IsVisible="{Binding SelectedDevice.IsConnected}"
+                                >
+                                <Button
+                                    Content="{Binding DefaultFirmwareVersion, StringFormat='Flash {0} files'}"
+                                    Command="{Binding FlashDeviceCommand}"
+                                    />
+                                <StackPanel
+                                    Margin="5"
+                                    VerticalAlignment="Bottom"
+                                    DockPanel.Dock="Bottom">
+                                    <CheckBox
+                                        IsChecked="{Binding FlashOS}"
+                                        Content="OS" />
+                                    <CheckBox
+                                        IsChecked="{Binding FlashRuntime}"
+                                        IsVisible="{Binding UsingDfu}"
+                                        Content="Runtime" />
+                                    <CheckBox
+                                        IsChecked="{Binding FlashCoprocessor}"
+                                        Content="Coprocesor" />
+                                    <CheckBox
+                                        IsChecked="{Binding FlashAll}"
+                                        Content="All" />
+                                </StackPanel>
+                            </StackPanel>
+                        </DockPanel>
+                    </StackPanel>
                 </DockPanel>
             </DockPanel>
         </Border>

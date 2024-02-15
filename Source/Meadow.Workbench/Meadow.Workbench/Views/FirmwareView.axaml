@@ -49,10 +49,22 @@
                 
                 <ScrollViewer>
                     <StackPanel                    
-                    DockPanel.Dock="Top">
-                    <Label
-                        Content="Local Firmware Versions"
-                        />
+                        DockPanel.Dock="Top">
+                        <DockPanel>
+                            <Label
+                                DockPanel.Dock="Left"
+                                VerticalAlignment="Center"
+                                Content="Local Firmware Versions"
+                            />
+                            <Button
+                                Content="refresh"
+                                Command="{Binding RefreshLocalStoreCommand}"
+                                />
+                            <Button
+                                Content="reveal"
+                                Command="{Binding RevealFirmwareFolderCommand}"
+                                />
+                        </DockPanel>
                         <ListBox
                             VerticalAlignment="Stretch"
                             ItemsSource="{Binding FirmwareVersions}"
@@ -87,7 +99,7 @@
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
                         </ListBox>
-                </StackPanel>
+                    </StackPanel>
                 </ScrollViewer>
                 
             </DockPanel>

@@ -69,7 +69,9 @@ internal class StorageService
                 OsVersion = info.OsVersion,
                 LastSeen = DateTime.UtcNow,
                 LastRoute = route,
+                DeviceName = info.DeviceName,
                 Model = info.Model,
+                SerialNumber = info.SerialNumber,
                 CoprocessorVersion = info.CoprocessorOsVersion,
                 RuntimeVersion = info.RuntimeVersion,
                 RawInfo = info.ToString()

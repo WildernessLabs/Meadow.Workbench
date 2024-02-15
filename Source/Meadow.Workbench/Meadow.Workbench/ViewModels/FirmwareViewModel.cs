@@ -1,11 +1,15 @@
-﻿using Meadow.Workbench.Services;
+﻿using DialogHostAvalonia;
+using Meadow.Workbench.Dialogs;
+using Meadow.Workbench.Services;
 using ReactiveUI;
 using Splat;
 using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using IMeadowCloudClient = Meadow.Cloud.Client.IMeadowCloudClient;
 
 namespace Meadow.Workbench.ViewModels;
 
@@ -18,11 +22,12 @@ public class FirmwareViewModel : FeatureViewModel
     private bool _flashAll;
     private bool _flashOS;
     private bool _flashRuntime;
-    private DeviceService _deviceService;
+    private readonly DeviceService _deviceService;
     private string? _selectedRoute;
     private bool _useDfu;
     private bool _defuDeviceAvailable;
-    private FirmwareService _firmwareService;
+    private readonly FirmwareService _firmwareService;
+    private readonly IMeadowCloudClient? _meadowCloudClient;
 
     public ObservableCollection<FirmwarePackageViewModel> FirmwareVersions { get; } = new();
     public ObservableCollection<string> ConnectedRoutes { get; } = new();
@@ -31,11 +36,14 @@ public class FirmwareViewModel : FeatureViewModel
     public IReactiveCommand MakeDefaultCommand { get; }
     public IReactiveCommand DeleteFirmwareCommand { get; }
     public IReactiveCommand FlashCommand { get; }
+    public IReactiveCommand RevealFirmwareFolderCommand { get; }
+    public IReactiveCommand RefreshLocalStoreCommand { get; }
 
     public FirmwareViewModel()
     {
         _deviceService = Locator.Current.GetService<DeviceService>();
         _firmwareService = Locator.Current.GetService<FirmwareService>();
+        _meadowCloudClient = Locator.Current.GetService<IMeadowCloudClient>();
 
         foreach (var d in _deviceService.KnownDevices)
         {
@@ -55,6 +63,10 @@ public class FirmwareViewModel : FeatureViewModel
         MakeDefaultCommand = ReactiveCommand.CreateFromTask(MakeSelectedTheDefault);
         DeleteFirmwareCommand = ReactiveCommand.CreateFromTask(DeleteSelectedFirmware);
         FlashCommand = ReactiveCommand.CreateFromTask(FlashSelectedFirmware);
+        RevealFirmwareFolderCommand = ReactiveCommand.Create(RevealFirmwareRootFolder);
+        RefreshLocalStoreCommand = ReactiveCommand.CreateFromTask(RefreshCurrentStore);
+
+        Task.Run(CheckForUpdate);
     }
 
     private async Task RefreshCurrentStore()
@@ -77,6 +89,8 @@ public class FirmwareViewModel : FeatureViewModel
                 new FirmwarePackageViewModel(
                     fw, fw == _firmwareService.CurrentStore.DefaultPackage));
         }
+
+        this.RaisePropertyChanged(nameof(UpdateIsAvailable));
     }
 
     public bool UsingDfu
@@ -184,6 +198,22 @@ public class FirmwareViewModel : FeatureViewModel
         }
     }
 
+    private void RevealFirmwareRootFolder()
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            Process.Start(new ProcessStartInfo("explorer", $"\"{_firmwareService.CurrentStore.PackageFileRoot}\""));
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            // TODO
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            // TODO
+        }
+    }
+
     private async Task FlashSelectedFirmware()
     {
         if (SelectedFirmwareVersion == null) return;
@@ -210,6 +240,7 @@ public class FirmwareViewModel : FeatureViewModel
         {
             // TODO: log this?
             Debug.WriteLine(ex.Message);
+            await RefreshCurrentStore();
         }
     }
 
@@ -235,11 +266,46 @@ public class FirmwareViewModel : FeatureViewModel
         // TODO: progress indicator
         // _store.DownloadProgress += ....
 
-        await _firmwareService.CurrentStore.RetrievePackage(LatestAvailableVersion, true);
-
-        if (MakeDownloadDefault)
+        if (!await _meadowCloudClient!.Authenticate())
         {
-            await _firmwareService.CurrentStore.SetDefaultPackage(LatestAvailableVersion);
+            var dialog = new NotAuthenticatedDialog(new NotAuthenticatedViewModel(NotAuthenticatedViewModel.AuthReason.FirmwareDownload));
+
+            // notify user to log in
+            await DialogHost.Show(dialog);
+            // get the auth token
+            await _meadowCloudClient!.Authenticate();
+        }
+
+        var umvm = new UserMessageViewModel(Strings.UserMessageDownloadingFirmware);
+
+        var messageDialog = new UserMessageDialog(umvm);
+        _ = DialogHost.Show(messageDialog);
+
+        try
+        {
+            try
+            {
+                if (!await _firmwareService.CurrentStore!.RetrievePackage(LatestAvailableVersion, true))
+                {
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                if (Debugger.IsAttached) Debugger.Break();
+                // TODO show a dialog
+                // TODO: log?
+                return;
+            }
+
+            if (MakeDownloadDefault)
+            {
+                await _firmwareService.CurrentStore.SetDefaultPackage(LatestAvailableVersion);
+            }
+        }
+        finally
+        {
+            DialogHost.Close(null);
         }
 
         await RefreshCurrentStore();

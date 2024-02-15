@@ -11,7 +11,7 @@ internal class Feature<TView, TViewModel> : ReactiveObject, IFeature
     where TViewModel : FeatureViewModel, new()
 {
     private bool _isActive;
-    private bool _isVisible;
+    private bool _isVisible = true;
 
     public string Title { get; set; }
     public Type ViewType => typeof(TView);
