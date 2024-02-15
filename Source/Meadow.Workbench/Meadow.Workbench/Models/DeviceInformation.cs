@@ -10,9 +10,13 @@ internal class DeviceInformation
     [Field(IsPrimaryKey = true)]
     public string DeviceID { get; set; }
     [Field]
+    public string? DeviceName { get; set; }
+    [Field]
     public string? FriendlyName { get; set; }
     [Field]
     public string? OsVersion { get; set; }
+    [Field]
+    public string? SerialNumber { get; set; }
     [Field]
     public string? LastRoute { get; set; }
     [Field]

@@ -1,8 +1,11 @@
 ﻿using DialogHostAvalonia;
+using Meadow.Workbench.Dialogs;
 using Meadow.Workbench.Services;
 using ReactiveUI;
+using Splat;
 using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Meadow.Workbench.ViewModels;
@@ -89,6 +92,45 @@ internal class DeviceViewModel : ViewModelBase
 
     public async Task ProvisionDevice()
     {
+        var meadowCloudClient = Locator.Current.GetService<Cloud.Client.IMeadowCloudClient>();
+        if (!await meadowCloudClient!.Authenticate())
+        {
+            var dialog = new NotAuthenticatedDialog(new NotAuthenticatedViewModel(NotAuthenticatedViewModel.AuthReason.DeviceProvision));
+
+            // notify user to log in
+            await DialogHost.Show(dialog);
+            // get the auth token
+            await meadowCloudClient!.Authenticate();
+        }
+
+        var identityManager = Locator.Current.GetService<Cloud.Client.Identity.IdentityManager>();
+        var deviceService = new Cloud.Client.DeviceService(identityManager);
+        var userService = Locator.Current.GetService<Cloud.Client.UserService>();
+        var settingsService = Locator.Current.GetService<SettingsService>();
+
+        var umvm = new UserMessageViewModel(Strings.UserMessageGettingUserOrgs);
+        var messageDialog = new UserMessageDialog(umvm);
+        _ = DialogHost.Show(messageDialog);
+
+        var orgList = await userService.GetUserOrgs(settingsService.CloudHostName);
+
+        umvm.UserMessage = Strings.UserMessageGettingPublicKey;
+
+        var publicKey = await _deviceService.GetPublicKey(RootInfo.LastRoute);
+        var provisioningID = RootInfo.DeviceID != null ? RootInfo.DeviceID : RootInfo?.SerialNumber;
+        var provisioningName = !string.IsNullOrWhiteSpace(RootInfo.FriendlyName) ? RootInfo.FriendlyName : RootInfo.DeviceName;
+
+        umvm.UserMessage = Strings.UserMessageProvisioning;
+
+        var result = await deviceService.AddDevice(
+            orgList.First().Id,
+            provisioningID!,
+            publicKey,
+            orgList.First().DefaultCollectionId,
+            provisioningName,
+            settingsService.CloudHostName);
+
+        DialogHost.Close(null);
     }
 
     public void ClearOutput()

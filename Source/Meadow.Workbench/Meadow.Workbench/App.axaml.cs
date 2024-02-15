@@ -20,9 +20,9 @@ public partial class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
-        Locator.CurrentMutable.Register(() => new SettingsService());
+        var settingsService = new SettingsService();
 
-        // TODO: load configuration for what features to show
+        Locator.CurrentMutable.RegisterConstant(settingsService);
 
         var fs = new FeatureService();
         fs.Features.Add(new Feature<DevicesView, DevicesViewModel>
@@ -39,18 +39,21 @@ public partial class App : Application
         });
         fs.Features.Add(new Feature<CodeView, CodeViewModel>
         {
-            Title = "Code"
+            Title = "Code",
+            IsVisible = settingsService.ShowDeveloperFeatures && settingsService.ShowBetaFeatures
         });
         fs.Features.Add(new Feature<SimulationView, SimulationViewModel>
         {
-            Title = "Simulation"
+            Title = "Simulation",
+            IsVisible = settingsService.ShowDeveloperFeatures && settingsService.ShowBetaFeatures
         });
-        Locator.CurrentMutable.RegisterConstant(fs);
 
+        Locator.CurrentMutable.RegisterConstant(fs);
         Locator.CurrentMutable.RegisterConstant(new StorageService());
 
         var im = new Cloud.Client.Identity.IdentityManager();
         Locator.CurrentMutable.RegisterConstant(im);
+        Locator.CurrentMutable.RegisterConstant(new UserService(im));
 
         var cloudClient = new MeadowCloudClient(
             new System.Net.Http.HttpClient(),

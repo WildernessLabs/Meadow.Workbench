@@ -268,7 +268,7 @@ public class FirmwareViewModel : FeatureViewModel
 
         if (!await _meadowCloudClient!.Authenticate())
         {
-            var dialog = new NotAuthenticatedDialog(new NotAuthenticatedViewModel());
+            var dialog = new NotAuthenticatedDialog(new NotAuthenticatedViewModel(NotAuthenticatedViewModel.AuthReason.FirmwareDownload));
 
             // notify user to log in
             await DialogHost.Show(dialog);
@@ -276,24 +276,36 @@ public class FirmwareViewModel : FeatureViewModel
             await _meadowCloudClient!.Authenticate();
         }
 
+        var umvm = new UserMessageViewModel(Strings.UserMessageDownloadingFirmware);
+
+        var messageDialog = new UserMessageDialog(umvm);
+        _ = DialogHost.Show(messageDialog);
+
         try
         {
-            if (!await _firmwareService.CurrentStore!.RetrievePackage(LatestAvailableVersion, true))
+            try
             {
+                if (!await _firmwareService.CurrentStore!.RetrievePackage(LatestAvailableVersion, true))
+                {
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                if (Debugger.IsAttached) Debugger.Break();
+                // TODO show a dialog
+                // TODO: log?
                 return;
             }
-        }
-        catch (Exception ex)
-        {
-            if (Debugger.IsAttached) Debugger.Break();
-            // TODO show a dialog
-            // TODO: log?
-            return;
-        }
 
-        if (MakeDownloadDefault)
+            if (MakeDownloadDefault)
+            {
+                await _firmwareService.CurrentStore.SetDefaultPackage(LatestAvailableVersion);
+            }
+        }
+        finally
         {
-            await _firmwareService.CurrentStore.SetDefaultPackage(LatestAvailableVersion);
+            DialogHost.Close(null);
         }
 
         await RefreshCurrentStore();

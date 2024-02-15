@@ -22,7 +22,7 @@
             <TextBlock
                 DockPanel.Dock="Top"
                 HorizontalAlignment="Center"             
-                Text="To download firmware you must log in to your Wilderness Labs account. Click the button below to launch a browser to log in"
+                Text="{Binding InstructionText}"
                 TextAlignment="Center"
                 TextWrapping="Wrap"
                 Padding="30,30,30,0"

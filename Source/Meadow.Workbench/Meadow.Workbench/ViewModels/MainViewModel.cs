@@ -6,6 +6,7 @@ using Meadow.Workbench.Dialogs;
 using Meadow.Workbench.Services;
 using ReactiveUI;
 using Splat;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reactive;
 using System.Threading.Tasks;
@@ -29,11 +30,12 @@ public class MainViewModel : ViewModelBase
 
     public UserControl Content { get => _activeContent; set => this.RaiseAndSetIfChanged(ref _activeContent, value); }
 
+    public IEnumerable<IFeature> VisibleFeatures => FeatureService.Features.Where(f => f.IsVisible);
+
     public MainViewModel()
     {
         _identityManager = Locator.Current.GetService<IdentityManager>();
-        _userService = new UserService(_identityManager);
-
+        _userService = Locator.Current.GetService<UserService>();
         FeatureService = Locator.Current.GetService<FeatureService>();
         FeatureSelectedCommand = ReactiveCommand.Create<IFeature>(ActivateFeature);
         SettingsService = Locator.Current.GetService<SettingsService>();

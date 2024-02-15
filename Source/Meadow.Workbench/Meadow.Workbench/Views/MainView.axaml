@@ -70,7 +70,7 @@
             Width="200" 
             DockPanel.Dock="Left">
             <ItemsControl 
-                ItemsSource="{Binding FeatureService.Features}">
+                ItemsSource="{Binding VisibleFeatures}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
                         <StackPanel>

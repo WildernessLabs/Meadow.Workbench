@@ -15,6 +15,9 @@ public class WindowSettings
 
 public class SettingsService
 {
+    public const string DefaultCloudHost = "https://www.meadowcloud.co";
+    //public const string DefaultCloudHost = "https://staging.meadowcloud.dev";
+
     public string SettingsFile { get; set; } = "workbench.settings";
 
     public SettingsService()
@@ -31,7 +34,8 @@ public class SettingsService
 
     public string CloudHostName
     {
-        get => "https://staging.meadowcloud.dev";
+        get => GetString(nameof(CloudHostName)) ?? DefaultCloudHost;
+        set => SetString(nameof(CloudHostName), value);
     }
 
     private string SettingFilePath
@@ -39,6 +43,24 @@ public class SettingsService
         get => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "WildernessLabs",
             SettingsFile);
+    }
+
+    public bool AllowAnonymousTelemetryCollection
+    {
+        get => GetBool(nameof(AllowAnonymousTelemetryCollection)) ?? false;
+        set => SetBool(nameof(AllowAnonymousTelemetryCollection), value);
+    }
+
+    public bool ShowDeveloperFeatures
+    {
+        get => GetBool(nameof(ShowDeveloperFeatures)) ?? false;
+        set => SetBool(nameof(ShowDeveloperFeatures), value);
+    }
+
+    public bool ShowBetaFeatures
+    {
+        get => GetBool(nameof(ShowDeveloperFeatures)) ?? false;
+        set => SetBool(nameof(ShowDeveloperFeatures), value);
     }
 
     public bool UseDfu

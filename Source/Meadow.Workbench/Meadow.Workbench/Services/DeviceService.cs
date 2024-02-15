@@ -284,6 +284,12 @@ internal class DeviceService
         await connection.SetRtcTime(utcTime);
     }
 
+    public async Task<string> GetPublicKey(string route)
+    {
+        var connection = GetConnectionForRoute(route);
+        return await connection.GetPublicKey();
+    }
+
     public async Task<DateTimeOffset?> GetUtcTime(string route)
     {
         var connection = GetConnectionForRoute(route);
