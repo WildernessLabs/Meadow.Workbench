@@ -7,6 +7,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using IMeadowCloudClient = Meadow.Cloud.Client.IMeadowCloudClient;
 
@@ -35,7 +36,8 @@ public class FirmwareViewModel : FeatureViewModel
     public IReactiveCommand MakeDefaultCommand { get; }
     public IReactiveCommand DeleteFirmwareCommand { get; }
     public IReactiveCommand FlashCommand { get; }
-    public IReactiveCommand RevealLocalPathCommand { get; }
+    public IReactiveCommand RevealFirmwareFolderCommand { get; }
+    public IReactiveCommand RefreshLocalStoreCommand { get; }
 
     public FirmwareViewModel()
     {
@@ -61,14 +63,10 @@ public class FirmwareViewModel : FeatureViewModel
         MakeDefaultCommand = ReactiveCommand.CreateFromTask(MakeSelectedTheDefault);
         DeleteFirmwareCommand = ReactiveCommand.CreateFromTask(DeleteSelectedFirmware);
         FlashCommand = ReactiveCommand.CreateFromTask(FlashSelectedFirmware);
-        RevealLocalPathCommand = ReactiveCommand.CreateFromTask(RevealLocalFirmwarePath);
+        RevealFirmwareFolderCommand = ReactiveCommand.Create(RevealFirmwareRootFolder);
+        RefreshLocalStoreCommand = ReactiveCommand.CreateFromTask(RefreshCurrentStore);
 
         Task.Run(CheckForUpdate);
-    }
-
-    private async Task RevealLocalFirmwarePath()
-    {
-
     }
 
     private async Task RefreshCurrentStore()
@@ -91,6 +89,8 @@ public class FirmwareViewModel : FeatureViewModel
                 new FirmwarePackageViewModel(
                     fw, fw == _firmwareService.CurrentStore.DefaultPackage));
         }
+
+        this.RaisePropertyChanged(nameof(UpdateIsAvailable));
     }
 
     public bool UsingDfu
@@ -198,6 +198,22 @@ public class FirmwareViewModel : FeatureViewModel
         }
     }
 
+    private void RevealFirmwareRootFolder()
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            Process.Start(new ProcessStartInfo("explorer", $"\"{_firmwareService.CurrentStore.PackageFileRoot}\""));
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            // TODO
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            // TODO
+        }
+    }
+
     private async Task FlashSelectedFirmware()
     {
         if (SelectedFirmwareVersion == null) return;
@@ -249,24 +265,30 @@ public class FirmwareViewModel : FeatureViewModel
 
         // TODO: progress indicator
         // _store.DownloadProgress += ....
+
         if (!await _meadowCloudClient!.Authenticate())
         {
             var dialog = new NotAuthenticatedDialog(new NotAuthenticatedViewModel());
 
-            await DialogHost.Show(dialog);
             // notify user to log in
-            //            _meadowCloudClient.
+            await DialogHost.Show(dialog);
+            // get the auth token
+            await _meadowCloudClient!.Authenticate();
         }
 
         try
         {
-            await _firmwareService.CurrentStore.RetrievePackage(LatestAvailableVersion, true);
+            if (!await _firmwareService.CurrentStore!.RetrievePackage(LatestAvailableVersion, true))
+            {
+                return;
+            }
         }
         catch (Exception ex)
         {
             if (Debugger.IsAttached) Debugger.Break();
             // TODO show a dialog
             // TODO: log?
+            return;
         }
 
         if (MakeDownloadDefault)

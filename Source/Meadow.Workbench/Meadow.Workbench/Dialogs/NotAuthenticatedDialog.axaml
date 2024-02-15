@@ -3,21 +3,36 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:Meadow.Workbench.ViewModels"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="Meadow.Workbench.Dialogs.NotAuthenticatedDialog">
+             Background="Transparent"
+             x:Class="Meadow.Workbench.Dialogs.NotAuthenticatedDialog"
+             Width="320"             
+             Height="240">
     <Design.DataContext>
         <!-- This only sets the DataContext for the previewer in an IDE,
          to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
         <vm:NotAuthenticatedViewModel />
     </Design.DataContext>
 
-    <StackPanel>
-        <Label
-            Content="To download firmware you must log in to your Wilderness Labs account. Click the button below to launch a browser to log in"
-            />
-        <Button
-            Content="Launch Browser"
-            Command="{Binding LoginCommand}"
-            />
-    </StackPanel>
+    <Border
+         BorderBrush="#222222"
+         CornerRadius="10"
+        >
+        
+        <DockPanel>
+            <TextBlock
+                DockPanel.Dock="Top"
+                HorizontalAlignment="Center"             
+                Text="To download firmware you must log in to your Wilderness Labs account. Click the button below to launch a browser to log in"
+                TextAlignment="Center"
+                TextWrapping="Wrap"
+                Padding="30,30,30,0"
+                />
+            <Button
+                DockPanel.Dock="Bottom"
+                HorizontalAlignment="Center"
+                Content="{Binding LaunchButtonText}"
+                Command="{Binding LoginCommand}"
+                />
+        </DockPanel>
+    </Border>
 </UserControl>
