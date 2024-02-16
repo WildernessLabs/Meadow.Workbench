@@ -1,9 +1,7 @@
 ﻿using DialogHostAvalonia;
-using Meadow.Workbench.Dialogs;
 using Meadow.Workbench.Services;
 using ReactiveUI;
 using Splat;
-using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
@@ -87,30 +85,34 @@ internal class DevicesViewModel : FeatureViewModel
         if (_selectedDevice == null) return;
         if (!_selectedDevice.IsConnected) return;
 
-        if (UsingDfu)
-        {
-            throw new NotSupportedException();
-        }
-        else
-        {
-            var vm = new OtAFirmwareFlashViewModel(
-                _deviceService,
-                _selectedDevice.RootInfo.LastRoute,
-                FlashOS,
-                FlashCoprocessor);
+        // DFU
+        await _deviceService.FlashFirmwareWithDfu(
+            _selectedDevice.RootInfo.LastRoute,
+            FlashOS,
+            FlashRuntime,
+            FlashCoprocessor,
+            DefaultFirmwareVersion);
 
-            var dialog = new OtAFirmwareFlashDialog(vm);
+        // NON_DFU
+        //var vm = new OtAFirmwareFlashViewModel(
+        //    _deviceService,
+        //    _selectedDevice.RootInfo.LastRoute,
+        //    FlashOS,
+        //    FlashCoprocessor);
 
-            var result = await DialogHost.Show(dialog);
-        }
+        //var dialog = new OtAFirmwareFlashDialog(vm);
+
+        //var result = await DialogHost.Show(dialog);
     }
-
-    public bool UsingDfu => false; // TODO: get from settings
 
     public DeviceViewModel? SelectedDevice
     {
         get => _selectedDevice;
-        set => this.RaiseAndSetIfChanged(ref _selectedDevice, value);
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _selectedDevice, value);
+            this.RaisePropertyChanged(nameof(DefaultFirmwareVersion));
+        }
     }
 
     public bool ShowInfo

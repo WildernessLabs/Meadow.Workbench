@@ -251,16 +251,16 @@
                     VerticalAlignment="Bottom"
                     DockPanel.Dock="Bottom">
                     <Label
-                        Content="Flash" />
+                        Content="{Binding SelectedFirmwareVersion.Version, StringFormat='Flash {0}'}" />
                     <CheckBox
-                        IsChecked="{Binding UsingDfu}"
+                        IsChecked="True"
+                        IsEnabled="False"
                         Content="Use DFU/HCOM" />
                     <CheckBox
                         IsChecked="{Binding FlashOS}"
                         Content="OS" />
                     <CheckBox
                         IsChecked="{Binding FlashRuntime}"
-                        IsVisible="{Binding UsingDfu}"
                         Content="Runtime" />
                     <CheckBox
                         IsChecked="{Binding FlashCoprocessor}"
@@ -272,7 +272,6 @@
                         <ComboBox
                             ItemsSource="{Binding ConnectedRoutes}"
                             SelectedItem="{Binding SelectedRoute}"
-                            IsVisible="{Binding !UsingDfu}"
                             Width="200"
                             />
                         <Label
