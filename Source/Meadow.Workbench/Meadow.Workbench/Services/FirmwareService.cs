@@ -19,6 +19,7 @@ internal class FirmwareService
     {
         _cloudClient = Locator.Current.GetService<IMeadowCloudClient>();
         _manager = new FileManager(_cloudClient);
+        _ = SelectStore();
     }
 
     public async Task SelectStore(string storeName = Meadow_F7)

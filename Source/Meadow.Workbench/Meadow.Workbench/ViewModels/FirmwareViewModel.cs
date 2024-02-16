@@ -24,7 +24,7 @@ public class FirmwareViewModel : FeatureViewModel
     private bool _flashRuntime;
     private readonly DeviceService _deviceService;
     private string? _selectedRoute;
-    private bool _useDfu;
+    private bool _useDfu = true;
     private bool _defuDeviceAvailable;
     private readonly FirmwareService _firmwareService;
     private readonly IMeadowCloudClient? _meadowCloudClient;
