@@ -49,7 +49,7 @@ public class NotAuthenticatedViewModel : ViewModelBase
     {
         if (!_launchClicked)
         {
-            _ = _identityManager.Login(_settingsService.CloudHostName);
+            _ = _identityManager.Login();
 
             LaunchButtonText = Strings.AfterLaunchButtonText;
             _launchClicked = true;

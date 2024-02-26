@@ -10,4 +10,6 @@ public static class Strings
     public const string UserMessageGettingPublicKey = "Getting the device's public key. Please be patient. This will take a few minutes.";
     public const string UserMessageGettingUserOrgs = "Getting user orgs...";
     public const string UserMessageDownloadingFirmware = "Downloading firmware files...";
+    public const string DeviceProvisionedSuccessfully = "Device was successfully provisioned";
+    public const string DeviceProvisionFailedForSpecifiedReason = "Provisioning Failed: {0}";
 }

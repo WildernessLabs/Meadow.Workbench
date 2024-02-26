@@ -38,6 +38,7 @@ public class FirmwareViewModel : FeatureViewModel
     public IReactiveCommand FlashCommand { get; }
     public IReactiveCommand RevealFirmwareFolderCommand { get; }
     public IReactiveCommand RefreshLocalStoreCommand { get; }
+    public IReactiveCommand DownloadSpecificCommand { get; }
 
     public FirmwareViewModel()
     {
@@ -60,6 +61,7 @@ public class FirmwareViewModel : FeatureViewModel
         _ = RefreshCurrentStore();
 
         DownloadLatestCommand = ReactiveCommand.CreateFromTask(DownloadLatest);
+        DownloadSpecificCommand = ReactiveCommand.CreateFromTask(DownloadSpecific);
         MakeDefaultCommand = ReactiveCommand.CreateFromTask(MakeSelectedTheDefault);
         DeleteFirmwareCommand = ReactiveCommand.CreateFromTask(DeleteSelectedFirmware);
         FlashCommand = ReactiveCommand.CreateFromTask(FlashSelectedFirmware);
@@ -257,6 +259,65 @@ public class FirmwareViewModel : FeatureViewModel
             // TODO: log this?
             Debug.WriteLine(ex.Message);
         }
+    }
+
+    private async Task DownloadSpecific()
+    {
+        string? version = null;
+
+        var inputDialog = new InputBoxDialog(
+            "Download Specific Version",
+            string.Empty,
+            "Version to retrieve:");
+
+        var result = await DialogHost.Show(inputDialog, closingEventHandler: (s, e) =>
+        {
+            if (!inputDialog.IsCancelled && inputDialog.Text != null)
+            {
+                version = inputDialog.Text;
+            }
+        });
+
+        if (version == null) { return; }
+
+        if (!await _meadowCloudClient!.Authenticate())
+        {
+            var authDialog = new NotAuthenticatedDialog(new NotAuthenticatedViewModel(NotAuthenticatedViewModel.AuthReason.FirmwareDownload));
+
+            // notify user to log in
+            await DialogHost.Show(authDialog);
+            // get the auth token
+            await _meadowCloudClient!.Authenticate();
+        }
+
+        var umvm = new UserMessageViewModel(Strings.UserMessageDownloadingFirmware);
+
+        var messageDialog = new UserMessageDialog(umvm);
+        _ = DialogHost.Show(messageDialog);
+
+        try
+        {
+            try
+            {
+                if (!await _firmwareService.CurrentStore!.RetrievePackage(version, true))
+                {
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                if (Debugger.IsAttached) Debugger.Break();
+                // TODO show a dialog
+                // TODO: log?
+                return;
+            }
+        }
+        finally
+        {
+            DialogHost.Close(null);
+        }
+
+        await RefreshCurrentStore();
     }
 
     private async Task DownloadLatest()

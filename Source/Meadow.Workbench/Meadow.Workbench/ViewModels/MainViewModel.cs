@@ -66,7 +66,7 @@ public class MainViewModel : ViewModelBase
         }
         else
         {
-            if (await identityManager.Login(SettingsService.CloudHostName))
+            if (await identityManager.Login())
             {
                 _ = RefreshUserInfo();
             }

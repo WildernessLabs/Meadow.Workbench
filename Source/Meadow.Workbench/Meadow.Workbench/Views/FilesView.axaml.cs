@@ -13,6 +13,8 @@ public partial class FilesView : UserControl
 
         AddHandler(DragDrop.DropEvent, Drop);
         AddHandler(DragDrop.DragOverEvent, DragOver);
+
+        // TODO: can't yet figure out how to get a pointer pressed on a ListBox in Avalonia
     }
 
     private async void LocalFileListPointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
