@@ -1,4 +1,5 @@
 ﻿using DialogHostAvalonia;
+using Meadow.Cloud.Client.Devices;
 using Meadow.Workbench.Dialogs;
 using Meadow.Workbench.Services;
 using ReactiveUI;
@@ -111,8 +112,8 @@ internal class DeviceViewModel : ViewModelBase
         _ = DialogHost.Show(messageDialog);
 
         // get the orgs
-        var orgs = await meadowCloudClient.User.GetOrgs(settingsService.CloudHostName);
-
+        var org = (await meadowCloudClient.User.GetOrganizations()).First();
+        ;
         // change the user message
         umvm.UserMessage = Strings.UserMessageGettingPublicKey;
         var publicKey = await _deviceService.GetPublicKey(RootInfo.LastRoute);
@@ -125,12 +126,14 @@ internal class DeviceViewModel : ViewModelBase
 
         try
         {
-            await meadowCloudClient.Device.Provision(
-            settingsService.CloudHostName,
-            provisioningID,
-            publicKey,
-            provisioningName,
-            orgs.First());
+            var request = new AddDeviceRequest(
+                id: provisioningID,
+                name: provisioningName,
+                orgId: org.Id,
+                collectionId: org.DefaultCollectionId,
+                publicKey: publicKey);
+
+            await meadowCloudClient.Device.AddDevice(request);
 
             umvm.UserMessage = Strings.DeviceProvisionedSuccessfully;
             await Task.Delay(2000);
