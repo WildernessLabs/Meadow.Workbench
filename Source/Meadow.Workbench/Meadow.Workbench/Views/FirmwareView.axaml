@@ -64,6 +64,10 @@
                                 Content="reveal"
                                 Command="{Binding RevealFirmwareFolderCommand}"
                                 />
+                            <Button
+                                Content="specify"
+                                Command="{Binding DownloadSpecificCommand}"
+                                />
                         </DockPanel>
                         <ListBox
                             VerticalAlignment="Stretch"
@@ -110,6 +114,12 @@
             Grid.Column="1"
             Margin="5">
             <DockPanel>
+                <Label
+                    FontSize="18"
+                    Content="&lt;- Select a Firmware Version"
+                    IsVisible="{Binding SelectedFirmwareVersion,
+                                Converter={x:Static ObjectConverters.IsNull}}"
+                        />
                 <StackPanel
                     DockPanel.Dock="Top"
                     IsVisible="{Binding SelectedFirmwareVersion,

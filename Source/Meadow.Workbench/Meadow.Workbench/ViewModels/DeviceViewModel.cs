@@ -1,4 +1,5 @@
 ﻿using DialogHostAvalonia;
+using Meadow.Cloud.Client.Devices;
 using Meadow.Workbench.Dialogs;
 using Meadow.Workbench.Services;
 using ReactiveUI;
@@ -103,34 +104,47 @@ internal class DeviceViewModel : ViewModelBase
             await meadowCloudClient!.Authenticate();
         }
 
-        var identityManager = Locator.Current.GetService<Cloud.Client.Identity.IdentityManager>();
-        var deviceService = new Cloud.Client.DeviceService(identityManager);
-        var userService = Locator.Current.GetService<Cloud.Client.UserService>();
         var settingsService = Locator.Current.GetService<SettingsService>();
 
+        // show a message to the user
         var umvm = new UserMessageViewModel(Strings.UserMessageGettingUserOrgs);
         var messageDialog = new UserMessageDialog(umvm);
         _ = DialogHost.Show(messageDialog);
 
-        var orgList = await userService.GetUserOrgs(settingsService.CloudHostName);
-
+        // get the orgs
+        var org = (await meadowCloudClient.User.GetOrganizations()).First();
+        ;
+        // change the user message
         umvm.UserMessage = Strings.UserMessageGettingPublicKey;
-
         var publicKey = await _deviceService.GetPublicKey(RootInfo.LastRoute);
+
         var provisioningID = RootInfo.DeviceID != null ? RootInfo.DeviceID : RootInfo?.SerialNumber;
         var provisioningName = !string.IsNullOrWhiteSpace(RootInfo.FriendlyName) ? RootInfo.FriendlyName : RootInfo.DeviceName;
 
+        // change the user message
         umvm.UserMessage = Strings.UserMessageProvisioning;
 
-        var result = await deviceService.AddDevice(
-            orgList.First().Id,
-            provisioningID!,
-            publicKey,
-            orgList.First().DefaultCollectionId,
-            provisioningName,
-            settingsService.CloudHostName);
+        try
+        {
+            var request = new AddDeviceRequest(
+                id: provisioningID,
+                name: provisioningName,
+                orgId: org.Id,
+                collectionId: org.DefaultCollectionId,
+                publicKey: publicKey);
 
-        DialogHost.Close(null);
+            await meadowCloudClient.Device.AddDevice(request);
+
+            umvm.UserMessage = Strings.DeviceProvisionedSuccessfully;
+            await Task.Delay(2000);
+
+            DialogHost.Close(null);
+        }
+        catch (Exception ex)
+        {
+            // change the user message
+            umvm.UserMessage = string.Format(Strings.DeviceProvisionFailedForSpecifiedReason, ex.Message);
+        }
     }
 
     public void ClearOutput()

@@ -19,6 +19,8 @@ public partial class InputBoxDialog : UserControl
 
         this.cancel.Click += Cancel_Click;
         this.save.Click += Save_Click;
+
+        this.text.Focus();
     }
 
     public bool IsCancelled { get; private set; }
