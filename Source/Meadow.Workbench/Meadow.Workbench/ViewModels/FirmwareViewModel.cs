@@ -69,6 +69,7 @@ public class FirmwareViewModel : FeatureViewModel
         RefreshLocalStoreCommand = ReactiveCommand.CreateFromTask(RefreshCurrentStore);
 
         Task.Run(CheckForUpdate);
+        Task.Run(CheckForDfuDevice);
     }
 
     private async Task RefreshCurrentStore()
@@ -85,7 +86,7 @@ public class FirmwareViewModel : FeatureViewModel
             await _firmwareService.CurrentStore.Refresh();
         }
 
-        foreach (var fw in _firmwareService.CurrentStore)
+        foreach (var fw in _firmwareService.CurrentStore.OrderByDescending(f => Version.Parse(f.Version)))
         {
             FirmwareVersions.Add(
                 new FirmwarePackageViewModel(
@@ -154,6 +155,8 @@ public class FirmwareViewModel : FeatureViewModel
         get => _flashOS;
         set
         {
+            _ = CheckForDfuDevice();
+
             this.RaiseAndSetIfChanged(ref _flashOS, value);
             if (!value)
             {
@@ -220,9 +223,24 @@ public class FirmwareViewModel : FeatureViewModel
     {
         if (SelectedFirmwareVersion == null) return;
 
+        UsingDfu = true;
+
         if (UsingDfu)
         {
-            await _deviceService.FlashFirmwareWithDfu(SelectedRoute, FlashOS, FlashRuntime, FlashCoprocessor, SelectedFirmwareVersion.Version);
+            var vm = new HcomFileWriteViewModel();
+
+            _ = _deviceService.FlashFirmwareWithDfu(
+                SelectedRoute,
+                FlashOS,
+                FlashRuntime,
+                FlashCoprocessor,
+                SelectedFirmwareVersion.Version,
+                vm.Logger,
+                vm.FileWriteProgressHandler);
+
+            var dialog = new HcomFileWriteDialog(vm);
+
+            var result = await DialogHost.Show(dialog);
         }
         else
         {

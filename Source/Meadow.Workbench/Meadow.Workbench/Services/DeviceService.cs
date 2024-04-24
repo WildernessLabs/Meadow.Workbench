@@ -5,11 +5,14 @@ using Splat;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO.Ports;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Meadow.Workbench.Services;
+
+public delegate void FileWriteHandler(object sender, string status, bool isComplete, bool isError);
 
 internal class DeviceService
 {
@@ -90,7 +93,7 @@ internal class DeviceService
         return null;
     }
 
-    private async Task CheckForDeviceAtLocation(string route)
+    private async Task<IMeadowConnection?> CheckForDeviceAtLocation(string route)
     {
         // do we already know about this device?
         IMeadowConnection? connection = null;
@@ -104,7 +107,7 @@ internal class DeviceService
             {
                 Debug.WriteLine($"Already known and connected device at {route}");
                 // TODO: should we pull info and verify ID?
-                return;
+                return existing.Connection;
             }
 
             connection = existing.Connection;
@@ -142,31 +145,30 @@ internal class DeviceService
                 DeviceAdded?.Invoke(this, device);
                 DeviceConnected?.Invoke(this, device);
 
+                return connection;
             }
             else
             {
                 Debug.WriteLine($"No device detected at {route} (no info returned)");
                 connection.Detach();
+
+                return null;
             }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            Debug.WriteLine(ex.Message);
+            return null;
         }
     }
 
-    private IMeadowConnection GetConnectionForRoute(string route)
+    private async Task<IMeadowConnection?> GetConnectionForRoute(string route)
     {
-        if (route == null)
-        {
-            return null;
-        }
-
         var d = KnownDevices.FirstOrDefault(d => d.LastRoute == route);
         if (d == null)
         {
             // TODO: need to do:
-            // CheckForDeviceAtLocation(route);
-            throw new NotImplementedException();
+            return await CheckForDeviceAtLocation(route);
         }
         else
         {
@@ -176,7 +178,7 @@ internal class DeviceService
                 //var connection = new SerialConnection(route);
                 //await connection.Attach();
                 //d.Connection = connection;
-                throw new NotImplementedException();
+                return await CheckForDeviceAtLocation(route);
             }
             return d.Connection;
         }
@@ -187,7 +189,14 @@ internal class DeviceService
         return FirmwareWriter.GetLibUsbDevices().Count() > 0;
     }
 
-    public async Task FlashFirmwareWithDfu(string route, bool writeOS, bool writeRuntime, bool writeCoprocessor, string version)
+    public async Task FlashFirmwareWithDfu(
+        string? route,
+        bool writeOS,
+        bool writeRuntime,
+        bool writeCoprocessor,
+        string version,
+        Microsoft.Extensions.Logging.ILogger? logger = null,
+        FileWriteHandler? writeHandler = null)
     {
         var package = _firmwareService.CurrentStore[version];
 
@@ -195,23 +204,58 @@ internal class DeviceService
 
         if (writeOS)
         {
+            // get a list of known serial ports
+            var beforePorts = SerialPort.GetPortNames();
+
+            writeHandler?.Invoke(this, $"Writing OS {version} with DFU...", false, false);
             var source = package.GetFullyQualifiedPath(package.OSWithBootloader);
 
-            await FirmwareWriter.WriteOsWithDfu(source);
+            await FirmwareWriter.WriteOsWithDfu(source, logger);
+
+            // the device will reset here - wait for that, then whatever serial port appears
+            // that wasn't there before is our route
+            await Task.Delay(1500);
+            var afterPorts = SerialPort.GetPortNames();
+            var newPort = afterPorts.Except(beforePorts).FirstOrDefault();
+            route = newPort;
         }
 
-        if (writeRuntime && route != null)
+        IMeadowConnection? connection = null;
+
+        if (writeRuntime)
         {
-            var connection = GetConnectionForRoute(route);
+            // make sure we have a connetion (we might be resetting after DFU write)
+            var timeout = 5;
+
+            while (connection == null)
+            {
+                connection = await GetConnectionForRoute(route);
+                if (connection != null) break;
+                if (timeout-- <= 0) return;
+
+                await Task.Delay(1000);
+            }
+
+            connection.DeviceMessageReceived += (s, e) => { logger?.Log(0, 0, e.message, null, (s, e) => s); };
 
             var source = package.GetFullyQualifiedPath(package.Runtime);
 
-            await FirmwareWriter.WriteRuntimeWithHcom(connection, source);
+            writeHandler?.Invoke(this, $"Writing Runtime to {route}...", false, false);
+            await FirmwareWriter.WriteRuntimeWithHcom(connection, source, logger);
         }
 
         if (writeCoprocessor)
         {
-            var connection = GetConnectionForRoute(route);
+            var timeout = 5;
+
+            while (connection == null)
+            {
+                connection = await GetConnectionForRoute(route);
+                if (connection != null) break;
+                if (timeout-- <= 0) return;
+
+                await Task.Delay(1000);
+            }
 
             var fileList = new string[]
             {
@@ -220,8 +264,11 @@ internal class DeviceService
                 package.GetFullyQualifiedPath(package.CoprocPartitionTable),
             };
 
-            await FirmwareWriter.WriteCoprocessorFilesWithHcom(connection, fileList);
+            writeHandler?.Invoke(this, $"Writing coprocessor files to {route}...", false, false);
+            await FirmwareWriter.WriteCoprocessorFilesWithHcom(connection, fileList, logger);
         }
+
+        writeHandler?.Invoke(this, $"Done", true, false);
     }
 
     public async Task FlashFirmwareWithOtA(string route, bool writeOS, bool writeCoprocessor, string? version = null)
@@ -237,7 +284,7 @@ internal class DeviceService
             return;
         }
 
-        var connection = GetConnectionForRoute(route);
+        var connection = await GetConnectionForRoute(route);
 
         if (await connection.IsRuntimeEnabled())
         {
@@ -280,31 +327,31 @@ internal class DeviceService
 
     public async Task SetUtcTime(string route, DateTimeOffset utcTime)
     {
-        var connection = GetConnectionForRoute(route);
+        var connection = await GetConnectionForRoute(route);
         await connection.SetRtcTime(utcTime);
     }
 
     public async Task<string> GetPublicKey(string route)
     {
-        var connection = GetConnectionForRoute(route);
+        var connection = await GetConnectionForRoute(route);
         return await connection.GetPublicKey();
     }
 
     public async Task<DateTimeOffset?> GetUtcTime(string route)
     {
-        var connection = GetConnectionForRoute(route);
+        var connection = await GetConnectionForRoute(route);
         return await connection.GetRtcTime();
     }
 
     public async Task<bool> IsRuntimEnabled(string route)
     {
-        var connection = GetConnectionForRoute(route);
+        var connection = await GetConnectionForRoute(route);
         return await connection.IsRuntimeEnabled();
     }
 
     public async Task DisableRuntime(string route)
     {
-        var connection = GetConnectionForRoute(route);
+        var connection = await GetConnectionForRoute(route);
         if (await connection.IsRuntimeEnabled())
         {
             await connection.RuntimeDisable();
@@ -313,7 +360,7 @@ internal class DeviceService
 
     public async Task EnableRuntime(string route)
     {
-        var connection = GetConnectionForRoute(route);
+        var connection = await GetConnectionForRoute(route);
         if (!await connection.IsRuntimeEnabled())
         {
             await connection.RuntimeEnable();
@@ -322,32 +369,32 @@ internal class DeviceService
 
     public async Task ResetDevice(string route)
     {
-        var connection = GetConnectionForRoute(route);
+        var connection = await GetConnectionForRoute(route);
         await connection.ResetDevice();
     }
 
     public async Task<bool> DeleteFile(string route, string remoteFile)
     {
-        var connection = GetConnectionForRoute(route);
+        var connection = await GetConnectionForRoute(route);
         await connection.DeleteFile(remoteFile);
         return true;
     }
 
     public async Task<bool> DownloadFile(string route, string remoteSource, string localDestination)
     {
-        var connection = GetConnectionForRoute(route);
+        var connection = await GetConnectionForRoute(route);
         return await connection.ReadFile(remoteSource, localDestination);
     }
 
     public async Task<bool> UploadFile(string route, string localSource, string remoteDestination)
     {
-        var connection = GetConnectionForRoute(route);
+        var connection = await GetConnectionForRoute(route);
         return await connection.WriteFile(localSource, remoteDestination);
     }
 
     public async Task<MeadowDirectory> GetFileList(string route, string directory)
     {
-        var connection = GetConnectionForRoute(route);
+        var connection = await GetConnectionForRoute(route);
         var list = await connection.GetFileList(directory, false);
         return new MeadowDirectory(directory, list);
 
