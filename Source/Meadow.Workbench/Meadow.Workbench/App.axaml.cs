@@ -53,14 +53,15 @@ public partial class App : Application
 
         var im = new Cloud.Client.Identity.IdentityManager();
         Locator.CurrentMutable.RegisterConstant(im);
-        Locator.CurrentMutable.RegisterConstant(new UserService(im));
 
         var cloudClient = new MeadowCloudClient(
             new System.Net.Http.HttpClient(),
             im,
             MeadowCloudUserAgent.Workbench);
         Locator.CurrentMutable.RegisterConstant<IMeadowCloudClient>(cloudClient);
+        Locator.CurrentMutable.RegisterConstant(cloudClient);
 
+        Locator.CurrentMutable.RegisterConstant(new UserService(cloudClient));
         Locator.CurrentMutable.RegisterConstant(new FirmwareService());
         Locator.CurrentMutable.RegisterConstant(new DeviceService());
 

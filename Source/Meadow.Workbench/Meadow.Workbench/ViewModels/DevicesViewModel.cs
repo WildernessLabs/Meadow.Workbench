@@ -29,14 +29,14 @@ internal class DevicesViewModel : FeatureViewModel
 
     public DevicesViewModel()
     {
-        _deviceService = Locator.Current.GetService<DeviceService>();
+        _deviceService = Locator.Current.GetService<DeviceService>()!;
         _deviceService!.DeviceConnected += OnDeviceConnected;
         _deviceService!.DeviceDisconnected += OnDeviceDisconnected;
         _deviceService!.DeviceRemoved += OnDeviceRemoved;
 
-        _storageService = Locator.Current.GetService<StorageService>();
+        _storageService = Locator.Current.GetService<StorageService>()!;
 
-        _firmwareService = Locator.Current.GetService<FirmwareService>();
+        _firmwareService = Locator.Current.GetService<FirmwareService>()!;
 
         foreach (var device in _deviceService.KnownDevices)
         {
@@ -86,12 +86,20 @@ internal class DevicesViewModel : FeatureViewModel
         if (!_selectedDevice.IsConnected) return;
 
         // DFU
-        await _deviceService.FlashFirmwareWithDfu(
+        var vm = new HcomFileWriteViewModel();
+
+        _ = _deviceService.FlashFirmwareWithDfu(
             _selectedDevice.RootInfo.LastRoute,
             FlashOS,
             FlashRuntime,
             FlashCoprocessor,
-            DefaultFirmwareVersion);
+            DefaultFirmwareVersion,
+            vm.Logger,
+            vm.FileWriteProgressHandler);
+
+        var dialog = new HcomFileWriteDialog(vm);
+
+        var result = await DialogHost.Show(dialog);
 
         // NON_DFU
         //var vm = new OtAFirmwareFlashViewModel(
@@ -100,7 +108,7 @@ internal class DevicesViewModel : FeatureViewModel
         //    FlashOS,
         //    FlashCoprocessor);
 
-        //var dialog = new OtAFirmwareFlashDialog(vm);
+        // var dialog = new OtAFirmwareFlashDialog(vm);
 
         //var result = await DialogHost.Show(dialog);
     }
