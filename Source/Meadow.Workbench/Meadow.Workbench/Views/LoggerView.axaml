@@ -1,0 +1,71 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Meadow.Workbench.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Meadow.Workbench.LoggerView">
+    <Design.DataContext>
+        <!-- This only sets the DataContext for the previewer in an IDE,
+         to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+        <vm:LoggerViewModel />
+    </Design.DataContext>
+
+    <DockPanel>
+        <StackPanel
+            DockPanel.Dock="Top">            
+            <Label
+                Content="UDP Log View" />
+            <StackPanel Orientation="Horizontal">
+                <Button
+                    Content="Connect"
+                    Command="{Binding ConnectCommand}"
+                    IsVisible="{Binding !IsConnected}"
+                />
+                <Button
+                    Content="Disconnect"
+                    Command="{Binding DisconnectCommand}"
+                    IsVisible="{Binding IsConnected}"
+                />
+                <Button
+                    Content="Clear"
+                    Command="{Binding ClearLogCommand}"
+                />
+            </StackPanel>
+        </StackPanel>
+        <ListBox
+            DockPanel.Dock="Bottom"
+            BorderThickness="2"
+            HorizontalAlignment="Stretch"
+            ItemsSource="{Binding LogRecords}"             
+            >
+            <ListBox.Styles>
+                <Style Selector="ListBoxItem">
+                    <Setter Property="Padding" Value="1"/>
+                </Style>
+            </ListBox.Styles>
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Label
+                            VerticalAlignment="Center"
+                            Grid.Column="0"
+                            FontWeight="Light"
+                            Content="{Binding Timestamp, StringFormat='{}{0:HH:mm:ss}'}"
+                            Padding="0,0,10,0"
+                            />
+                        <TextBlock
+                           VerticalAlignment="Center"
+                            Grid.Column="1"
+                            Text="{Binding RecordText}"
+                            />
+                    </Grid>
+                </DataTemplate>
+            </ListBox.ItemTemplate>                
+        </ListBox>
+    </DockPanel>
+</UserControl>

@@ -37,6 +37,11 @@ public partial class App : Application
         {
             Title = "Firmware"
         });
+        fs.Features.Add(new Feature<LoggerView, LoggerViewModel>
+        {
+            Title = "Logger",
+            //IsVisible = settingsService.ShowDeveloperFeatures
+        });
         fs.Features.Add(new Feature<CodeView, CodeViewModel>
         {
             Title = "Code",
