@@ -2,8 +2,19 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Meadow.Workbench.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Meadow.Workbench.CodeView">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <vm:RepoStatusToColorConverter x:Key="RepoStatusToColorConverter" />
+        </ResourceDictionary>        
+    </UserControl.Resources>
+    <Design.DataContext>
+        <!-- This only sets the DataContext for the previewer in an IDE,
+         to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+        <vm:CodeViewModel />
+    </Design.DataContext>
     <StackPanel>
         <StackPanel Orientation="Horizontal">
         <Label
@@ -11,7 +22,8 @@
             VerticalAlignment="Center"            
             />
         <TextBox
-            Text="f:\repos\wilderness"
+            Text="{Binding RepoRootFolder}"
+            Width="500"
             />
             <Button
                 Content="..."
@@ -21,39 +33,38 @@
 
         <StackPanel>
             <Label
-                Content="Meadow Libraries"
+                Content="Core Stack Repositories"
                 />
-            <HeaderedItemsControl               
-                ItemsSource="{Binding MeadowRepos}">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <Grid
-                            HorizontalAlignment="Stretch"
-                            VerticalAlignment="Stretch"
-                            ShowGridLines="True">
-                            <Grid.RowDefinitions>
-                                <RowDefinition />
-                            </Grid.RowDefinitions>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="200" />
-                                <ColumnDefinition Width="200" />
-                                <ColumnDefinition />
-                                <ColumnDefinition />
-                            </Grid.ColumnDefinitions>
-                            <Label
-                                Grid.Row="0"
-                                Grid.Column="0"
-                                Content="{Binding Name}"
-                                />
-                            <Label
-                                Grid.Row="0"
-                                Grid.Column="1"
-                                Content="{Binding CurrentBranch}"
-                                />
-                        </Grid>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>                
-            </HeaderedItemsControl>
+            <DataGrid
+                ItemsSource="{Binding MeadowRepos}"
+                GridLinesVisibility="All"
+                BorderThickness="1"
+                BorderBrush="Gray"
+                AutoGenerateColumns="False"
+                >
+                <DataGrid.Styles>
+                    <Style Selector="DataGridCell">
+                        <Setter Property="Foreground"
+                                Value="{Binding ., Converter={StaticResource RepoStatusToColorConverter}}" />
+                    </Style>
+                </DataGrid.Styles>
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Name" Binding="{Binding Name}" />
+                    <DataGridTextColumn Header="Branch" Binding="{Binding CurrentBranch}" />
+                    <DataGridTextColumn Header="Behind By" Binding="{Binding BehindBy}" />
+                    <DataGridTextColumn Header="Status" Binding="{Binding StatusString}" />
+                    <DataGridTemplateColumn Width="200">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Margin="5" Padding="5" Content="Pull" IsVisible="{Binding IsBehind}" Command="{Binding PullCommand}" />
+                                    <Button Margin="5" Padding="5" Content="Clone" IsVisible="{Binding !ExistsLocally}" Command="{Binding CloneCommand}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
         </StackPanel>
     </StackPanel>
 </UserControl>

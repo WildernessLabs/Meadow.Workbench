@@ -45,7 +45,7 @@ public partial class App : Application
         fs.Features.Add(new Feature<CodeView, CodeViewModel>
         {
             Title = "Code",
-            IsVisible = settingsService.ShowDeveloperFeatures && settingsService.ShowBetaFeatures
+            //IsVisible = settingsService.ShowDeveloperFeatures && settingsService.ShowBetaFeatures
         });
         fs.Features.Add(new Feature<SimulationView, SimulationViewModel>
         {
