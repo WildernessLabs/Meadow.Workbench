@@ -81,6 +81,12 @@ public class SettingsService
         set => SetString(nameof(LocalFilesFolder), value);
     }
 
+    public string MeadowRepoRootFolder
+    {
+        get => GetString(nameof(MeadowRepoRootFolder)) ?? string.Empty;
+        set => SetString(nameof(MeadowRepoRootFolder), value);
+    }
+
     public WindowSettings? StartupWindowInfo
     {
         get => GetObject<WindowSettings>(nameof(StartupWindowInfo));
