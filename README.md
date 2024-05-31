@@ -1,19 +1,45 @@
 # Meadow.Workbench
 
-A cross-platform management tool for Meadow devices
+Meadow Workbench is a cross-platform management tool for Meadow devices.  It uses Avalonia to provide support for Windows, Mac and Linux host machines.
 
-## Update Server
+## Device Management
 
-Workbench provides a locally-hosted Meadow Update Server.
+The Devices Feature shows information about all known devices and their connection state.  It allows you to:
+- Update to the latest firmware
+- Reset the device
+- Set the device clock
+- Provision the device with meadow.Cloud
 
-## Update Binary Storage
+![](Docs/screen-devices.png)
 
-The update server uses a local folder for storing all binary updates.  This root folder is
+## File Management
+The Files Feature allows you to:
+- Browse the files on the device
+- Browse a local directory
+- Copy files to/from the device and local directory
+- Delete device files
 
-`%LOCALAPPDATA%\WildernessLabs\Updates`
+![](Docs/screen-files.png)
 
-Each available update is stored in a subfolder of this root folder based on version number (this needs to be updated to include name as well).
+## Firmware Management
+The Firmware Feature allows you to:
+- View all local firmware versions
+- Download new firmware versions from Wilderness Labs
+- Push any firmware version to a connected device
+- Delete local firmware packages
+- Set the default firmware package
 
-Inside this folder, the entire update must be contained in a single ZIP file named `update.zip`.
+![](Docs/screen-firmware.png)
 
+## UDP Log Client
+The Logger Feature allows you to:
+- Listen on a UDP port for messages from Meadows logging to the `UDPLogger`
 
+## Local Repository Management
+The Code Feature allows you to:
+- Define your local root Meadow code folder
+- View the state of all source repositories in that folder
+- Clone any repositories missing that are needed to build the Meadow software stack
+- Pull any repositories that are out of date
+
+![](Docs/screen-source.png)
