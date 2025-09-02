@@ -1,0 +1,57 @@
+<Solution>
+  <Configurations>
+    <BuildType Name="Debug" />
+    <BuildType Name="Release" />
+    <BuildType Name="Simulation" />
+  </Configurations>
+  <Folder Name="/Docs/">
+    <File Path="../../README.md" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path="Directory.Build.props" />
+  </Folder>
+  <Folder Name="/_refs/">
+    <Project Path="../../../Meadow.CLI/Source/Meadow.Cloud.Client/Meadow.Cloud.Client.csproj">
+      <BuildType Solution="Simulation|*" Project="Release" />
+    </Project>
+    <Project Path="../../../Meadow.CLI/Source/Meadow.Dfu/Meadow.Dfu.csproj">
+      <BuildType Solution="Simulation|*" Project="Release" />
+    </Project>
+    <Project Path="../../../Meadow.CLI/Source/Meadow.Firmware/Meadow.Firmware.csproj">
+      <BuildType Solution="Simulation|*" Project="Release" />
+    </Project>
+    <Project Path="../../../Meadow.CLI/Source/Meadow.HCom/Meadow.HCom.csproj">
+      <BuildType Solution="Simulation|*" Project="Release" />
+    </Project>
+    <Project Path="../../../Meadow.CLI/Source/Meadow.Linker/Meadow.Linker.csproj">
+      <BuildType Solution="Simulation|*" Project="Release" />
+    </Project>
+    <Project Path="../../../Meadow.CLI/Source/Meadow.SoftwareManager/Meadow.SoftwareManager.csproj">
+      <BuildType Solution="Simulation|*" Project="Release" />
+    </Project>
+    <Project Path="../../../Meadow.CLI/Source/Meadow.UsbLib.Core/Meadow.UsbLib.Core.csproj">
+      <BuildType Solution="Simulation|*" Project="Release" />
+    </Project>
+    <Project Path="../../../Meadow.CLI/Source/Meadow.UsbLib/Meadow.UsbLib.csproj">
+      <BuildType Solution="Simulation|*" Project="Release" />
+    </Project>
+    <Project Path="../../../Meadow.CLI/Source/Meadow.UsbLibClassic/Meadow.UsbLibClassic.csproj">
+      <BuildType Solution="Simulation|*" Project="Release" />
+    </Project>
+    <Project Path="../../../Meadow.Contracts/Source/Meadow.Contracts/Meadow.Contracts.csproj">
+      <BuildType Solution="Simulation|*" Project="Debug" />
+      <Deploy />
+    </Project>
+    <Project Path="../../../Meadow.Logging/Source/Meadow.Logging/lib/Meadow.Logging.csproj" />
+    <Project Path="../../../Meadow.Units/Source/Meadow.Units/Meadow.Units.csproj">
+      <BuildType Solution="Simulation|*" Project="Debug" />
+      <Deploy />
+    </Project>
+  </Folder>
+  <Project Path="Meadow.Workbench.Desktop/Meadow.Workbench.Desktop.csproj">
+    <BuildType Solution="Simulation|*" Project="Release" />
+  </Project>
+  <Project Path="Meadow.Workbench/Meadow.Workbench.csproj">
+    <BuildType Solution="Simulation|*" Project="Release" />
+  </Project>
+</Solution>
