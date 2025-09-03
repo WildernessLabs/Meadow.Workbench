@@ -1,5 +1,4 @@
-﻿using Meadow.Workbench.Models;
-using Splat;
+﻿using Splat;
 using System;
 using System.IO;
 using System.Threading.Tasks;
@@ -39,7 +38,7 @@ internal class PackageService
                         var packagePath = new FileInfo(Path.Combine(_packageRoot.FullName, package.FileName));
                         var fileFoundBefore = package.FileFound;
                         var fileSizeBefore = package.FileSize;
-                        
+
                         if (!packagePath.Exists)
                         {
                             package.FileFound = false;
@@ -49,12 +48,6 @@ internal class PackageService
                         {
                             package.FileFound = true;
                             package.FileSize = packagePath.Length;
-                        }
-                        
-                        // Update database if values changed
-                        if (package.FileFound != fileFoundBefore || package.FileSize != fileSizeBefore)
-                        {
-                            _storageService.UpdatePackage(package);
                         }
                     }
                     catch (Exception ex)

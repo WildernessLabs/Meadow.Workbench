@@ -2,24 +2,63 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="Meadow.Workbench.Dialogs.UserMessageDialog"
-             Width="320"             
-             Height="240">
-    <Border
-         BorderBrush="#222222"
-         CornerRadius="10"
-        >
-
+             mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="300"
+             x:Class="Meadow.Workbench.Dialogs.UserMessageDialog">
+    <Border BorderBrush="LightGray" 
+            BorderThickness="1" 
+            CornerRadius="8"
+            Padding="20"
+            MinWidth="400"
+            MinHeight="200">
         <DockPanel>
-            <TextBlock
-                DockPanel.Dock="Top"
-                HorizontalAlignment="Center"
-                Text="{Binding UserMessage}"
-                TextAlignment="Center"
-                TextWrapping="Wrap"
-                Padding="30,30,30,0"
-                />
+            <!-- Title -->
+            <TextBlock DockPanel.Dock="Top"
+                      Text="{Binding Title}"
+                      FontSize="16"
+                      FontWeight="Bold"
+                      Margin="0,0,0,15"
+                      HorizontalAlignment="Center" />
+
+            <!-- Button Panel -->
+            <StackPanel DockPanel.Dock="Bottom" 
+                       Orientation="Horizontal" 
+                       HorizontalAlignment="Right"
+                       Margin="0,20,0,0"
+                       IsVisible="{Binding IsQuestion}">
+                <Button Content="Cancel"
+                       Command="{Binding CancelCommand}"
+                       Margin="0,0,10,0"
+                       MinWidth="80"
+                       Padding="10,5" />
+                <Button Content="OK"
+                       Command="{Binding OkCommand}"
+                       MinWidth="80"
+                       Padding="10,5"
+                       IsDefault="True" />
+            </StackPanel>
+
+            <!-- OK only button for non-questions -->
+            <StackPanel DockPanel.Dock="Bottom" 
+                       Orientation="Horizontal" 
+                       HorizontalAlignment="Center"
+                       Margin="0,20,0,0"
+                       IsVisible="{Binding !IsQuestion}">
+                <Button Content="OK"
+                       Command="{Binding OkCommand}"
+                       MinWidth="80"
+                       Padding="10,5"
+                       IsDefault="True" />
+            </StackPanel>
+
+            <!-- Message Content -->
+            <ScrollViewer>
+                <TextBlock Text="{Binding Message}"
+                          TextAlignment="Center"
+                          TextWrapping="Wrap"
+                          VerticalAlignment="Center"
+                          FontSize="14"
+                          LineHeight="20" />
+            </ScrollViewer>
         </DockPanel>
     </Border>
 </UserControl>

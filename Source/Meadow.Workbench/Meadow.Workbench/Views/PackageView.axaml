@@ -81,8 +81,7 @@
                     BorderThickness="1" 
                     CornerRadius="5" 
                     Padding="15" 
-                    Margin="0,0,0,10"
-                    Background="#E9ECEF">
+                    Margin="0,0,0,10" >
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
@@ -114,8 +113,13 @@
             </Border>
 
             <!-- Package Contents Tree -->
-            <DockPanel>
-                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,10">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                
+                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
                     <TextBlock Text="Package Contents" 
                               FontWeight="Bold" 
                               FontSize="14" 
@@ -129,23 +133,26 @@
                            Foreground="White" />
                 </StackPanel>
                 
-                <Border BorderBrush="LightGray" 
-                        BorderThickness="1" 
+                <Border Grid.Row="1"
+                        BorderBrush="LightGray" 
+                        BorderThickness="2" 
                         CornerRadius="5"
-                        DragDrop.AllowDrop="True"
-                        HorizontalAlignment="Stretch">
+                        DragDrop.AllowDrop="True">
                     <TreeView ItemsSource="{Binding PackageContents}"
+                              SelectedItem="{Binding SelectedTreeItem}"
                               Background="White"
-                              MinHeight="300"
-                              HorizontalAlignment="Stretch">
+                              MinHeight="300">
+                        <TreeView.KeyBindings>
+                            <KeyBinding Gesture="Delete" Command="{Binding DeleteTreeItemCommand}" />
+                        </TreeView.KeyBindings>
                         <TreeView.ItemTemplate>
                             <TreeDataTemplate ItemsSource="{Binding Children}">
                                 <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="{Binding IsDirectory, Converter={x:Static converters:StringConverters.BoolToFolderIcon}}" 
+                                    <TextBlock Text="{Binding IsDirectory, Converter={x:Static converters:StringConverters.BoolToFolderIcon}}"
                                               Margin="0,0,5,0" />
                                     <TextBlock Text="{Binding Name}" />
-                                    <TextBlock Text="{Binding Size, Converter={x:Static converters:StringConverters.FileSizeConverter}}" 
-                                              Foreground="Gray" 
+                                    <TextBlock Text="{Binding Size, Converter={x:Static converters:StringConverters.FileSizeConverter}}"
+                                              Foreground="Gray"
                                               Margin="10,0,0,0"
                                               IsVisible="{Binding !IsDirectory}" />
                                 </StackPanel>
@@ -160,7 +167,7 @@
                           FontStyle="Italic"
                           Margin="0,5,0,0"
                           HorizontalAlignment="Center" />
-            </DockPanel>
+            </Grid>
         </DockPanel>
 
         <!-- Empty State Message -->
