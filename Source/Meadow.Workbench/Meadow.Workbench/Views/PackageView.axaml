@@ -1,0 +1,177 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:converters="clr-namespace:Meadow.Workbench.Converters"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Meadow.Workbench.PackageView">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="400" />
+            <ColumnDefinition Width="5" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- Left Panel: Package List -->
+        <DockPanel Grid.Column="0" Margin="5">
+            <!-- Buttons -->
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,10">
+                <Label
+                    VerticalAlignment="Center"
+                    Content="Packages" />
+                <Button
+                    Content="Create"
+                    Command="{Binding CreatePackageCommand}"
+                    Margin="10,0,5,0"
+                    Padding="10,5" />
+                <Button
+                    Content="Delete"
+                    Command="{Binding DeletePackageCommand}"
+                    IsEnabled="{Binding SelectedPackage, Converter={x:Static ObjectConverters.IsNotNull}}"
+                    Padding="10,5" />
+            </StackPanel>
+
+            <!-- Package List -->
+            <ScrollViewer>
+                <ListBox 
+                    ItemsSource="{Binding Packages}"
+                    SelectedItem="{Binding SelectedPackage}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Border Margin="0,5,0,0" CornerRadius="5" BorderBrush="Gray" BorderThickness="1" Padding="10">
+                                <StackPanel>
+                                    <TextBlock 
+                                        Text="{Binding AppName}" 
+                                        FontWeight="Bold" 
+                                        FontSize="14" />
+                                    <TextBlock 
+                                        Text="{Binding AppVersion}" 
+                                        Foreground="Gray" 
+                                        FontSize="12" />
+                                    <TextBlock 
+                                        Text="{Binding FileName}" 
+                                        Foreground="DarkGray" 
+                                        FontSize="11" />
+                                    <StackPanel Orientation="Horizontal" IsVisible="{Binding !FileFound}">
+                                        <TextBlock 
+                                            Text="⚠️ File not found" 
+                                            Foreground="Red" 
+                                            FontSize="11" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </ScrollViewer>
+        </DockPanel>
+
+        <!-- Splitter -->
+        <GridSplitter 
+            Grid.Column="1" 
+            Background="LightGray" 
+            HorizontalAlignment="Stretch" />
+
+        <!-- Right Panel: Package Details and Tree -->
+        <DockPanel Grid.Column="2" Margin="5" IsVisible="{Binding SelectedPackage, Converter={x:Static ObjectConverters.IsNotNull}}">
+            
+            <!-- Package Details Header -->
+            <Border DockPanel.Dock="Top" 
+                    BorderBrush="LightGray" 
+                    BorderThickness="1" 
+                    CornerRadius="5" 
+                    Padding="15" 
+                    Margin="0,0,0,10"
+                    Background="#E9ECEF">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition />
+                        <RowDefinition />
+                        <RowDefinition />
+                        <RowDefinition />
+                        <RowDefinition />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Package Name:" FontWeight="Bold" />
+                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding SelectedPackage.AppName}" />
+
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="App Version:" FontWeight="Bold" />
+                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SelectedPackage.AppVersion}" />
+
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="OS Version:" FontWeight="Bold" />
+                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding SelectedPackage.OSVersion}" />
+
+                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Created:" FontWeight="Bold" />
+                    <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding SelectedPackage.CreatedAt, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}" />
+
+                    <TextBlock Grid.Row="4" Grid.Column="0" Text="File Size:" FontWeight="Bold" />
+                    <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding SelectedPackage.FileSize, Converter={x:Static converters:StringConverters.FileSizeConverter}}" />
+                </Grid>
+            </Border>
+
+            <!-- Package Contents Tree -->
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,10">
+                    <TextBlock Text="Package Contents" 
+                              FontWeight="Bold" 
+                              FontSize="14" 
+                              VerticalAlignment="Center" />
+                    <Button Content="Generate Package"
+                           Command="{Binding GeneratePackageCommand}"
+                           IsEnabled="{Binding SelectedPackage, Converter={x:Static ObjectConverters.IsNotNull}}"
+                           Margin="20,0,0,0"
+                           Padding="10,5"
+                           Background="DarkGreen"
+                           Foreground="White" />
+                </StackPanel>
+                
+                <Border BorderBrush="LightGray" 
+                        BorderThickness="1" 
+                        CornerRadius="5"
+                        DragDrop.AllowDrop="True"
+                        HorizontalAlignment="Stretch">
+                    <TreeView ItemsSource="{Binding PackageContents}"
+                              Background="White"
+                              MinHeight="300"
+                              HorizontalAlignment="Stretch">
+                        <TreeView.ItemTemplate>
+                            <TreeDataTemplate ItemsSource="{Binding Children}">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding IsDirectory, Converter={x:Static converters:StringConverters.BoolToFolderIcon}}" 
+                                              Margin="0,0,5,0" />
+                                    <TextBlock Text="{Binding Name}" />
+                                    <TextBlock Text="{Binding Size, Converter={x:Static converters:StringConverters.FileSizeConverter}}" 
+                                              Foreground="Gray" 
+                                              Margin="10,0,0,0"
+                                              IsVisible="{Binding !IsDirectory}" />
+                                </StackPanel>
+                            </TreeDataTemplate>
+                        </TreeView.ItemTemplate>
+                    </TreeView>
+                </Border>
+                
+                <!-- Drag and Drop Help Text -->
+                <TextBlock Text="Drag and drop files into the 'app' or 'os' folders above"
+                          Foreground="Gray"
+                          FontStyle="Italic"
+                          Margin="0,5,0,0"
+                          HorizontalAlignment="Center" />
+            </DockPanel>
+        </DockPanel>
+
+        <!-- Empty State Message -->
+        <StackPanel Grid.Column="2" 
+                    HorizontalAlignment="Center" 
+                    VerticalAlignment="Center"
+                    IsVisible="{Binding SelectedPackage, Converter={x:Static ObjectConverters.IsNull}}">
+            <TextBlock Text="Select a package to view details" 
+                      FontSize="16" 
+                      Foreground="Gray" 
+                      HorizontalAlignment="Center" />
+        </StackPanel>
+    </Grid>
+</UserControl>

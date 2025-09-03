@@ -1,0 +1,94 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="400"
+             x:Class="Meadow.Workbench.AddPackageDialog">
+    <Border BorderBrush="LightGray" 
+            BorderThickness="1" 
+            CornerRadius="8"
+            Background="White"
+            Padding="20"
+            MinWidth="450"
+            MinHeight="350">
+        <DockPanel>
+            <!-- Title -->
+            <TextBlock DockPanel.Dock="Top"
+                      Text="Create New Package"
+                      FontSize="18"
+                      FontWeight="Bold"
+                      Margin="0,0,0,20"
+                      HorizontalAlignment="Center" />
+
+            <!-- Button Panel -->
+            <StackPanel DockPanel.Dock="Bottom" 
+                       Orientation="Horizontal" 
+                       HorizontalAlignment="Right"
+                       Margin="0,20,0,0">
+                <Button Content="Cancel"
+                       Command="{Binding CancelCommand}"
+                       Margin="0,0,10,0"
+                       MinWidth="80"
+                       Padding="10,5" />
+                <Button Content="OK"
+                       Command="{Binding OkCommand}"
+                       MinWidth="80"
+                       Padding="10,5"
+                       IsDefault="True" />
+            </StackPanel>
+
+            <!-- Form Content -->
+            <StackPanel Spacing="15">
+                <!-- Package Name -->
+                <StackPanel>
+                    <TextBlock Text="Package Name:" 
+                              FontWeight="SemiBold"
+                              Margin="0,0,0,5" />
+                    <TextBox Text="{Binding PackageName}"
+                            Watermark="Enter package name..."
+                            Height="35" />
+                </StackPanel>
+
+                <!-- Package Version -->
+                <StackPanel>
+                    <TextBlock Text="Package Version:" 
+                              FontWeight="SemiBold"
+                              Margin="0,0,0,5" />
+                    <TextBox Text="{Binding PackageVersion}"
+                            Watermark="Enter version (e.g., 1.0.0)..."
+                            Height="35" />
+                </StackPanel>
+
+                <!-- Target Platform -->
+                <StackPanel>
+                    <TextBlock Text="Target Platform:" 
+                              FontWeight="SemiBold"
+                              Margin="0,0,0,5" />
+                    <ComboBox SelectedItem="{Binding SelectedTarget}"
+                             ItemsSource="{Binding AvailableTargets}"
+                             Height="35"
+                             HorizontalAlignment="Stretch">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding .}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                </StackPanel>
+
+                <!-- Description (Optional) -->
+                <StackPanel>
+                    <TextBlock Text="Description (Optional):" 
+                              FontWeight="SemiBold"
+                              Margin="0,0,0,5" />
+                    <TextBox Text="{Binding Description}"
+                            Watermark="Enter package description..."
+                            Height="80"
+                            AcceptsReturn="True"
+                            TextWrapping="Wrap"
+                            ScrollViewer.VerticalScrollBarVisibility="Auto" />
+                </StackPanel>
+            </StackPanel>
+        </DockPanel>
+    </Border>
+</UserControl>

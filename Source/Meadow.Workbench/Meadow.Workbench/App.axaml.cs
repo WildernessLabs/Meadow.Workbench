@@ -52,6 +52,11 @@ public partial class App : Application
             Title = "Simulation",
             IsVisible = settingsService.ShowDeveloperFeatures && settingsService.ShowBetaFeatures
         });
+        fs.Features.Add(new Feature<PackageView, PackageViewModel>
+        {
+            Title = "Packages",
+            //IsVisible = settingsService.ShowDeveloperFeatures && settingsService.ShowBetaFeatures
+        });
 
         Locator.CurrentMutable.RegisterConstant(fs);
         Locator.CurrentMutable.RegisterConstant(new StorageService());
@@ -69,6 +74,7 @@ public partial class App : Application
         Locator.CurrentMutable.RegisterConstant(new UserService(cloudClient));
         Locator.CurrentMutable.RegisterConstant(new FirmwareService());
         Locator.CurrentMutable.RegisterConstant(new DeviceService());
+        Locator.CurrentMutable.RegisterConstant(new Services.PackageService());
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
