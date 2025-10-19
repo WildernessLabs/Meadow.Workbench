@@ -57,6 +57,11 @@ public partial class App : Application
             Title = "Packages",
             //IsVisible = settingsService.ShowDeveloperFeatures && settingsService.ShowBetaFeatures
         });
+        fs.Features.Add(new Feature<OtAServerView, OtAServerViewModel>
+        {
+            Title = "OtA Server",
+            //IsVisible = settingsService.ShowDeveloperFeatures && settingsService.ShowBetaFeatures
+        });
 
         Locator.CurrentMutable.RegisterConstant(fs);
         Locator.CurrentMutable.RegisterConstant(new StorageService());

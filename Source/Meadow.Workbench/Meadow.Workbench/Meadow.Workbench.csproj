@@ -28,6 +28,8 @@
     <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="$(AvaloniaVersion)" />
     <PackageReference Include="Avalonia.Xaml.Behaviors" Version="11.0.6" />
     <PackageReference Include="DialogHost.Avalonia" Version="0.7.7" />
+    <PackageReference Include="MQTTnet" Version="5.0.1.1416" />
+    <PackageReference Include="MQTTnet.Server" Version="5.0.1.1416" />
     <PackageReference Include="opennetcf-orm-sqlite" Version="1.0.23048.1" />
     <PackageReference Include="System.Management" Version="8.0.0" />
     <PackageReference Include="LibGit2Sharp" Version="0.26.2" />
