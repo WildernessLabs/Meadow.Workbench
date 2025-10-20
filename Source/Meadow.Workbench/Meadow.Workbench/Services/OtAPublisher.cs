@@ -25,22 +25,24 @@ internal class UpdateMessage : UpdateInfo
         get => ID;
         set => ID = value;
     }
-    public string MpakDownloadUrl { get; set; }
-    public string[] TargetDevices { get; set; }
+    public string MpakDownloadUrl { get; set; } = string.Empty;
+    public string MpakWithOsDownloadUrl { get; set; } = string.Empty;
+    public string OsVersion { get; set; } = string.Empty;
+    public string[] TargetDevices { get; set; } = Array.Empty<string>();
 }
 
 public class UpdateInfo
 {
     public DateTime PublishedOn { get; internal set; }
-    public string ID { get; protected set; }
+    public string ID { get; protected set; } = string.Empty;
     public UpdateType UpdateType { get; internal set; }
-    public string Version { get; internal set; }
-    public long DownloadSize { get; internal set; }
+    public string Version { get; internal set; } = string.Empty;
+    public long FileSize { get; internal set; }  // Changed from DownloadSize to match F7
     public string? Summary { get; internal set; }
     public string? Detail { get; internal set; }
     public bool Retrieved { get; internal set; }
     public bool Applied { get; internal set; }
-    public string DownloadHash { get; internal set; }
+    public string Crc { get; internal set; } = string.Empty;  // Changed from DownloadHash to match F7
 }
 
 internal class OtAPublisher
@@ -71,8 +73,11 @@ internal class OtAPublisher
 
         foreach (var d in di.EnumerateDirectories())
         {
-            var upd = d.GetFiles("update.zip").FirstOrDefault();
-            if (upd != null)
+            // Support both .mpak and .zip extensions
+            var mpakFile = d.GetFiles("update.mpak").FirstOrDefault();
+            var zipFile = d.GetFiles("update.zip").FirstOrDefault();
+
+            if (mpakFile != null || zipFile != null)
             {
                 list.Add(d.Name);
             }
@@ -81,53 +86,61 @@ internal class OtAPublisher
         return list.ToArray();
     }
 
-    public async Task MakeUpdateAvailable()
+    public async Task PublishUpdate(string updateName, string serverUrl, string topic)
     {
         var options = new MqttClientOptionsBuilder()
-            .WithClientId("workbench")
+            .WithClientId("workbench-publisher")
             .WithTcpServer("localhost", 1883)
             .Build();
 
         await _client.ConnectAsync(options);
 
-        var update = GenerateMessageForUpdate("0.6.7.13");
+        var update = GenerateMessageForUpdate(updateName, serverUrl);
 
         var json = JsonSerializer.Serialize(update);
 
         var message = new MqttApplicationMessageBuilder()
-            .WithTopic("Meadow.OtA")
+            .WithTopic(topic)
             .WithPayload(json)
-        .Build();
+            .WithQualityOfServiceLevel(MQTTnet.Protocol.MqttQualityOfServiceLevel.AtLeastOnce)
+            .Build();
 
         await _client.PublishAsync(message, CancellationToken.None);
 
         await _client.DisconnectAsync();
     }
 
-    private UpdateMessage GenerateMessageForUpdate(string updateName)
+    private UpdateMessage GenerateMessageForUpdate(string updateName, string serverUrl)
     {
         var updateFolder = Path.Combine(SourceFolder, updateName);
 
-        // make sure the file exists
-        var fi = new FileInfo(Path.Combine(updateFolder, "update.zip"));
+        // Support both .mpak and .zip extensions
+        var mpakFile = new FileInfo(Path.Combine(updateFolder, "update.mpak"));
+        var zipFile = new FileInfo(Path.Combine(updateFolder, "update.zip"));
 
-        if (!fi.Exists)
+        var file = mpakFile.Exists ? mpakFile : zipFile;
+
+        if (!file.Exists)
         {
-            throw new FileNotFoundException();
+            throw new FileNotFoundException($"No update.mpak or update.zip found in {updateFolder}");
         }
 
-        // get the update info (hash, etc)
-        var hash = GetFileHash(fi);
+        // Get the update info (hash, etc)
+        var hash = GetFileHash(file);
 
         var update = new UpdateMessage
         {
             MpakID = updateName,
-            MpakDownloadUrl = $"http://192.168.1.133:5000/update/{updateName}",
-            DownloadHash = hash,
-            DownloadSize = fi.Length,
-            PublishedOn = fi.CreationTimeUtc,
+            MpakDownloadUrl = $"{serverUrl}/update/{updateName}",
+            MpakWithOsDownloadUrl = $"{serverUrl}/update-os/{updateName}",  // For F7 OS updates
+            OsVersion = "",  // Empty = app-only update
+            Crc = hash,  // Use Crc property instead of DownloadHash
+            FileSize = file.Length,  // Use FileSize instead of DownloadSize
+            PublishedOn = file.CreationTimeUtc,
             Version = updateName,
-            UpdateType = UpdateType.OS
+            UpdateType = UpdateType.Application,  // Application update
+            Summary = $"Update {updateName}",
+            Detail = $"Test update package {updateName}"
         };
 
         return update;
