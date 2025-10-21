@@ -30,9 +30,10 @@ internal class HttpUpdateServer
 
     public HttpUpdateServer()
     {
+        // Use the Packages folder (same as PackageService)
         _updatesFolder = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "WildernessLabs", "Updates");
+            "WildernessLabs", "Packages");
 
         if (!Directory.Exists(_updatesFolder))
         {
@@ -104,28 +105,22 @@ internal class HttpUpdateServer
 
     private IResult HandleUpdateDownload(string id, HttpContext context)
     {
-        // Try both .mpak and .zip extensions for compatibility
-        var mpakPath = Path.Combine(_updatesFolder, id, "update.mpak");
-        var zipPath = Path.Combine(_updatesFolder, id, "update.zip");
+        // The 'id' parameter is actually the filename (e.g., "WindowsTest_1.0.0_Windows.pkg")
+        var filePath = Path.Combine(_updatesFolder, id);
 
-        var filePath = File.Exists(mpakPath) ? mpakPath
-                     : File.Exists(zipPath) ? zipPath
-                     : null;
-
-        if (filePath == null)
+        if (!File.Exists(filePath))
         {
-            ActivityLogged?.Invoke(this, $"HTTP: Update file not found: {id}");
+            ActivityLogged?.Invoke(this, $"HTTP: Package file not found: {id}");
             return Results.NotFound();
         }
 
-        var fileName = Path.GetFileName(filePath);
         var fileSize = new FileInfo(filePath).Length / 1024.0 / 1024.0; // MB
-        ActivityLogged?.Invoke(this, $"HTTP: Serving update '{id}' ({fileName}, {fileSize:F2} MB)");
+        ActivityLogged?.Invoke(this, $"HTTP: Serving package '{id}' ({fileSize:F2} MB)");
 
         // Support HTTP Range headers for resumable downloads (F7 compatibility)
         return Results.File(
             filePath,
-            contentType: "application/zip",
+            contentType: "application/octet-stream",
             enableRangeProcessing: true);
     }
 

@@ -4,6 +4,7 @@ using OpenNETCF.ORM;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace Meadow.Workbench.Services;
 
@@ -32,7 +33,7 @@ internal class StorageService
     {
         lock (_dbLock)
         {
-            return _store.Select<Package>();
+            return _store.Select<Package>().ToList();
         }
     }
 
@@ -40,7 +41,7 @@ internal class StorageService
     {
         lock (_dbLock)
         {
-            return _store.Select<DeviceInformation>();
+            return _store.Select<DeviceInformation>().ToList();
         }
     }
 

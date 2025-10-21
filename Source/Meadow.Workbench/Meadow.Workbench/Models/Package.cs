@@ -30,6 +30,7 @@ internal class Package
     [Field]
     public PackageTarget Target { get; set; }
 
+    // Runtime properties - not stored in database, populated from actual file system state
     public bool FileFound { get; set; }
     public long FileSize { get; set; }
 }

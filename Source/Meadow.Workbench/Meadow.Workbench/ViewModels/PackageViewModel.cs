@@ -105,8 +105,7 @@ internal class PackageViewModel : FeatureViewModel
 
     private async Task RefreshPackages()
     {
-        await _packageService.RefreshPackages();
-        var packages = _storageService.GetAllPackages();
+        var packages = await Task.Run(() => _packageService.GetAllPackages().ToList());
 
         // Remember the currently selected package ID to avoid reloading its contents during generation refresh
         var selectedPackageId = SelectedPackage?.PackageID;

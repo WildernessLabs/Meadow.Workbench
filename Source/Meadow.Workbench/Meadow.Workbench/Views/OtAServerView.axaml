@@ -53,6 +53,13 @@
         <StackPanel Spacing="10">
           <TextBlock Text="Publish Update" FontWeight="Bold" FontSize="16"/>
 
+          <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" FontSize="11">
+            Packages folder: %LocalAppData%\WildernessLabs\Packages\
+          </TextBlock>
+          <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" FontSize="11">
+            Uses same .mpak package files as the Packages tab
+          </TextBlock>
+
           <Label Content="Select Update Package:"/>
           <ComboBox ItemsSource="{Binding AvailableUpdates}"
                     SelectedItem="{Binding SelectedUpdate}"
