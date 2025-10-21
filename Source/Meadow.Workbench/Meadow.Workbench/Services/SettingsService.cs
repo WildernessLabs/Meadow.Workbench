@@ -87,6 +87,12 @@ public class SettingsService
         set => SetString(nameof(MeadowRepoRootFolder), value);
     }
 
+    public string PackagesFolder
+    {
+        get => GetString(nameof(PackagesFolder)) ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "WildernessLabs", "Packages");
+        set => SetString(nameof(PackagesFolder), value);
+    }
+
     public WindowSettings? StartupWindowInfo
     {
         get => GetObject<WindowSettings>(nameof(StartupWindowInfo));
