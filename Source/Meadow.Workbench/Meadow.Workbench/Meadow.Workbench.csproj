@@ -35,12 +35,12 @@
     <PackageReference Include="MQTTnet" Version="5.0.1.1416" />
     <PackageReference Include="MQTTnet.Server" Version="5.0.1.1416" />
     <PackageReference Include="System.Management" Version="8.0.0" />
+    <PackageReference Include="opennetcf-orm-sqlite" Version="1.0.23048.1" />
     <PackageReference Include="LibGit2Sharp" Version="0.26.2" />
     <PackageReference Include="Avalonia.Controls.DataGrid" Version="$(AvaloniaVersion)" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\ctacke\orm\SQLite\OpenNETCF.ORM.SQLite.csproj" />
     <ProjectReference Include="..\..\..\..\Meadow.CLI\Source\Meadow.Firmware\Meadow.Firmware.csproj" />
     <ProjectReference Include="..\..\..\..\Meadow.CLI\Source\Meadow.Hcom\Meadow.HCom.csproj" />
     <ProjectReference Include="..\..\..\..\Meadow.CLI\Source\Meadow.Linker\Meadow.Linker.csproj" />
