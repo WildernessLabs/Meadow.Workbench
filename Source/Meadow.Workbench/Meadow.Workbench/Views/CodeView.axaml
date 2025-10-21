@@ -15,33 +15,35 @@
          to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
         <vm:CodeViewModel />
     </Design.DataContext>
-    <StackPanel>
-        <StackPanel Orientation="Horizontal">
-        <Label
-            Content="Local Meadow Root:"
-            VerticalAlignment="Center"            
-            />
-        <TextBox
-            Text="{Binding RepoRootFolder}"
-            Width="500"
-            />
-            <Button
-                Content="..."
-                Command="{Binding SelectRootFolderCommand}"
-            />
-        </StackPanel>
-
-        <StackPanel>
+    <Grid>
+        <!-- Main Content -->
+        <StackPanel IsVisible="{Binding !IsLoading}">
+            <StackPanel Orientation="Horizontal">
             <Label
-                Content="Core Stack Repositories"
+                Content="Local Meadow Root:"
+                VerticalAlignment="Center"
                 />
-            <DataGrid
-                ItemsSource="{Binding MeadowRepos}"
-                GridLinesVisibility="All"
-                BorderThickness="1"
-                BorderBrush="Gray"
-                AutoGenerateColumns="False"
-                >
+            <TextBox
+                Text="{Binding RepoRootFolder}"
+                Width="500"
+                />
+                <Button
+                    Content="..."
+                    Command="{Binding SelectRootFolderCommand}"
+                />
+            </StackPanel>
+
+            <StackPanel>
+                <Label
+                    Content="Core Stack Repositories"
+                    />
+                <DataGrid
+                    ItemsSource="{Binding MeadowRepos}"
+                    GridLinesVisibility="All"
+                    BorderThickness="1"
+                    BorderBrush="Gray"
+                    AutoGenerateColumns="False"
+                    >
                 <DataGrid.Styles>
                     <Style Selector="DataGridCell">
                         <Setter Property="Foreground"
@@ -67,4 +69,19 @@
             </DataGrid>
         </StackPanel>
     </StackPanel>
+
+    <!-- Loading Indicator -->
+    <StackPanel IsVisible="{Binding IsLoading}"
+                VerticalAlignment="Center"
+                HorizontalAlignment="Center">
+        <TextBlock Text="Retrieving repository data..."
+                   FontSize="16"
+                   FontWeight="Bold"
+                   HorizontalAlignment="Center"
+                   Margin="0,0,0,10"/>
+        <ProgressBar IsIndeterminate="True"
+                     Width="300"
+                     Height="4"/>
+    </StackPanel>
+  </Grid>
 </UserControl>

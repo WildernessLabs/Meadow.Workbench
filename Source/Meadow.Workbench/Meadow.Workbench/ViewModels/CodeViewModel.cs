@@ -38,10 +38,17 @@ public class CodeViewModel : FeatureViewModel
 {
     private SettingsService? _settingsService;
     private string? _meadowRootFolder;
+    private bool _isLoading;
 
     public ObservableCollection<RepoViewModel> MeadowRepos { get; } = new();
 
     public IReactiveCommand SelectRootFolderCommand { get; }
+
+    public bool IsLoading
+    {
+        get => _isLoading;
+        set => this.RaiseAndSetIfChanged(ref _isLoading, value);
+    }
 
     private string[] RequiredRepos =
         [
@@ -69,7 +76,16 @@ public class CodeViewModel : FeatureViewModel
 
         if (Directory.Exists(RepoRootFolder))
         {
-            LoadRepos(_meadowRootFolder);
+            _ = LoadReposAsync(_meadowRootFolder);
+        }
+    }
+
+    public override async void OnActivated()
+    {
+        // Refresh repos when tab is activated
+        if (MeadowRepos.Count > 0 && !IsLoading)
+        {
+            await RefreshAllReposAsync();
         }
     }
 
@@ -79,30 +95,72 @@ public class CodeViewModel : FeatureViewModel
         set => this.RaiseAndSetIfChanged(ref _meadowRootFolder, value);
     }
 
-    private void LoadRepos(string folder)
+    private async Task LoadReposAsync(string folder)
     {
-        foreach (var repo in RequiredRepos)
+        IsLoading = true;
+        try
         {
-            var repoFolder = new DirectoryInfo(Path.Combine(folder, repo));
-            var vm = new RepoViewModel(repoFolder);
-            MeadowRepos.Add(vm);
+            await Task.Run(async () =>
+            {
+                // Create RepoViewModels on background thread
+                var repoVMs = new System.Collections.Generic.List<RepoViewModel>();
+
+                foreach (var repo in RequiredRepos)
+                {
+                    var repoFolder = new DirectoryInfo(Path.Combine(folder, repo));
+                    var vm = new RepoViewModel(repoFolder);
+                    repoVMs.Add(vm);
+                }
+
+                var others = Directory.GetDirectories(folder).Except(RequiredRepos);
+
+                foreach (var o in others)
+                {
+                    try
+                    {
+                        var repoFolder = new DirectoryInfo(Path.Combine(folder, o));
+                        var vm = new RepoViewModel(repoFolder);
+                        repoVMs.Add(vm);
+                    }
+                    catch
+                    {
+                        // ignore
+                        Debug.WriteLine($"{o} doesn't seem to be a valid repo");
+                    }
+                }
+
+                // Add to ObservableCollection on UI thread
+                await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    MeadowRepos.Clear();
+                    foreach (var vm in repoVMs)
+                    {
+                        MeadowRepos.Add(vm);
+                    }
+                });
+
+                // Refresh all repos in parallel
+                var refreshTasks = repoVMs.Select(vm => vm.RefreshAsync()).ToArray();
+                await Task.WhenAll(refreshTasks);
+            });
         }
-
-        var others = Directory.GetDirectories(folder).Except(RequiredRepos);
-
-        foreach (var o in others)
+        finally
         {
-            try
-            {
-                var repoFolder = new DirectoryInfo(Path.Combine(folder, o));
-                var vm = new RepoViewModel(repoFolder);
-                MeadowRepos.Add(vm);
-            }
-            catch
-            {
-                // ignore
-                Debug.WriteLine($"{o} doesn't seem to be a valid repo");
-            }
+            IsLoading = false;
+        }
+    }
+
+    private async Task RefreshAllReposAsync()
+    {
+        IsLoading = true;
+        try
+        {
+            var refreshTasks = MeadowRepos.Select(vm => vm.RefreshAsync()).ToArray();
+            await Task.WhenAll(refreshTasks);
+        }
+        finally
+        {
+            IsLoading = false;
         }
     }
 
@@ -128,7 +186,7 @@ public class CodeViewModel : FeatureViewModel
                 {
                     _settingsService.MeadowRepoRootFolder = RepoRootFolder;
                 }
-                LoadRepos(RepoRootFolder);
+                _ = LoadReposAsync(RepoRootFolder);
             }
         }
     }

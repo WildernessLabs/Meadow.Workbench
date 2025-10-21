@@ -17,6 +17,7 @@ public class RepoViewModel : ViewModelBase
     private bool _isBehind;
     private bool _hasRemote;
     private int _behindBy;
+    private bool _isLoading;
 
     public IReactiveCommand PullCommand { get; }
     public IReactiveCommand CloneCommand { get; }
@@ -35,7 +36,13 @@ public class RepoViewModel : ViewModelBase
 
         Name = localFolder.Name;
 
-        Refresh();
+        // Don't call Refresh() in constructor - let caller do it async
+    }
+
+    public bool IsLoading
+    {
+        get => _isLoading;
+        set => this.RaiseAndSetIfChanged(ref _isLoading, value);
     }
 
     private void Pull()
@@ -60,6 +67,28 @@ public class RepoViewModel : ViewModelBase
         var path = Repository.Clone(url, _localFolder.FullName, options);
         _repo = new Repository(path);
         Refresh();
+    }
+
+    public async System.Threading.Tasks.Task RefreshAsync()
+    {
+        IsLoading = true;
+        try
+        {
+            await System.Threading.Tasks.Task.Run(() =>
+            {
+                CurrentBranch = _repo?.Head.FriendlyName;
+                BehindBy = _repo?.Head.TrackingDetails?.BehindBy ?? 0;
+                IsBehind = BehindBy > 0;
+                HasRemote = _repo?.Head?.IsTracking ?? false;
+                this.RaisePropertyChanged(nameof(ExistsLocally));
+
+                Status = _repo?.RetrieveStatus();
+            });
+        }
+        finally
+        {
+            IsLoading = false;
+        }
     }
 
     private void Refresh()
